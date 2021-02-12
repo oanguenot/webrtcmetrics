@@ -1,0 +1,52 @@
+{
+  "name": "webrtcmetrics",
+  "version": "1.0.0",
+  "description": "WebRTC stats library",
+  "main": "dist/webrtcMetrics.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prebuild": "rimraf dist",
+    "build:dev": "webpack --output-filename webrtcMetrics.js",
+    "build:prod": "webpack --output-filename webrtcMetrics.js -p"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oanguenot/webrtc-stats.git"
+  },
+  "keywords": [
+    "WebRTC",
+    "stats"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "author": "Olivier Anguenot <oanguenot@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/oanguenot/webrtc-stats/issues"
+  },
+  "homepage": "https://github.com/oanguenot/webrtc-stats#readme",
+  "devDependencies": {
+    "@babel/cli": "7.11.6",
+    "@babel/core": "7.11.6",
+    "@babel/preset-env": "7.11.5",
+    "@babel/register": "7.11.5",
+    "babel-loader": "8.1.0",
+    "eslint": "7.10.0",
+    "eslint-config-airbnb-base": "14.2.0",
+    "eslint-plugin-import": "2.22.1",
+    "rimraf": "3.0.2",
+    "webpack": "4.44.2",
+    "webpack-cli": "3.3.12"
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ]
+  },
+  "dependencies": {
+    "loglevel": "1.7.0"
+  }
+}
