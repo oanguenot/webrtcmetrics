@@ -1,6 +1,6 @@
 # WebRTCMetrics
 
-**WebRTCMetrics** is a JavaScript library that aggregates stats received from the WebRTC stack to help Web applications grabbing metrics and information in real time.
+**WebRTCMetrics** is a JavaScript library that aggregates stats received from the WebRTC stack and generates a JSON report containing a **MOS** for the audio part as well as other interesting information that can help a Web application to analyze in real time the WebRTC metrics.
 
 ## Install
 
@@ -18,15 +18,15 @@ $ yarn add webrtcmetrics
 
 ## Usage
 
-Once initialized the `RTCPeerConnection`, give it to the `WebRTCMetrics` instance created such in the following example:
+Once initialized the `RTCPeerConnection`, give it to the `WebRTCMetrics` instance created such as in the following example:
 
 ```js
 import WebRTCMetrics from "webrtcmetrics";
 
-// Should exist something in your code
+// Should exist somewhere in your code
 const existingPeerConnection = new RTCPeerConnection(config);
 
-// To initialize the analyzer
+// Initialize the analyzer
 const analyzer = new WebRTCMetrics(
   { 
     pc: existingPeerConnection,
@@ -60,8 +60,8 @@ analyzer.start();
 | **last_three_jitter** | Array | Last 3 Jitter values received (in ms) |
 | **last_three_rtt** | Array | last 3 RTT values received (in ms) |
 | **percent_packets_lost** | Number | Percent of audio packet lost since the last statistic |
-| **total_packets_received** | Number | Number of packers received since the begining of the call |
-| **total_packets_lost** | Number | Number of packers lost since the begining of the call |
+| **total_packets_received** | Number | Number of packers received since the beginning of the call |
+| **total_packets_lost** | Number | Number of packers lost since the beginning of the call |
 | **delta_packets_received** | Number | Number of packers received since the last statistic |
 | **delta_packets_lost** | Number | Number of packers lost since last statistic |
 
@@ -69,7 +69,7 @@ analyzer.start();
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
-| **mos** | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model' |
+| **mos** | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
 
 ## Video Statistics
 
@@ -89,9 +89,18 @@ analyzer.start();
 
 ### Metrics to add
 
-cet (call establishment time) --> Network ?
-local_candidate {type: "host|srflx|relay", protocol: "udp|tcp, port: Number} --> Network ?
-remote_candidate_type {type: "host|srflx|relay", protocol: "udp|tcp, port: Number} --> Network ?
-candidates_number: Number --> Network
+The following metrics are in progress
+
+| Name | Description |
+|:----:|:------------|
+| cet | call establishment time<br> Should be added to the Network part ? |
+| selected_local_candidate | containing<br>- type: "host|srflx|relay",<br> -protocol: "udp|tcp, <br>- port: Number<br> Should be added in the  Network part |
+| selected_remote_candidate| containing<br>- type: "host|srflx|relay",<br> -protocol: "udp|tcp, <br>- port: Number<br> Should be added in the  Network part |
+| candidates_number | Number of candidates generated<br> Should be added in the Network part |
+| audio_bandwidth | Available audio bandwidth |
+| video_bandwidth | Available video bandwidth |
+| video_resolution_used | Current resolution used |
+| audio_data_received | Total number of data received in audio |
+| video_data_received | Total number of data received in video |
 
 
