@@ -23,10 +23,19 @@ Once initialized the `RTCPeerConnection`, give it to the `WebRTCMetrics` instanc
 ```js
 import WebRTCMetrics from "webrtcmetrics";
 
-// Somewhere in your code
-const pc = new RTCPeerConnection(config);
+// Should exist something in your code
+const existingPeerConnection = new RTCPeerConnection(config);
 
-const analyzer = new WebRTCMetrics({ pc });
+// To initialize the analyzer
+const analyzer = new WebRTCMetrics(
+  { 
+    pc: existingPeerConnection,
+    pname: 'PeerConnection_1',
+    cid: 'call007984',
+    uid: 'jdoe@mycorp.com',
+    refreshTimer: 3000,
+    verbose: true,
+});
 analyzer.onmetrics = (metrics) => {
   // Do something with the metrics received
 };

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prebuild": "rimraf dist",
-    "build:dev": "webpack --output-filename webrtcMetrics.js",
+    "build:dev": "webpack -w --output-filename webrtcMetrics.js",
     "build:prod": "webpack --output-filename webrtcMetrics.js -p"
   },
   "repository": {
@@ -47,6 +47,7 @@
     ]
   },
   "dependencies": {
-    "loglevel": "1.7.0"
+    "loglevel": "1.7.0",
+    "uuid": "8.3.2"
   }
 }

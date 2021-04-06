@@ -3,6 +3,7 @@ import * as log from "loglevel";
 log.setDefaultLevel(log.levels.TRACE);
 
 export const setVerboseLog = (shouldHaveVerboseLog) => {
+  log.trace(format(getHeader(), "log", `set log level to ${shouldHaveVerboseLog ? "verbose" : "warn only"}`))
   log.setLevel(shouldHaveVerboseLog ? log.levels.TRACE : log.levels.WARN);
 };
 
