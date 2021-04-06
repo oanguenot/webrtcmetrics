@@ -292,10 +292,8 @@ const extractVideoCodec = (bunch) => {
 
 export const computeMos = (report) => {
   const average = (nums) => (nums.reduce((a, b) => (a + b)) / nums.length);
-
   const rtt = average(report.audio.last_three_rtt);
   const jitter = average(report.audio.last_three_jitter);
-
   const rx = 93.2 - report.audio.percent_packets_lost;
   const ry = 0.18 * rx * rx - 27.9 * rx + 1126.62;
 
