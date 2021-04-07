@@ -1,15 +1,14 @@
 import * as log from "loglevel";
 
+const getHeader = () => `${new Date().toISOString()} | metrics`;
+const format = (header, module, message) => `${header} | ${module} | ${message}`;
+
 log.setDefaultLevel(log.levels.TRACE);
 
 export const setVerboseLog = (shouldHaveVerboseLog) => {
-  log.trace(format(getHeader(), "log", `set log level to ${shouldHaveVerboseLog ? "verbose" : "warn only"}`))
+  log.trace(format(getHeader(), "log", `set log level to ${shouldHaveVerboseLog ? "verbose" : "warn only"}`));
   log.setLevel(shouldHaveVerboseLog ? log.levels.TRACE : log.levels.WARN);
 };
-
-const getHeader = () => `${new Date().toISOString()} | metrics`;
-
-const format = (header, module, message) => `${header} | ${module} | ${message}`;
 
 export const debug = (name, message) => {
   log.debug(format(getHeader(), name, message));

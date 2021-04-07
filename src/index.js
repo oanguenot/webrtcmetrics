@@ -1,5 +1,5 @@
 import "regenerator-runtime/runtime.js";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { setVerboseLog, info, warn } from "./utils/log";
 import { getLibName, getVersion } from "./utils/helper";
 import Analyzer from "./analyzer";
@@ -11,8 +11,8 @@ const _cfg = {
   verbose: false,
   pname: `p-${uuidv4()}`,
   cid: `c-${uuidv4()}`,
-  uid: `u-${uuidv4()}`
-}
+  uid: `u-${uuidv4()}`,
+};
 
 export default class WebRTCMetrics {
   constructor(cfg) {
@@ -45,7 +45,7 @@ export default class WebRTCMetrics {
     }
     this._uid = cfg.uid || _cfg.uid;
 
-    this._verboseLog = cgf.verbose || _cfg.verbose;
+    this._verboseLog = cfg.verbose || _cfg.verbose;
     this._name = getLibName();
     this._version = getVersion();
     this._analyzer = new Analyzer(this._pc, this._pname, this._cid, this._uid);

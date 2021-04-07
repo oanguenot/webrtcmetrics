@@ -15,7 +15,7 @@ export default class Analyzer {
   }
 
   analyze(reports) {
-    let metrics = {
+    const metrics = {
       name: this._name,
       timestamp: Date.now(),
       audio: {
@@ -40,49 +40,49 @@ export default class Analyzer {
       },
       network: {
         infrastructure: null,
-      }
-    }
-    reports.forEach(report => {
-      let values = extract(report);
-      values.forEach(data => {
+      },
+    };
+
+    reports.forEach((report) => {
+      const values = extract(report);
+      values.forEach((data) => {
         if (data.value && data.type) {
-          Object.keys(data.value).forEach(key => {
-            metrics[data.type][key] = data.value[key]
+          Object.keys(data.value).forEach((key) => {
+            metrics[data.type][key] = data.value[key];
           });
         }
-      })
+      });
     });
 
     const mos = computeMos(metrics);
     metrics.audio.mos = mos;
-    metrics.timestamp = Date.now()
+    metrics.timestamp = Date.now();
     return metrics;
   }
 
   async start({ refreshTimer }) {
-
     const getStats = async () => {
       if (!this._pc) {
         return;
       }
       try {
         const reports = await this._pc.getStats();
-        debug(moduleName, `getstats() - analyze in progress...`);
+        debug(moduleName, "getstats() - analyze in progress...");
 
-        const metrics = this.analyze(reports)
+        const metrics = this.analyze(reports);
 
         this.fireOnMetrics(metrics);
       } catch (err) {
-        error(moduleName, `getStats() - error ${err}`)
+        error(moduleName, `getStats() - error ${err}`);
       }
-    }
+    };
 
     if (this._intervalId) {
       debug(moduleName, `start() - clear analyzer with id ${this._intervalId}`);
       clearInterval(this._intervalId);
     }
 
-    debug(moduleName, `start() - start analyzing...`);
+    debug(moduleName, "start() - start analyzing...");
     this._intervalId = setInterval(() => {
       getStats();
     }, refreshTimer);
@@ -98,7 +98,7 @@ export default class Analyzer {
 
   registerCallback(name, callback, context) {
     if (name in this._callbacks) {
-      this._callbacks[name] = { callback, context: context };
+      this._callbacks[name] = { callback, context };
       debug(moduleName, `registered callback '${name}'`);
     } else {
       error(moduleName, `can't register callback for '${name}'`);
@@ -106,17 +106,16 @@ export default class Analyzer {
   }
 
   fireOnMetrics(stats) {
-
     const call = (fct, context, value) => {
       if (!context) {
         fct(value);
       } else {
         fct.call(context, value);
       }
-    }
+    };
 
     if (this._callbacks.onmetrics) {
-      call(this._callbacks.onmetrics.callback, this._callbacks.onmetrics.context, stats)
+      call(this._callbacks.onmetrics.callback, this._callbacks.onmetrics.context, stats);
     }
   }
 }

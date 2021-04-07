@@ -1,4 +1,5 @@
 import { join } from "path";
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 export default {
   entry: "./src/index",
@@ -25,4 +26,5 @@ export default {
       },
     ],
   },
+  plugins: [new ESLintPlugin()],
 };

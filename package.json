@@ -1,6 +1,6 @@
 {
   "name": "webrtcmetrics",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "WebRTC stats library",
   "main": "dist/webrtcMetrics.js",
   "scripts": {
@@ -37,6 +37,7 @@
     "eslint": "7.10.0",
     "eslint-config-airbnb-base": "14.2.0",
     "eslint-plugin-import": "2.22.1",
+    "eslint-webpack-plugin": "2.5.3",
     "rimraf": "3.0.2",
     "webpack": "4.44.2",
     "webpack-cli": "3.3.12"
