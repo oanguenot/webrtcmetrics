@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 export const getLibName = () => ("WebRTCMetrics");
 export const getVersion = () => ("1.0.3");
 
@@ -49,6 +51,16 @@ export const defaultMetric = {
     delta_kbs_received: 0,
     delta_kbs_sent: 0,
   },
+};
+
+export const defaultConfig = {
+  refreshTimer: 2500, // Default - metrics every 2,5s
+  verbose: false, // Default - minimal logs
+  pname: `p-${uuidv4()}`, // Default - peer connection name
+  cid: `c-${uuidv4()}`, // Default - call identifier
+  uid: `u-${uuidv4()}`, // Default - user identifier
+  record: false, // Default - no record,
+  recordFields: ["*"], // Default all fields stored
 };
 
 export const TYPE = {

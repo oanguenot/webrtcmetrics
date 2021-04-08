@@ -1,3 +1,4 @@
+import Exporter from "./exporter";
 import { computeMos, extract } from "./extractor";
 import { defaultMetric } from "./utils/helper";
 import { debug, error } from "./utils/log";
@@ -5,22 +6,24 @@ import { debug, error } from "./utils/log";
 const moduleName = "analyzer    ";
 
 export default class Analyzer {
-  constructor(pc, name, cid, uid) {
+  constructor(cfg) {
     this._callbacks = {
       onmetrics: null,
     };
 
-    this._pc = pc;
-    this._name = name;
-    this._callid = cid;
-    this._userid = uid;
+    this._pc = cfg.pc;
+    this._pname = cfg.name;
+    this._callid = cfg.cid;
+    this._userid = cfg.uid;
     this._intervalId = null;
+    this._cfg = cfg;
+    this._exporter = new Exporter(cfg);
   }
 
   analyze(reports) {
     const metrics = defaultMetric;
 
-    metrics.name = this._name;
+    metrics.pname = this._pname;
     metrics.call_id = this._callid;
     metrics.user_id = this._userid;
 
@@ -42,7 +45,7 @@ export default class Analyzer {
     return metrics;
   }
 
-  async start({ refreshTimer }) {
+  async start() {
     const getStats = async () => {
       if (!this._pc) {
         return;
@@ -65,9 +68,10 @@ export default class Analyzer {
     }
 
     debug(moduleName, "start() - start analyzing...");
+    this._exporter.start();
     this._intervalId = setInterval(() => {
       getStats();
-    }, refreshTimer);
+    }, this._cfg.refreshTimer);
   }
 
   stop() {
@@ -76,6 +80,7 @@ export default class Analyzer {
     }
 
     clearInterval(this._intervalId);
+    this._exporter.stop();
   }
 
   registerCallback(name, callback, context) {

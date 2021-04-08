@@ -52,7 +52,7 @@ analyzer.start();
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
-| **name** | String | Name of the Peer Connection given |
+| **pname** | String | Name of the Peer Connection given |
 | **call_id** | String | Identifier or abstract name representing the call |
 | **user_id** | String | Identifier or abstract name representing the user |
 | **timestamp** | Number | Timestamp of the metric collected |
