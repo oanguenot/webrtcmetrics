@@ -1,63 +1,10 @@
-const TYPE = {
-  CANDIDATE_PAIR: "candidate-pair",
-  INBOUND_RTP: "inbound-rtp",
-  OUTBOUND_RTP: "outbound-rtp",
-  TRACK: "track",
-  LOCAL_CANDIDATE: "local-candidate",
-  MEDIA_SOURCE: "media-source",
-  CODEC: "codec",
-};
-
-const PROPERTY = {
-  TYPE: "type",
-  CURRENT_ROUND_TRIP_TIME: "currentRoundTripTime",
-  WRITABLE: "writable",
-  NOMINATED: "nominated",
-  STATE: "state",
-  PACKETS_RECEIVED: "packetsReceived",
-  PACKETS_LOST: "packetsLost",
-  MEDIATYPE: "mediaType",
-  JITTER: "jitter",
-  REMOTE_SOURCE: "remoteSource",
-  KIND: "kind",
-  LOCAL_CANDIDATE_ID: "localCandidateId",
-  ID: "id",
-  NETWORK_TYPE: "networkType",
-  AUDIO_LEVEL: "audioLevel",
-  FRAME_WIDTH: "frameWidth",
-  FRAME_HEIGHT: "frameHeight",
-  CODEC_ID: "codecId",
-  CHANNELS: "channels",
-  CLOCK_RATE: "clockRate",
-  MIME_TYPE: "mimeType",
-  SDP_FMTP_LINE: "sdpFmtpLine",
-};
-
-const VALUE = {
-  SUCCEEDED: "succeeded",
-  AUDIO: "audio",
-  VIDEO: "video",
-};
-
-const INFRASTRUCTURE_VALUE = {
-  ETHERNET: 0,
-  CELLULAR_5G: 2,
-  WIFI: 3,
-  CELLULAR_4G: 5,
-  CELLULAR: 10,
-};
-
-const INFRASTRUCTURE_LABEL = {
-  ETHERNET: "ethernet",
-  CELLULAR_4G: "cellular",
-  WIFI: "wifi",
-};
-
-const STAT_TYPE = {
-  AUDIO: "audio",
-  VIDEO: "video",
-  NETWORK: "network",
-};
+import {
+  PROPERTY,
+  INFRASTRUCTURE_VALUE,
+  STAT_TYPE,
+  INFRASTRUCTURE_LABEL,
+  TYPE, VALUE,
+} from "./utils/helper";
 
 /* Globals */
 const maxValues = 3;
@@ -76,12 +23,23 @@ let jitterIndex = 0;
 
 /* Candidate */
 let localCandidateId = null;
+let remoteCandidateId = null;
 
 /* Codecs */
 let audioInputCodecId = null;
 let videoInputCodecId = null;
 let audioOutputCodecId = null;
 let videoOutputCodecId = null;
+
+/* Total Bytes Sent/received */
+let previousTotalBytesReceived = 0;
+let previousTotalBytesSent = 0;
+let previousTimestampForBytes = Date.now();
+
+let previousAudioTotalBytesReceived = 0;
+let previousAudioTotalBytesSent = 0;
+let previousVideoTotalBytesReceived = 0;
+let previousVideoTotalBytesSent = 0;
 
 const extractRoundTripTime = (bunch, rtt, max, index) => {
   const newRTT = [...rtt];
@@ -169,6 +127,31 @@ const extractVideoCodec = (bunch) => ({
   mime_type: bunch[PROPERTY.MIME_TYPE] || null,
 });
 
+const extractBytesSentReceived = (bunch) => {
+  const totalBytesReceived = bunch[PROPERTY.BYTES_RECEIVED] || 0;
+  const totalBytesSent = bunch[PROPERTY.BYTES_SENT] || 0;
+  const timestamp = bunch[PROPERTY.TIMESTAMP] || Date.now();
+
+  const bytesReceived = totalBytesReceived - previousTotalBytesReceived;
+  const bytesSent = totalBytesSent - previousTotalBytesSent;
+  const deltaMs = timestamp - previousTimestampForBytes;
+  const kbsSpeedReceived = ((bytesReceived / 1024) / deltaMs) * 1000;
+  const kbsSpeedSent = ((bytesSent / 1024) / deltaMs) * 1000;
+
+  previousTotalBytesReceived = totalBytesReceived;
+  previousTotalBytesSent = totalBytesSent;
+  previousTimestampForBytes = timestamp;
+
+  return {
+    total_bytes_received: totalBytesReceived,
+    total_bytes_sent: totalBytesSent,
+    delta_bytes_received: bytesReceived,
+    delta_bytes_sent: bytesSent,
+    kbs_speed_received: kbsSpeedReceived,
+    kbs_speed_sent: kbsSpeedSent,
+  };
+};
+
 export const extract = (bunch) => {
   if (!bunch) {
     return [];
@@ -178,22 +161,45 @@ export const extract = (bunch) => {
     case TYPE.CANDIDATE_PAIR:
       if (bunch[PROPERTY.WRITABLE] && bunch[PROPERTY.NOMINATED] && bunch[PROPERTY.STATE] === VALUE.SUCCEEDED) {
         localCandidateId = bunch[PROPERTY.LOCAL_CANDIDATE_ID];
+        remoteCandidateId = bunch[PROPERTY.REMOTE_CANDIDATE_ID];
+
+        const valueSentReceived = extractBytesSentReceived(bunch);
 
         const newRtt = extractRoundTripTime(bunch, lastThreeRtt, maxValues, rttIndex);
         if (lastThreeRtt !== newRtt) {
           lastThreeRtt = newRtt;
           rttIndex += 1;
         }
-        return [{ type: STAT_TYPE.AUDIO, value: { last_three_rtt: lastThreeRtt } }];
+        return [
+          { type: STAT_TYPE.DATA, value: { last_three_rtt: lastThreeRtt } },
+          { type: STAT_TYPE.DATA, value: { total_bytes_received: valueSentReceived.total_bytes_received } },
+          { type: STAT_TYPE.DATA, value: { total_bytes_sent: valueSentReceived.total_bytes_sent } },
+          { type: STAT_TYPE.DATA, value: { delta_bytes_received: valueSentReceived.delta_bytes_received } },
+          { type: STAT_TYPE.DATA, value: { delta_bytes_sent: valueSentReceived.delta_bytes_sent } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_received: valueSentReceived.kbs_speed_received } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_sent: valueSentReceived.kbs_speed_sent } },
+        ];
       }
       break;
     case TYPE.LOCAL_CANDIDATE:
       if (bunch[PROPERTY.ID] === localCandidateId) {
-        return [{ type: "network", value: { infrastructure: extractInfrastructureValue(bunch) } }];
+        return [
+          { type: STAT_TYPE.NETWORK, value: { infrastructure: extractInfrastructureValue(bunch) } },
+          { type: STAT_TYPE.NETWORK, value: { local_candidate_type: bunch[PROPERTY.CANDIDATE_TYPE] || "" } },
+          { type: STAT_TYPE.NETWORK, value: { local_candidate_protocol: bunch[PROPERTY.PROTOCOL] || "" } },
+        ];
+      }
+      break;
+    case TYPE.REMOTE_CANDIDATE:
+      if (bunch[PROPERTY.ID] === remoteCandidateId) {
+        return [
+          { type: STAT_TYPE.NETWORK, value: { remote_candidate_type: bunch[PROPERTY.CANDIDATE_TYPE] || "" } },
+          { type: STAT_TYPE.NETWORK, value: { remote_candidate_protocol: bunch[PROPERTY.PROTOCOL] || "" } },
+        ];
       }
       break;
     case TYPE.INBOUND_RTP:
-      if (bunch[PROPERTY.MEDIATYPE] === VALUE.AUDIO) {
+      if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const data = extractAudioPacketReceived(bunch, previousAudioPacketReceived, previousAudioPacketLost);
 
         const audioPacketReceivedDelta = data.packetsReceived - previousAudioPacketReceived;
@@ -207,6 +213,10 @@ export const extract = (bunch) => {
           jitterIndex += 1;
         }
 
+        const audioTotalBytesReceived = bunch[PROPERTY.BYTES_RECEIVED] || 0;
+        const audioBytesReceived = audioTotalBytesReceived - previousAudioTotalBytesReceived;
+        previousAudioTotalBytesReceived = audioTotalBytesReceived;
+
         audioInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
         return [
@@ -216,19 +226,48 @@ export const extract = (bunch) => {
           { type: STAT_TYPE.AUDIO, value: { delta_packets_received: audioPacketReceivedDelta } },
           { type: STAT_TYPE.AUDIO, value: { delta_packets_lost: audioPacketLostDelta } },
           { type: STAT_TYPE.AUDIO, value: { last_three_jitter: lastThreeJitter } },
+          { type: STAT_TYPE.AUDIO, value: { total_bytes_received: audioTotalBytesReceived } },
+          { type: STAT_TYPE.AUDIO, value: { delta_bytes_received: audioBytesReceived } },
         ];
       }
 
-      if (bunch[PROPERTY.MEDIATYPE] === VALUE.VIDEO) {
+      if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
+        const videoTotalBytesReceived = bunch[PROPERTY.BYTES_RECEIVED] || 0;
+        const videoBytesReceived = videoTotalBytesReceived - previousVideoTotalBytesReceived;
+        previousVideoTotalBytesReceived = videoTotalBytesReceived;
+
         videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        return [
+          { type: STAT_TYPE.VIDEO, value: { total_bytes_received: videoTotalBytesReceived } },
+          { type: STAT_TYPE.VIDEO, value: { delta_bytes_received: videoBytesReceived } },
+        ];
       }
       break;
     case TYPE.OUTBOUND_RTP:
-      if (bunch[PROPERTY.MEDIATYPE] === VALUE.AUDIO) {
+      if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
+        const audioTotalBytesSent = bunch[PROPERTY.BYTES_SENT] || 0;
+        const audioBytesSent = audioTotalBytesSent - previousAudioTotalBytesSent;
+        previousAudioTotalBytesSent = audioTotalBytesSent;
+
         audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        return [
+          { type: STAT_TYPE.AUDIO, value: { total_bytes_sent: audioTotalBytesSent } },
+          { type: STAT_TYPE.AUDIO, value: { delta_bytes_sent: audioBytesSent } },
+        ];
       }
-      if (bunch[PROPERTY.MEDIATYPE] === VALUE.VIDEO) {
+      if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
+        const videoTotalBytesSent = bunch[PROPERTY.BYTES_SENT] || 0;
+        const videoBytesSent = videoTotalBytesSent - previousVideoTotalBytesSent;
+        previousVideoTotalBytesSent = videoTotalBytesSent;
+
         videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        return [
+          { type: STAT_TYPE.VIDEO, value: { total_bytes_sent: videoTotalBytesSent } },
+          { type: STAT_TYPE.VIDEO, value: { delta_bytes_sent: videoBytesSent } },
+        ];
       }
       break;
     case TYPE.MEDIA_SOURCE:
@@ -283,7 +322,7 @@ export const extract = (bunch) => {
 
 export const computeMos = (report) => {
   const average = (nums) => (nums.reduce((a, b) => (a + b)) / nums.length);
-  const rtt = average(report.audio.last_three_rtt);
+  const rtt = average(report.data.last_three_rtt);
   const jitter = average(report.audio.last_three_jitter);
   const rx = 93.2 - report.audio.percent_packets_lost;
   const ry = 0.18 * rx * rx - 27.9 * rx + 1126.62;
@@ -293,8 +332,7 @@ export const computeMos = (report) => {
 
   const id = 0.024 * d + 0.11 * (d - 177.3) * h;
 
-  // infrastructure: wifi by default
-  const a = report.network.infrastructure || 3;
+  const a = report.network.infrastructure;
 
   const r = ry - (id + a);
 

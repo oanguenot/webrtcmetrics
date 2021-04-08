@@ -1,49 +1,33 @@
 import { computeMos, extract } from "./extractor";
+import { defaultMetric } from "./utils/helper";
 import { debug, error } from "./utils/log";
 
 const moduleName = "analyzer    ";
 
 export default class Analyzer {
-  constructor(pc, name) {
+  constructor(pc, name, cid, uid) {
     this._callbacks = {
       onmetrics: null,
     };
 
     this._pc = pc;
     this._name = name;
+    this._callid = cid;
+    this._userid = uid;
     this._intervalId = null;
   }
 
   analyze(reports) {
-    const metrics = {
-      name: this._name,
-      timestamp: Date.now(),
-      audio: {
-        input_level: null,
-        output_level: null,
-        input_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
-        output_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
-        last_three_jitter: [0, 0, 0],
-        last_three_rtt: [0, 0, 0],
-        percent_packets_lost: null,
-        total_packets_received: 0,
-        total_packets_lost: 0,
-        delta_packets_received: 0,
-        delta_packets_lost: 0,
-        mos: null,
-      },
-      video: {
-        input_size: { width: null, height: null },
-        output_size: { width: null, height: null },
-        input_codec: { mime_type: null, clock_rate: null },
-        output_codec: { mime_type: null, clock_rate: null },
-      },
-      network: {
-        infrastructure: null,
-      },
-    };
+    const metrics = defaultMetric;
+
+    metrics.name = this._name;
+    metrics.call_id = this._callid;
+    metrics.user_id = this._userid;
 
     reports.forEach((report) => {
+      if (!metrics.timestamp && report.timestamp) {
+        metrics.timestamp = report.timestamp;
+      }
       const values = extract(report);
       values.forEach((data) => {
         if (data.value && data.type) {
@@ -54,9 +38,7 @@ export default class Analyzer {
       });
     });
 
-    const mos = computeMos(metrics);
-    metrics.audio.mos = mos;
-    metrics.timestamp = Date.now();
+    metrics.audio.mos = computeMos(metrics);
     return metrics;
   }
 
