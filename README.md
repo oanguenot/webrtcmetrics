@@ -1,6 +1,6 @@
 # WebRTCMetrics
 
-**WebRTCMetrics** is a JavaScript library that aggregates stats received from the WebRTC stack and generates a JSON report containing a **MOS** for the audio part as well as other interesting information that can help a Web application to analyze in real time the WebRTC metrics.
+**WebRTCMetrics** is a JavaScript library that aggregates stats received from the WebRTC stack and generates a JSON report containing a **MOS** score for the audio part as well as a **CDR** ticket at the end of the call resuming the reports and other interesting information.
 
 ## Install
 
@@ -33,9 +33,9 @@ const analyzer = new WebRTCMetrics(
     pname: 'PeerConnection_1',  // Name of the peer connection (Optional)
     cid: 'call007984',          // Call Id (Optional)
     uid: 'jdoe@mycorp.com',     // User Id (Optional)
-    refreshTimer: 3000,         // Timer to get the report (in ms)
-    verbose: true,              // Display verbose logs or not
-    record: true                // Record reports in a ticket or not
+    refreshTimer: 3000,         // Timer to get the report (in ms). Default to 2500ms.
+    verbose: true,              // Display verbose logs or not. Default to false.
+    record: true                // Record reports in a ticket or not. Default to false.
 });
 
 analyzer.onreport = (report) => {
