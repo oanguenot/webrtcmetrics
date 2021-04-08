@@ -1,9 +1,17 @@
 import Exporter from "./exporter";
 import { computeMos, extract } from "./extractor";
-import { defaultMetric } from "./utils/helper";
+import { getDefaultMetric } from "./utils/helper";
 import { debug, error } from "./utils/log";
 
 const moduleName = "analyzer    ";
+
+const call = (fct, context, value) => {
+  if (!context) {
+    fct(value);
+  } else {
+    fct.call(context, value);
+  }
+};
 
 export default class Analyzer {
   constructor(cfg) {
@@ -13,7 +21,7 @@ export default class Analyzer {
     };
 
     this._pc = cfg.pc;
-    this._pname = cfg.name;
+    this._pname = cfg.pname;
     this._callid = cfg.cid;
     this._userid = cfg.uid;
     this._intervalId = null;
@@ -22,7 +30,7 @@ export default class Analyzer {
   }
 
   analyze(stats) {
-    const report = defaultMetric;
+    const report = getDefaultMetric();
 
     report.pname = this._pname;
     report.call_id = this._callid;
@@ -55,12 +63,10 @@ export default class Analyzer {
         const reports = await this._pc.getStats();
         debug(moduleName, "getstats() - analyze in progress...");
 
-        const metric = this.analyze(reports);
+        const report = this.analyze(reports);
 
-        this.fireOnReport(metric);
-        if (this._cfg.record) {
-          this._exporter.addReport(metric);
-        }
+        this.fireOnReport(report);
+        this._exporter.addReport(report);
       } catch (err) {
         error(moduleName, `getStats() - error ${err}`);
       }
@@ -84,7 +90,9 @@ export default class Analyzer {
     }
 
     clearInterval(this._intervalId);
-    this._exporter.stop();
+    const ticket = this._exporter.stop();
+    this.fireOnTicket(ticket);
+    this._exporter.reset();
   }
 
   registerCallback(name, callback, context) {
@@ -107,16 +115,14 @@ export default class Analyzer {
   }
 
   fireOnReport(report) {
-    const call = (fct, context, value) => {
-      if (!context) {
-        fct(value);
-      } else {
-        fct.call(context, value);
-      }
-    };
-
     if (this._callbacks.onreport) {
       call(this._callbacks.onreport.callback, this._callbacks.onreport.context, report);
+    }
+  }
+
+  fireOnTicket(ticket) {
+    if (this._callbacks.onticket) {
+      call(this._callbacks.onticket.callback, this._callbacks.onticket.context, ticket);
     }
   }
 }

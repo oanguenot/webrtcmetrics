@@ -3,55 +3,57 @@ import { v4 as uuidv4 } from "uuid";
 export const getLibName = () => ("WebRTCMetrics");
 export const getVersion = () => ("1.0.3");
 
-export const defaultMetric = {
-  name: "",
-  call_id: "",
-  user_id: "",
-  timestamp: null,
-  audio: {
-    input_level: 0,
-    output_level: 0,
-    input_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
-    output_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
-    last_three_jitter: [0, 0, 0],
-    percent_packets_lost: null,
-    delta_packets_received: 0,
-    delta_packets_lost: 0,
-    total_packets_received: 0,
-    total_packets_lost: 0,
-    total_bytes_received: 0,
-    delta_bytes_received: 0,
-    total_bytes_sent: 0,
-    delta_bytes_sent: 0,
-    mos: 0,
-  },
-  video: {
-    input_size: { width: null, height: null },
-    output_size: { width: null, height: null },
-    input_codec: { mime_type: null, clock_rate: null },
-    output_codec: { mime_type: null, clock_rate: null },
-    total_bytes_received: 0,
-    delta_bytes_received: 0,
-    total_bytes_sent: 0,
-    delta_bytes_sent: 0,
-  },
-  network: {
-    infrastructure: 3,
-    local_candidate_type: "",
-    local_candidate_protocol: "",
-    remote_candidate_type: "",
-    remote_candidate_protocol: "",
-  },
-  data: {
-    last_three_rtt: [0, 0, 0],
-    total_bytes_received: 0,
-    total_bytes_sent: 0,
-    delta_bytes_received: 0,
-    delta_bytes_sent: 0,
-    delta_kbs_received: 0,
-    delta_kbs_sent: 0,
-  },
-};
+export const getDefaultMetric = () => (
+  {
+    pname: "",
+    call_id: "",
+    user_id: "",
+    timestamp: null,
+    audio: {
+      input_level: 0,
+      output_level: 0,
+      input_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
+      output_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
+      last_three_jitter: [0, 0, 0],
+      percent_packets_lost: null,
+      delta_packets_received: 0,
+      delta_packets_lost: 0,
+      total_packets_received: 0,
+      total_packets_lost: 0,
+      total_bytes_received: 0,
+      delta_bytes_received: 0,
+      total_bytes_sent: 0,
+      delta_bytes_sent: 0,
+      mos: 0,
+    },
+    video: {
+      input_size: { width: null, height: null },
+      output_size: { width: null, height: null },
+      input_codec: { mime_type: null, clock_rate: null },
+      output_codec: { mime_type: null, clock_rate: null },
+      total_bytes_received: 0,
+      delta_bytes_received: 0,
+      total_bytes_sent: 0,
+      delta_bytes_sent: 0,
+    },
+    network: {
+      infrastructure: 3,
+      local_candidate_type: "",
+      local_candidate_protocol: "",
+      remote_candidate_type: "",
+      remote_candidate_protocol: "",
+    },
+    data: {
+      last_three_rtt: [0, 0, 0],
+      total_bytes_received: 0,
+      total_bytes_sent: 0,
+      delta_bytes_received: 0,
+      delta_bytes_sent: 0,
+      delta_kbs_received: 0,
+      delta_kbs_sent: 0,
+    },
+  }
+);
 
 export const defaultConfig = {
   refreshTimer: 2500, // Default - generate a report every 2,5s

@@ -4,6 +4,16 @@ const moduleName = "exporter    ";
 
 const VERSION_EXPORTER = "1.0";
 
+const average = (reports, key, subKey) => {
+  const arr = reports.map((report) => {
+    if (!subKey) {
+      return report[key];
+    }
+    return report[key][subKey];
+  });
+  return arr.reduce((p, c) => p + c, 0) / arr.length;
+};
+
 export default class Exporter {
   constructor(cfg) {
     this._start = null;
@@ -20,6 +30,7 @@ export default class Exporter {
   stop() {
     info(moduleName, "stop() - stop exporter...");
     this._end = new Date().toJSON();
+    return this.ticket;
   }
 
   addReport(report) {
@@ -27,21 +38,25 @@ export default class Exporter {
     this._reports.push(report);
   }
 
-  resetReports() {
+  reset() {
     info(moduleName, "resetReports() - reset reports");
     this._reports = [];
+    this._start = null;
+    this._end = null;
   }
 
   get ticket() {
     info(moduleName, "ticket() - generate ticket");
     return {
       pname: this._cfg.pname,
-      call_id: this._cfg.call_id,
-      user_id: this._cfg.user_id,
+      call_id: this._cfg.cid,
+      user_id: this._cfg.uid,
       start_time: this._start,
       end_time: this._end,
       version: VERSION_EXPORTER,
-      data: this._reports,
+      count: this._reports.length,
+      mos: average(this._reports, "audio", "mos"),
+      data: this._cfg.record ? this._reports : [],
     };
   }
 }

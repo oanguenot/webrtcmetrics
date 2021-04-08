@@ -310,7 +310,6 @@ export const extract = (bunch) => {
         }
         return [{ type: STAT_TYPE.VIDEO, value: { output_codec: codec } }];
       }
-
       break;
     default:
       break;
