@@ -16,11 +16,29 @@ export default class WebRTCMetrics {
   }
 
   /**
-   * Register to event 'onmetrics'
-   * Fired when a metrics is received
+   * Register a callback to 'onreport'
+   * Unregister when callback is null
+   * Fired when a report is received
    */
-  set onmetrics(callback) {
-    this._analyzer.registerCallback("onmetrics", callback);
+  set onreport(callback) {
+    if (callback) {
+      this._analyzer.registerCallback("onreport", callback);
+    } else {
+      this._analyzer.unregisterCallback("onreport");
+    }
+  }
+
+  /**
+   * Register a callback to 'onticket'
+   * Unregister when callback is null
+   * Fired when a ticket is received
+   */
+  set onticket(callback) {
+    if (callback) {
+      this._analyzer.registerCallback("onticket", callback);
+    } else {
+      this._analyzer.unregisterCallback("onticket");
+    }
   }
 
   /**

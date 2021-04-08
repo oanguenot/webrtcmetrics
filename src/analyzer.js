@@ -8,7 +8,8 @@ const moduleName = "analyzer    ";
 export default class Analyzer {
   constructor(cfg) {
     this._callbacks = {
-      onmetrics: null,
+      onreport: null,
+      onticket: null,
     };
 
     this._pc = cfg.pc;
@@ -20,29 +21,29 @@ export default class Analyzer {
     this._exporter = new Exporter(cfg);
   }
 
-  analyze(reports) {
-    const metrics = defaultMetric;
+  analyze(stats) {
+    const report = defaultMetric;
 
-    metrics.pname = this._pname;
-    metrics.call_id = this._callid;
-    metrics.user_id = this._userid;
+    report.pname = this._pname;
+    report.call_id = this._callid;
+    report.user_id = this._userid;
 
-    reports.forEach((report) => {
-      if (!metrics.timestamp && report.timestamp) {
-        metrics.timestamp = report.timestamp;
+    stats.forEach((stat) => {
+      if (!report.timestamp && stat.timestamp) {
+        report.timestamp = stat.timestamp;
       }
-      const values = extract(report);
+      const values = extract(stat);
       values.forEach((data) => {
         if (data.value && data.type) {
           Object.keys(data.value).forEach((key) => {
-            metrics[data.type][key] = data.value[key];
+            report[data.type][key] = data.value[key];
           });
         }
       });
     });
 
-    metrics.audio.mos = computeMos(metrics);
-    return metrics;
+    report.audio.mos = computeMos(report);
+    return report;
   }
 
   async start() {
@@ -54,9 +55,12 @@ export default class Analyzer {
         const reports = await this._pc.getStats();
         debug(moduleName, "getstats() - analyze in progress...");
 
-        const metrics = this.analyze(reports);
+        const metric = this.analyze(reports);
 
-        this.fireOnMetrics(metrics);
+        this.fireOnReport(metric);
+        if (this._cfg.record) {
+          this._exporter.addReport(metric);
+        }
       } catch (err) {
         error(moduleName, `getStats() - error ${err}`);
       }
@@ -88,11 +92,21 @@ export default class Analyzer {
       this._callbacks[name] = { callback, context };
       debug(moduleName, `registered callback '${name}'`);
     } else {
-      error(moduleName, `can't register callback for '${name}'`);
+      error(moduleName, `can't register callback for '${name}' - already exists`);
     }
   }
 
-  fireOnMetrics(stats) {
+  unregisterCallback(name) {
+    if (name in this._callbacks) {
+      this._callbacks[name] = null;
+      delete this._callbacks[name];
+      debug(moduleName, `unregistered callback '${name}'`);
+    } else {
+      error(moduleName, `can't unregister callback for '${name}' - not found`);
+    }
+  }
+
+  fireOnReport(report) {
     const call = (fct, context, value) => {
       if (!context) {
         fct(value);
@@ -101,8 +115,8 @@ export default class Analyzer {
       }
     };
 
-    if (this._callbacks.onmetrics) {
-      call(this._callbacks.onmetrics.callback, this._callbacks.onmetrics.context, stats);
+    if (this._callbacks.onreport) {
+      call(this._callbacks.onreport.callback, this._callbacks.onreport.context, report);
     }
   }
 }

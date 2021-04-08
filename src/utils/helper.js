@@ -54,7 +54,7 @@ export const defaultMetric = {
 };
 
 export const defaultConfig = {
-  refreshTimer: 2500, // Default - metrics every 2,5s
+  refreshTimer: 2500, // Default - generate a report every 2,5s
   verbose: false, // Default - minimal logs
   pname: `p-${uuidv4()}`, // Default - peer connection name
   cid: `c-${uuidv4()}`, // Default - call identifier

@@ -9,7 +9,7 @@ export default class Exporter {
     this._start = null;
     this._end = null;
     this._cfg = cfg;
-    this._metrics = [];
+    this._reports = [];
   }
 
   start() {
@@ -22,14 +22,14 @@ export default class Exporter {
     this._end = new Date().toJSON();
   }
 
-  addMetrics(metric) {
-    debug(moduleName, `addMetrics() - add metric to exporter at ${metric.timestamp}`);
-    this._metrics.push(metric);
+  addReport(report) {
+    debug(moduleName, `addReport() - add report to exporter at ${report.timestamp}`);
+    this._reports.push(report);
   }
 
-  resetMetrics() {
-    info(moduleName, "addMetrics() - reset metric");
-    this._metrics = [];
+  resetReports() {
+    info(moduleName, "resetReports() - reset reports");
+    this._reports = [];
   }
 
   get ticket() {
@@ -41,7 +41,7 @@ export default class Exporter {
       start_time: this._start,
       end_time: this._end,
       version: VERSION_EXPORTER,
-      data: this._metrics,
+      data: this._reports,
     };
   }
 }
