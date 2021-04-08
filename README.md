@@ -132,6 +132,20 @@ By subscribing to the event `onticket`, the callback is fired when the analyzer 
 
 If the option `cfg.record` has been set to `true`, the ticket contains all the reports generated.
 
+The ticket generated contains the following information:
+
+| Name | Value | Description |
+|:----:|:-----:|:------------|
+| **pname** | String | From config (pname) |
+| **call_id** | String | From config (cid) |
+| **user_id** | String | From config (uid) |
+| **start_time** | Date.toJSON() | Date when the analyzer started |
+| **end_time** | Date.toJSON() | Date when the analyzer stopped |
+| **version** | String | Version of the exporter (for compatibility reason) |
+| **count** | Number | Number of report generated |
+| **mos** | Number | Average MOS |
+| **reports** | Array | List of reports (when `record=true`) or an empty array |
+
 ## Callbacks
 
 Setting the `onreport` and `onticket` to null, unregisters the callback previously registered.

@@ -1,6 +1,6 @@
 {
   "name": "webrtcmetrics",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "WebRTC stats library",
   "main": "dist/webrtcMetrics.js",
   "scripts": {
