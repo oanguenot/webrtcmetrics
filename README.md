@@ -1,4 +1,4 @@
-# WebRTCMetrics
+# WEBRTC METRICS & STATS
 
 **WebRTCMetrics** is a JavaScript library that aggregates stats received from the WebRTC stack and generates a JSON report containing a **MOS** score for the audio part as well as a **CDR** ticket at the end of the call resuming the reports and other interesting information.
 

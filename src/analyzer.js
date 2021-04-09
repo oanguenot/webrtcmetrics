@@ -21,7 +21,7 @@ export default class Analyzer {
     };
 
     this._intervalId = null;
-    this._cfg = cfg;
+    this._config = cfg;
     this._exporter = new Exporter(cfg);
   }
 
@@ -77,7 +77,7 @@ export default class Analyzer {
     this._exporter.start();
     this._intervalId = setInterval(() => {
       getStats();
-    }, this._cfg.refreshTimer);
+    }, this._config.refreshTimer);
   }
 
   stop() {
