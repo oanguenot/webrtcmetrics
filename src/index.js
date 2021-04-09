@@ -45,35 +45,37 @@ export default class WebRTCMetrics {
    * Get the name of the PeerConnection
    */
   get pname() {
-    return this._name;
+    return this._config.pname;
   }
 
   /**
-   * Set the call identifier
+   * Update the call identifier
    */
-  set cid(value) {
-    this._cid = value;
+  updateCallId(value) {
+    this._config.cid = value;
+    this._analyzer.updateConfig(this._config);
   }
 
   /**
    * Get the call identifier
    */
   get cid() {
-    return this._cid;
+    return this._config.cid;
   }
 
   /**
    * Set the user identifier
    */
-  set uid(value) {
-    this._uid = value;
+  updateUserId(value) {
+    this._config.uid = value;
+    this._analyzer.updateConfig(this._config);
   }
 
   /**
    * Get the user identifier
    */
   get uid() {
-    return this._uid;
+    return this._config.uid;
   }
 
   /**
@@ -96,5 +98,12 @@ export default class WebRTCMetrics {
    */
   get version() {
     return this._config.version;
+  }
+
+  /**
+   * Get the library name
+   */
+  get name() {
+    return this._config.name;
   }
 }

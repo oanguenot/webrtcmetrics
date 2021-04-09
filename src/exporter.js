@@ -60,4 +60,8 @@ export default class Exporter {
       reports: this._cfg.record ? this._reports : [],
     };
   }
+
+  updateConfig(config) {
+    this._cfg = config;
+  }
 }

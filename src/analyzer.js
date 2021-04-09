@@ -20,10 +20,6 @@ export default class Analyzer {
       onticket: null,
     };
 
-    this._pc = cfg.pc;
-    this._pname = cfg.pname;
-    this._callid = cfg.cid;
-    this._userid = cfg.uid;
     this._intervalId = null;
     this._cfg = cfg;
     this._exporter = new Exporter(cfg);
@@ -32,9 +28,9 @@ export default class Analyzer {
   analyze(stats) {
     const report = getDefaultMetric();
 
-    report.pname = this._pname;
-    report.call_id = this._callid;
-    report.user_id = this._userid;
+    report.pname = this._config.pname;
+    report.call_id = this._config.cid;
+    report.user_id = this._config.uid;
 
     stats.forEach((stat) => {
       if (!report.timestamp && stat.timestamp) {
@@ -56,11 +52,11 @@ export default class Analyzer {
 
   async start() {
     const getStats = async () => {
-      if (!this._pc) {
+      if (!this._config.pc) {
         return;
       }
       try {
-        const reports = await this._pc.getStats();
+        const reports = await this._config.pc.getStats();
         debug(moduleName, "getstats() - analyze in progress...");
 
         const report = this.analyze(reports);
@@ -124,5 +120,10 @@ export default class Analyzer {
     if (this._callbacks.onticket) {
       call(this._callbacks.onticket.callback, this._callbacks.onticket.context, ticket);
     }
+  }
+
+  updateConfig(config) {
+    this._config = config;
+    this._exporter.updateConfig(config);
   }
 }

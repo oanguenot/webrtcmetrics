@@ -43,11 +43,19 @@ analyzer.onreport = (report) => {
 };
 
 analyzer.onticket = (ticket) => {
-  // Do something with the ticket received (JSON)
+  // Do something with the ticket received - (JSON)
 }
 
 // Start the analyzer
 analyzer.start();
+
+// Stop the analyzer
+analyzer.stop();
+
+// At any time, call ID and user ID can be updated
+analyzer.updateUserId('newUserID');
+analyzer.updateCallId('newCallID');
+
 ```
 
 ## Generating a report
