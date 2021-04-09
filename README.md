@@ -136,6 +136,7 @@ The ticket generated contains the following information:
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
+| **ua** | String | User-agent |
 | **pname** | String | From config (pname) |
 | **call_id** | String | From config (cid) |
 | **user_id** | String | From config (uid) |

@@ -48,6 +48,7 @@ export default class Exporter {
   get ticket() {
     info(moduleName, "ticket() - generate ticket");
     return {
+      ua: navigator.userAgent,
       pname: this._cfg.pname,
       call_id: this._cfg.cid,
       user_id: this._cfg.uid,
