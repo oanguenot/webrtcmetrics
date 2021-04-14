@@ -57,6 +57,7 @@ export default class Exporter {
       version: VERSION_EXPORTER,
       count: this._reports.length,
       mos: average(this._reports, "audio", "mos"),
+      mos_emodel: average(this._reports, "audio", "mos_emodel"),
       reports: this._cfg.record ? this._reports : [],
     };
   }

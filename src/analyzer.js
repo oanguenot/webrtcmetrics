@@ -1,5 +1,5 @@
 import Exporter from "./exporter";
-import { computeMos, extract } from "./extractor";
+import { computeMOS, computeEModelMOS, extract } from "./extractor";
 import { getDefaultMetric } from "./utils/helper";
 import { debug, error } from "./utils/log";
 
@@ -46,7 +46,8 @@ export default class Analyzer {
       });
     });
 
-    report.audio.mos = computeMos(report);
+    report.audio.mos_emodel = computeEModelMOS(report);
+    report.audio.mos = computeMOS(report);
     return report;
   }
 

@@ -93,7 +93,8 @@ This `report` obtained is a JSON object containing the following properties.
 | **total_bytes_send** | Number | Number of bytes sent since the beginning of the call |
 | **delta_bytes_received** | Number | Number of bytes received since the last report |
 | **delta_bytes_sent** | Number | Number of bytes sent since last report |
-| **mos** | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
+| **mos_emodel** | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
+| **mos** | Number | Audio quality indicator based on 'effective latency' |
 
 ### Video properties
 

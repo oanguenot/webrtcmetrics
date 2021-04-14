@@ -4,6 +4,7 @@ import {
   STAT_TYPE,
   INFRASTRUCTURE_LABEL,
   TYPE, VALUE,
+  average,
 } from "./utils/helper";
 
 /* Globals */
@@ -332,8 +333,7 @@ export const extract = (bunch) => {
   return [];
 };
 
-export const computeMos = (report) => {
-  const average = (nums) => (nums.reduce((a, b) => (a + b)) / nums.length);
+export const computeEModelMOS = (report) => {
   const rtt = average(report.data.last_three_rtt);
   const jitter = average(report.audio.last_three_jitter);
   const rx = 93.2 - report.audio.percent_packets_lost;
@@ -347,6 +347,34 @@ export const computeMos = (report) => {
   const a = report.network.infrastructure;
 
   const r = ry - (id + a);
+
+  if (r < 0) {
+    return 1;
+  }
+
+  if (r > 100) {
+    return 4.5;
+  }
+
+  return (1 + (0.035 * r) + (7.0 / 1000000) * r * (r - 60) * (100 - r));
+};
+
+export const computeMOS = (report) => {
+  const rtt = average(report.data.last_three_rtt);
+  const latency = rtt / 2;
+  const jitter = average(report.audio.last_three_jitter);
+  const packetsLoss = report.audio.percent_packets_lost;
+
+  const effectiveLatency = latency + (2 * jitter) + 10.0;
+
+  let r = 0;
+  if (effectiveLatency < 160) {
+    r = 93.2 - (effectiveLatency / 40);
+  } else {
+    r = 93.2 - ((effectiveLatency - 120) / 10);
+  }
+
+  r -= (2.5 * packetsLoss);
 
   if (r < 0) {
     return 1;
