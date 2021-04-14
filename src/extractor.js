@@ -286,17 +286,21 @@ export const extract = (bunch) => {
       }
       break;
     case TYPE.TRACK:
-      if (bunch[PROPERTY.REMOTE_SOURCE] === true && bunch[PROPERTY.KIND] === VALUE.AUDIO) {
+      // Note: All "track" stats have been made obsolete
+      // Safari: compute kind property that don't exists
+      const kindVideo = (PROPERTY.KIND in bunch && bunch[PROPERTY.KIND] === VALUE.VIDEO) || (PROPERTY.FRAME_HEIGHT in bunch);
+
+      if (bunch[PROPERTY.REMOTE_SOURCE] === true) {
+        if (kindVideo) {
+          const inputSize = extractVideoSize(bunch);
+          return [{ type: STAT_TYPE.VIDEO, value: { input_size: inputSize } }];
+        }
+
         const inputLevel = extractAudioLevel(bunch);
         return [{ type: STAT_TYPE.AUDIO, value: { input_level: inputLevel } }];
       }
 
-      if (bunch[PROPERTY.REMOTE_SOURCE] === true && bunch[PROPERTY.KIND] === VALUE.VIDEO) {
-        const inputSize = extractVideoSize(bunch);
-        return [{ type: STAT_TYPE.VIDEO, value: { input_size: inputSize } }];
-      }
-
-      if (bunch[PROPERTY.REMOTE_SOURCE] === false && bunch[PROPERTY.KIND] === VALUE.VIDEO) {
+      if (kindVideo) {
         const outputSize = extractVideoSize(bunch);
         return [{ type: STAT_TYPE.VIDEO, value: { output_size: outputSize } }];
       }
