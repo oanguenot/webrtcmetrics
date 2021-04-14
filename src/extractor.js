@@ -159,7 +159,16 @@ export const extract = (bunch) => {
 
   switch (bunch[PROPERTY.TYPE]) {
     case TYPE.CANDIDATE_PAIR:
+      let selectedPair = false;
       if (bunch[PROPERTY.WRITABLE] && bunch[PROPERTY.NOMINATED] && bunch[PROPERTY.STATE] === VALUE.SUCCEEDED) {
+        selectedPair = true;
+
+        // FF: Do not use candidate-pair with selected=false
+        if (PROPERTY.SELECTED in bunch && !bunch[PROPERTY.SELECTED]) {
+          selectedPair = false;
+        }
+      }
+      if (selectedPair) {
         localCandidateId = bunch[PROPERTY.LOCAL_CANDIDATE_ID];
         remoteCandidateId = bunch[PROPERTY.REMOTE_CANDIDATE_ID];
 

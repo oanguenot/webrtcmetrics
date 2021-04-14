@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("1.1.0");
+export const getVersion = () => ("1.1.2");
 
 export const getDefaultMetric = () => (
   {
@@ -103,6 +103,7 @@ export const PROPERTY = {
   REMOTE_CANDIDATE_ID: "remoteCandidateId",
   REMOTE_SOURCE: "remoteSource",
   SDP_FMTP_LINE: "sdpFmtpLine",
+  SELECTED: "selected",
   STATE: "state",
   TIMESTAMP: "timestamp",
   TYPE: "type",
