@@ -42,6 +42,12 @@ let previousAudioTotalBytesSent = 0;
 let previousVideoTotalBytesReceived = 0;
 let previousVideoTotalBytesSent = 0;
 
+/* Encode and decode time */
+let previousTotalEncodedFrames = 0;
+let previousTotalDecodedFrames = 0;
+let previousTotalEncodeTime = 0;
+let previousTotalDecodeTime = 0;
+
 const extractRoundTripTime = (bunch, rtt, max, index) => {
   const newRTT = [...rtt];
 
@@ -62,6 +68,34 @@ const extractJitter = (bunch, jitter, max, index) => {
 
   newJitter[index % max] = Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
   return newJitter;
+};
+
+const extractDecodeTime = (bunch, decodeTime, totalDecodedFrames) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAMES_DECODED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_DECODE_TIME)) {
+    return { delta_ms_decode_frame: 0.0, frames_decoded: totalDecodedFrames, total_decode_time: decodeTime };
+  }
+
+  const decodedFrames = bunch[PROPERTY.FRAMES_DECODED];
+  const totalDecodeTime = bunch[PROPERTY.TOTAL_DECODE_TIME];
+
+  const decodeTimeDelta = totalDecodeTime - decodeTime;
+  const frameDelta = decodedFrames - totalDecodedFrames;
+
+  return { delta_ms_decode_frame: (decodeTimeDelta * 1000) / frameDelta, frames_decoded: decodedFrames, total_decode_time: totalDecodeTime };
+};
+
+const extractEncodeTime = (bunch, encodeTime, totalEncodedFrames) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAMES_ENCODED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ENCODE_TIME)) {
+    return { delta_ms_encode_frame: 0.0, frames_encoded: totalEncodedFrames, total_encode_time: encodeTime };
+  }
+
+  const encodedFrames = bunch[PROPERTY.FRAMES_ENCODED];
+  const totalEncodeTime = bunch[PROPERTY.TOTAL_ENCODE_TIME];
+
+  const encodeTimeDelta = totalEncodeTime - encodeTime;
+  const frameDelta = encodedFrames - totalEncodedFrames;
+
+  return { delta_ms_encode_frame: (encodeTimeDelta * 1000) / frameDelta, frames_encoded: encodedFrames, total_encode_time: totalEncodeTime };
 };
 
 const extractAudioPacketReceived = (bunch, previousPacketsReceived, previousPacketsLost) => {
@@ -242,6 +276,10 @@ export const extract = (bunch) => {
       }
 
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
+        const data = extractDecodeTime(bunch, previousTotalDecodeTime, previousTotalDecodedFrames);
+        previousTotalDecodeTime = data.total_decode_time;
+        previousTotalDecodedFrames = data.frames_decoded;
+
         const videoTotalBytesReceived = bunch[PROPERTY.BYTES_RECEIVED] || 0;
         const videoBytesReceived = videoTotalBytesReceived - previousVideoTotalBytesReceived;
         const decoderImplementation = bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
@@ -253,6 +291,7 @@ export const extract = (bunch) => {
           { type: STAT_TYPE.VIDEO, value: { total_bytes_received: videoTotalBytesReceived } },
           { type: STAT_TYPE.VIDEO, value: { delta_bytes_received: videoBytesReceived } },
           { type: STAT_TYPE.VIDEO, value: { decoder: decoderImplementation } },
+          { type: STAT_TYPE.VIDEO, value: { delta_ms_decode_frame: data.delta_ms_decode_frame } },
         ];
       }
       break;
@@ -274,13 +313,17 @@ export const extract = (bunch) => {
         const videoBytesSent = videoTotalBytesSent - previousVideoTotalBytesSent;
         const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         previousVideoTotalBytesSent = videoTotalBytesSent;
-
         videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        const data = extractEncodeTime(bunch, previousTotalEncodeTime, previousTotalEncodedFrames);
+        previousTotalEncodeTime = data.total_encode_time;
+        previousTotalEncodedFrames = data.frames_encoded;
 
         return [
           { type: STAT_TYPE.VIDEO, value: { total_bytes_sent: videoTotalBytesSent } },
           { type: STAT_TYPE.VIDEO, value: { delta_bytes_sent: videoBytesSent } },
           { type: STAT_TYPE.VIDEO, value: { encoder: encoderImplementation } },
+          { type: STAT_TYPE.VIDEO, value: { delta_ms_encode_frame: data.delta_ms_encode_frame } },
         ];
       }
       break;
