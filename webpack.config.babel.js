@@ -3,7 +3,6 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 
 export default {
   entry: "./src/index",
-  mode: "development",
   output: {
     path: join(__dirname, "dist"),
     libraryTarget: "umd",

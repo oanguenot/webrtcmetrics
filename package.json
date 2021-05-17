@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prebuild": "rimraf dist",
-    "build:dev": "webpack -w --output-filename webrtcMetrics.js",
-    "build:prod": "webpack --output-filename webrtcMetrics.js -p"
+    "build:dev": "webpack -w --output-filename webrtcMetrics.js --mode=development",
+    "build:prod": "webpack --output-filename webrtcMetrics.js --mode=production"
   },
   "repository": {
     "type": "git",
