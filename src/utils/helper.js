@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("1.1.4");
+export const getVersion = () => ("1.2.0");
 
 export const getDefaultMetric = () => (
   {
@@ -37,6 +37,8 @@ export const getDefaultMetric = () => (
       delta_bytes_sent: 0,
       decoder: null,
       encoder: null,
+      delta_ms_encode_frame: 0,
+      delta_ms_decode_frame: 0,
     },
     network: {
       infrastructure: 3,
@@ -112,6 +114,10 @@ export const PROPERTY = {
   WRITABLE: "writable",
   DECODER_IMPLEMENTATION: "decoderImplementation",
   ENCODER_IMPLEMENTATION: "encoderImplementation",
+  FRAMES_DECODED: "framesDecoded",
+  FRAMES_ENCODED: "framesEncoded",
+  TOTAL_DECODE_TIME: "totalDecodeTime",
+  TOTAL_ENCODE_TIME: "totalEncodeTime",
 };
 
 export const VALUE = {
