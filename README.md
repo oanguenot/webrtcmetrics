@@ -110,6 +110,8 @@ This `report` obtained is a JSON object containing the following properties.
 | **delta_bytes_sent** | Number | Number of bytes sent since last report |
 | **encoder** | String | Description of the video encoder used |
 | **decoder** | String | Description of the video decoder used |
+| **delta_ms_decode_frame** | Number | Time needed to decode a frame |
+| **delta_ms_encode_frame** | Number | Time needed to encode a frame |
 
 ### Network properties
 
