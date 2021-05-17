@@ -244,6 +244,7 @@ export const extract = (bunch) => {
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
         const videoTotalBytesReceived = bunch[PROPERTY.BYTES_RECEIVED] || 0;
         const videoBytesReceived = videoTotalBytesReceived - previousVideoTotalBytesReceived;
+        const decoderImplementation = bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
         previousVideoTotalBytesReceived = videoTotalBytesReceived;
 
         videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
@@ -251,6 +252,7 @@ export const extract = (bunch) => {
         return [
           { type: STAT_TYPE.VIDEO, value: { total_bytes_received: videoTotalBytesReceived } },
           { type: STAT_TYPE.VIDEO, value: { delta_bytes_received: videoBytesReceived } },
+          { type: STAT_TYPE.VIDEO, value: { decoder: decoderImplementation } },
         ];
       }
       break;
@@ -270,6 +272,7 @@ export const extract = (bunch) => {
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
         const videoTotalBytesSent = bunch[PROPERTY.BYTES_SENT] || 0;
         const videoBytesSent = videoTotalBytesSent - previousVideoTotalBytesSent;
+        const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         previousVideoTotalBytesSent = videoTotalBytesSent;
 
         videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
@@ -277,6 +280,7 @@ export const extract = (bunch) => {
         return [
           { type: STAT_TYPE.VIDEO, value: { total_bytes_sent: videoTotalBytesSent } },
           { type: STAT_TYPE.VIDEO, value: { delta_bytes_sent: videoBytesSent } },
+          { type: STAT_TYPE.VIDEO, value: { encoder: encoderImplementation } },
         ];
       }
       break;

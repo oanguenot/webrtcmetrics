@@ -35,6 +35,8 @@ export const getDefaultMetric = () => (
       delta_bytes_received: 0,
       total_bytes_sent: 0,
       delta_bytes_sent: 0,
+      decoder: null,
+      encoder: null,
     },
     network: {
       infrastructure: 3,
@@ -108,6 +110,8 @@ export const PROPERTY = {
   TIMESTAMP: "timestamp",
   TYPE: "type",
   WRITABLE: "writable",
+  DECODER_IMPLEMENTATION: "decoderImplementation",
+  ENCODER_IMPLEMENTATION: "encoderImplementation",
 };
 
 export const VALUE = {

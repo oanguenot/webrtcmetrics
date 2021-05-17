@@ -108,6 +108,8 @@ This `report` obtained is a JSON object containing the following properties.
 | **total_bytes_send** | Number | Number of bytes sent since the beginning of the call |
 | **delta_bytes_received** | Number | Number of bytes received since the last report |
 | **delta_bytes_sent** | Number | Number of bytes sent since last report |
+| **encoder** | String | Description of the video encoder used |
+| **decoder** | String | Description of the video decoder used |
 
 ### Network properties
 
