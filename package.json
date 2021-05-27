@@ -1,13 +1,13 @@
 {
   "name": "webrtcmetrics",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "WebRTC stats library",
-  "main": "dist/webrtcMetrics.js",
+  "main": "dist/WebRTCMetrics.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prebuild": "rimraf dist",
-    "build:dev": "webpack -w --output-filename webrtcMetrics.js --mode=development",
-    "build:prod": "webpack --output-filename webrtcMetrics.js --mode=production"
+    "build:dev": "webpack --config webpack.config-dev.js -w",
+    "build:prod": "webpack --config webpack.config-prod.js"
   },
   "repository": {
     "type": "git",
