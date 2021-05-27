@@ -7,9 +7,9 @@ module.exports = {
   mode: "development",
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'JSONgle.js',
+    filename: 'WebRTCMetrics.js',
     library: {
-      name: 'JSONgle',
+      name: 'WebRTCMetrics',
       type: 'umd',
     },
   },
