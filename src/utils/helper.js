@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("1.2.3");
+export const getVersion = () => ("1.2.4");
 
 export const getDefaultMetric = () => (
   {
