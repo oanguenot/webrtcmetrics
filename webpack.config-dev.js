@@ -9,8 +9,9 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'WebRTCMetrics.js',
     library: {
-      name: 'WebRTCMetrics',
       type: 'umd',
+      name: "WebRTCMetrics",
+      export: 'default'
     },
   },
   plugins: [new ESLintPlugin()],

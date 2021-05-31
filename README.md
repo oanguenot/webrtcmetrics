@@ -55,7 +55,29 @@ analyzer.stop();
 // At any time, call ID and user ID can be updated
 analyzer.updateUserId('newUserID');
 analyzer.updateCallId('newCallID');
+```
 
+If you are using **Vanilla** JavaScript without bundling your application (for example: using React or Angular), you have to load the library differently:
+
+- Copy **WebRTCMetrics.js** from **node_modules/webrtcmetrics/dist/** to your **public** directory or a directory served.
+
+- Import using the following
+
+```js
+import "./WebRTCMetrics.js"   // Correct path to the library
+
+const existingPeerConnection = new RTCPeerConnection(config);
+
+// Initialize the analyzer
+const analyzer = new WebRTCMetrics({
+  pc: existingPeerConnection, // Peer connection to monitor - Mandatory
+  pname: 'PeerConnection_1',  // Name of the peer connection (Optional)
+  cid: 'call007984',          // Call Id (Optional)
+  uid: 'jdoe@mycorp.com',     // User Id (Optional)
+  refreshTimer: 3000,         // Timer to get the report (in ms). Default to 2500ms.
+  verbose: true,              // Display verbose logs or not. Default to false.
+  record: true                // Record reports in a ticket or not. Default to false.
+});
 ```
 
 ## Generating a report

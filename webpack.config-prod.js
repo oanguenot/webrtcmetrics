@@ -9,6 +9,7 @@ module.exports = {
     library: {
       name: 'WebRTCMetrics',
       type: 'umd',
+      export: 'default'
     },
   },
 };
