@@ -57,7 +57,7 @@ analyzer.updateUserId('newUserID');
 analyzer.updateCallId('newCallID');
 ```
 
-If you are using **Vanilla** JavaScript without bundling your application (for example: using React or Angular), you have to load the library differently:
+If you are using **Vanilla** JavaScript without bundling your application (This is the case for example if you are not using a transpiler such as using React/Babel or Angular/TypeScript), you have to load the library differently:
 
 - Copy **WebRTCMetrics.js** from **node_modules/webrtcmetrics/dist/** to your **public** directory or a directory served.
 
@@ -154,8 +154,10 @@ This `report` obtained is a JSON object containing the following properties.
 | **total_bytes_send** | Number | Number of bytes sent since the beginning of the call (audio+video) |
 | **delta_bytes_received** | Number | Number of bytes received since the last report (audio+video) |
 | **delta_bytes_sent** | Number | Number of bytes sent since last report (audio+video) |
-| **delta_kbs_received** | Number | Number of KB received per seconds since the last report (audio+video) |
-| **delta_kbs_sent** | Number | Number of KB sent per seconds since the last report (audio+video) |
+| **delta_kbs_received** | Number | Number of kbit received per seconds since the last report (audio+video) |
+| **delta_kbs_sent** | Number | Number of kbit sent per seconds since the last report (audio+video) |
+| **delta_kbs_incoming_bandwidth** | Number | Available incoming bitrate in kb/s for audio +video |
+| **delta_kbs_outgoing_bandwidth** | Number | Available outgoing bitrate in kb/s for audio +video |
 
 ## Stop reporting
 

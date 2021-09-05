@@ -170,8 +170,8 @@ const extractBytesSentReceived = (bunch) => {
   const bytesReceived = totalBytesReceived - previousTotalBytesReceived;
   const bytesSent = totalBytesSent - previousTotalBytesSent;
   const deltaMs = timestamp - previousTimestampForBytes;
-  const kbsSpeedReceived = ((bytesReceived / 1024) / deltaMs) * 1000;
-  const kbsSpeedSent = ((bytesSent / 1024) / deltaMs) * 1000;
+  const kbsSpeedReceived = ((bytesReceived * 0.008) / deltaMs) * 1000; // kbs = kilo bits per second
+  const kbsSpeedSent = ((bytesSent * 0.008) / deltaMs) * 1000;
 
   previousTotalBytesReceived = totalBytesReceived;
   previousTotalBytesSent = totalBytesSent;
@@ -184,6 +184,16 @@ const extractBytesSentReceived = (bunch) => {
     delta_bytes_sent: bytesSent,
     kbs_speed_received: kbsSpeedReceived,
     kbs_speed_sent: kbsSpeedSent,
+  };
+};
+
+const extractAvailableBandwidth = (bunch) => {
+  const kbsIncomingBandwidth = (bunch[PROPERTY.AVAILABLE_INCOMING_BITRATE] / 1000) || 0;
+  const kbsOutgoingBandwidth = (bunch[PROPERTY.AVAILABLE_OUTGOING_BITRATE] / 1000) || 0;
+
+  return {
+    kbs_incoming_bandwidth: kbsIncomingBandwidth,
+    kbs_outgoing_bandwidth: kbsOutgoingBandwidth,
   };
 };
 
@@ -209,6 +219,8 @@ export const extract = (bunch) => {
 
         const valueSentReceived = extractBytesSentReceived(bunch);
 
+        const bandwidth = extractAvailableBandwidth(bunch);
+
         const newRtt = extractRoundTripTime(bunch, lastThreeRtt, maxValues, rttIndex);
         if (lastThreeRtt !== newRtt) {
           lastThreeRtt = newRtt;
@@ -222,6 +234,8 @@ export const extract = (bunch) => {
           { type: STAT_TYPE.DATA, value: { delta_bytes_sent: valueSentReceived.delta_bytes_sent } },
           { type: STAT_TYPE.DATA, value: { delta_kbs_received: valueSentReceived.kbs_speed_received } },
           { type: STAT_TYPE.DATA, value: { delta_kbs_sent: valueSentReceived.kbs_speed_sent } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_incoming_bandwidth: bandwidth.kbs_incoming_bandwidth } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_outgoing_bandwidth: bandwidth.kbs_outgoing_bandwidth } },
         ];
       }
       break;

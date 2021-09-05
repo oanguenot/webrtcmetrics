@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("1.2.4");
+export const getVersion = () => ("1.3.0");
 
 export const getDefaultMetric = () => (
   {
@@ -55,6 +55,8 @@ export const getDefaultMetric = () => (
       delta_bytes_sent: 0,
       delta_kbs_received: 0,
       delta_kbs_sent: 0,
+      delta_kbs_incoming_bandwidth: 0,
+      delta_kbs_outgoing_bandwidth: 0,
     },
   }
 );
@@ -83,6 +85,7 @@ export const TYPE = {
 export const PROPERTY = {
   AUDIO_LEVEL: "audioLevel",
   AVAILABLE_OUTGOING_BITRATE: "availableOutgoingBitrate",
+  AVAILABLE_INCOMING_BITRATE: "availableIncomingBitrate",
   BYTES_RECEIVED: "bytesReceived",
   BYTES_SENT: "bytesSent",
   CANDIDATE_TYPE: "candidateType",
