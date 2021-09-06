@@ -10,8 +10,12 @@ export const setVerboseLog = (shouldHaveVerboseLog) => {
   log.setLevel(shouldHaveVerboseLog ? log.levels.TRACE : log.levels.WARN);
 };
 
-export const debug = (name, message) => {
-  log.debug(format(getHeader(), name, message));
+export const debug = (name, message, data) => {
+  if (data) {
+    log.debug(format(getHeader(), name, message), data);
+  } else {
+    log.debug(format(getHeader(), name, message));
+  }
 };
 
 export const trace = (name, message) => {
