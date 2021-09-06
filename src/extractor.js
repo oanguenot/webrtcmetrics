@@ -7,6 +7,10 @@ import {
   average,
 } from "./utils/helper";
 
+import { debug } from "./utils/log";
+
+const moduleName = "extractor   ";
+
 /* Globals */
 const maxValues = 3;
 
@@ -208,6 +212,8 @@ export const extract = (bunch) => {
       if (bunch[PROPERTY.WRITABLE] && bunch[PROPERTY.NOMINATED] && bunch[PROPERTY.STATE] === VALUE.SUCCEEDED) {
         selectedPair = true;
 
+        debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]}`, bunch);
+
         // FF: Do not use candidate-pair with selected=false
         if (PROPERTY.SELECTED in bunch && !bunch[PROPERTY.SELECTED]) {
           selectedPair = false;
@@ -257,6 +263,7 @@ export const extract = (bunch) => {
       }
       break;
     case TYPE.INBOUND_RTP:
+      debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]}`, bunch);
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const data = extractAudioPacketReceived(bunch, previousAudioPacketReceived, previousAudioPacketLost);
 
@@ -310,6 +317,7 @@ export const extract = (bunch) => {
       }
       break;
     case TYPE.OUTBOUND_RTP:
+      debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]}`, bunch);
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const audioTotalBytesSent = bunch[PROPERTY.BYTES_SENT] || 0;
         const audioBytesSent = audioTotalBytesSent - previousAudioTotalBytesSent;
@@ -348,6 +356,7 @@ export const extract = (bunch) => {
       }
       break;
     case TYPE.TRACK:
+      debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]}`, bunch);
       // Note: All "track" stats have been made obsolete
       // Safari: compute kind property that don't exists
       const kindVideo = (PROPERTY.KIND in bunch && bunch[PROPERTY.KIND] === VALUE.VIDEO) || (PROPERTY.FRAME_HEIGHT in bunch);
@@ -369,6 +378,7 @@ export const extract = (bunch) => {
       break;
     case TYPE.CODEC:
       if (bunch[PROPERTY.ID] === audioInputCodecId || bunch[PROPERTY.ID] === audioOutputCodecId) {
+        debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]}`, bunch);
         const codec = extractAudioCodec(bunch);
 
         if (bunch[PROPERTY.ID] === audioInputCodecId) {
@@ -378,6 +388,7 @@ export const extract = (bunch) => {
       }
 
       if (bunch[PROPERTY.ID] === videoInputCodecId || bunch[PROPERTY.ID] === videoOutputCodecId) {
+        debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]}`, bunch);
         const codec = extractVideoCodec(bunch);
 
         if (bunch[PROPERTY.ID] === videoInputCodecId) {

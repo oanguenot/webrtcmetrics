@@ -25,8 +25,8 @@ export default class Analyzer {
     this._exporter = new Exporter(cfg);
   }
 
-  analyze(stats) {
-    const report = getDefaultMetric();
+  analyze(stats, previousStats) {
+    const report = getDefaultMetric(previousStats);
 
     report.pname = this._config.pname;
     report.call_id = this._config.cid;
@@ -54,13 +54,15 @@ export default class Analyzer {
   async start() {
     const getStats = async () => {
       if (!this._config.pc) {
+        error(moduleName, "getstats() - no peer connection!");
         return;
       }
       try {
         const reports = await this._config.pc.getStats();
         debug(moduleName, "getstats() - analyze in progress...");
 
-        const report = this.analyze(reports);
+        // Take into account last report in case no report have been generated (eg: candidate-pair)
+        const report = this.analyze(reports, this._exporter.getLastReport());
 
         this.fireOnReport(report);
         this._exporter.addReport(report);

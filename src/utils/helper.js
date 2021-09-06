@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 export const getLibName = () => ("WebRTCMetrics");
 export const getVersion = () => ("1.3.0");
 
-export const getDefaultMetric = () => (
-  {
+export const getDefaultMetric = (previousStats) => {
+  let defaultMetrics = {
     pname: "",
     call_id: "",
     user_id: "",
@@ -58,8 +58,20 @@ export const getDefaultMetric = () => (
       delta_kbs_incoming_bandwidth: 0,
       delta_kbs_outgoing_bandwidth: 0,
     },
+  };
+
+  if (previousStats) {
+    defaultMetrics = {
+      ...defaultMetrics,
+      audio: previousStats.audio,
+      video: previousStats.video,
+      network: previousStats.network,
+      data: previousStats.data,
+    };
   }
-);
+
+  return defaultMetrics;
+};
 
 export const defaultConfig = {
   refreshTimer: 2500, // Default - generate a report every 2,5s

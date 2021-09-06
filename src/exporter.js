@@ -65,4 +65,8 @@ export default class Exporter {
   updateConfig(config) {
     this._cfg = config;
   }
+
+  getLastReport() {
+    return this._reports.slice().pop() || null;
+  }
 }
