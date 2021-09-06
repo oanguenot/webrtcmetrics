@@ -11,7 +11,7 @@ export default class WebRTCMetrics {
     this._configured = !!this._config;
     this._analyzer = new Analyzer(this._config);
 
-    setVerboseLog(this._config.verboseLog || false);
+    setVerboseLog(this._config.verbose || false);
     info(moduleName, `welcome to ${this._config.name} version ${this._config.version}`);
   }
 
