@@ -96,13 +96,16 @@ This `report` obtained is a JSON object containing the following properties.
 | **call_id** | String | Identifier or abstract name representing the call |
 | **user_id** | String | Identifier or abstract name representing the user |
 | **timestamp** | Number | Timestamp of the metric collected |
+| **count** | Number | Number of the report |
 
 ### Audio properties
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
 | **input_codec** | JSON | Description of the audio input codec and parameters used |
+| **input_codec_id** | String | ID of the audio input codec used |
 | **input_level** | Number | Level of the input sound. Detect presence of incoming sound |
+| **output_codec_id** | String | ID of the audio output codec used |
 | **output_codec** | JSON | Description of the audio output codec and parameters used |
 | **output_level** | Number | Level of the output sound. Detect presence of outgoing sound |
 | **delta_jitter_ms** | Number | Jitter (in ms) |
@@ -123,8 +126,10 @@ This `report` obtained is a JSON object containing the following properties.
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
+| **input_codec_id** | String | ID of the video input codec used |
 | **input_codec** | JSON | Description of the video input codec and parameters used |
 | **input_size** | Number | Size of the input video (from remote peer) |
+| **output_codec_id** | String | ID of the video output codec used |
 | **output_codec** | JSON | Description of the video output codec and parameters used |
 | **output_size** | Number | Size of the output video (own video) |
 | **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
@@ -133,6 +138,10 @@ This `report` obtained is a JSON object containing the following properties.
 | **delta_bytes_sent** | Number | Number of bytes sent since last report |
 | **encoder** | String | Description of the video encoder used |
 | **decoder** | String | Description of the video decoder used |
+| **total_time_encoded** | Number | Total time used for encoding all frames |
+| **total_frames_encoded** | Number | Total of frames encoded |
+| **total_time_decoded** | Number | Total time used for decoding all frames |
+| **total_frames_decoded** | Number | Total of frames decoded |
 | **delta_ms_decode_frame** | Number | Time needed to decode a frame |
 | **delta_ms_encode_frame** | Number | Time needed to encode a frame |
 
@@ -141,8 +150,10 @@ This `report` obtained is a JSON object containing the following properties.
 | Name | Value | Description |
 |:----:|:-----:|:------------|
 | **infrastructure** | Number | Infrastructure level (0: Eth, 3: Wifi, 5: 4G, 10: 3G) |
+| **local_candidate_id** | String | ID of the local candidate used |
 | **local_candidate_type** | String | Type of candidate used (host, relay, srflx) |
 | **local_candidate_protocol** | String | Protocol used (udp, tcp) |
+| **remote_candidate_id** | String | ID of the remote candidate used |
 | **remote_candidate_type** | String | Type of candidate used (host, relay, srflx) |
 | **remote_candidate_protocol** | String | Protocol used (udp, tcp) |
 
@@ -189,3 +200,9 @@ The ticket generated contains the following information:
 ## Callbacks
 
 Setting the `onreport` and `onticket` to null, unregisters the callback previously registered.
+
+## Monitoring several Peer Connections
+
+Monitoring several peer connections can be done by instantiating several `WebRTCMetrics` objects.
+
+Each will then generates its own reports and final ticket.
