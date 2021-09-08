@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("1.3.1");
+export const getVersion = () => ("1.4.0");
 
 export const getDefaultMetric = (previousStats) => {
   const defaultMetrics = {
@@ -9,14 +9,17 @@ export const getDefaultMetric = (previousStats) => {
     call_id: "",
     user_id: "",
     timestamp: null,
+    count: 0,
     audio: {
       input_level: 0,
       output_level: 0,
+      input_codec_id: "",
+      output_codec_id: "",
       input_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
       output_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
       delta_jitter_ms: 0,
       last_three_jitter: [0, 0, 0],
-      percent_packets_lost: null,
+      percent_packets_lost: 0,
       delta_packets_received: 0,
       delta_packets_lost: 0,
       total_packets_received: 0,
@@ -28,6 +31,8 @@ export const getDefaultMetric = (previousStats) => {
       mos: 0,
     },
     video: {
+      input_codec_id: "",
+      output_codec_id: "",
       input_size: { width: null, height: null },
       output_size: { width: null, height: null },
       input_codec: { mime_type: null, clock_rate: null },
@@ -39,12 +44,18 @@ export const getDefaultMetric = (previousStats) => {
       decoder: null,
       encoder: null,
       delta_ms_encode_frame: 0,
+      total_time_encoded: 0,
+      total_frames_encoded: 0,
       delta_ms_decode_frame: 0,
+      total_frames_decoded: 0,
+      total_time_decoded: 0,
     },
     network: {
       infrastructure: 3,
+      local_candidate_id: "",
       local_candidate_type: "",
       local_candidate_protocol: "",
+      remote_candidate_id: "",
       remote_candidate_type: "",
       remote_candidate_protocol: "",
     },

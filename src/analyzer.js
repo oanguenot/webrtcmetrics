@@ -25,18 +25,19 @@ export default class Analyzer {
     this._exporter = new Exporter(cfg);
   }
 
-  analyze(stats, previousStats) {
-    const report = getDefaultMetric(previousStats);
+  analyze(stats, previousReport) {
+    const report = getDefaultMetric(previousReport);
 
     report.pname = this._config.pname;
     report.call_id = this._config.cid;
     report.user_id = this._config.uid;
+    report.count = previousReport ? previousReport.count + 1 : 1;
 
     stats.forEach((stat) => {
       if (!report.timestamp && stat.timestamp) {
         report.timestamp = stat.timestamp;
       }
-      const values = extract(stat);
+      const values = extract(stat, report);
       values.forEach((data) => {
         if (data.value && data.type) {
           Object.keys(data.value).forEach((key) => {
