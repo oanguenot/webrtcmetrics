@@ -59,7 +59,7 @@ export default class Analyzer {
       }
       try {
         const reports = await this._config.pc.getStats();
-        debug(moduleName, "getstats() - analyze in progress...");
+        debug(moduleName, `getstats() - got report ${this._config.pname}#${this._exporter.getReportsNumber() + 1}`);
 
         // Take into account last report in case no report have been generated (eg: candidate-pair)
         const report = this.analyze(reports, this._exporter.getLastReport());

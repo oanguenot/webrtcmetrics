@@ -4,7 +4,7 @@ export const getLibName = () => ("WebRTCMetrics");
 export const getVersion = () => ("1.3.1");
 
 export const getDefaultMetric = (previousStats) => {
-  let defaultMetrics = {
+  const defaultMetrics = {
     pname: "",
     call_id: "",
     user_id: "",
@@ -14,6 +14,7 @@ export const getDefaultMetric = (previousStats) => {
       output_level: 0,
       input_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
       output_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
+      delta_jitter_ms: 0,
       last_three_jitter: [0, 0, 0],
       percent_packets_lost: null,
       delta_packets_received: 0,
@@ -48,6 +49,7 @@ export const getDefaultMetric = (previousStats) => {
       remote_candidate_protocol: "",
     },
     data: {
+      delta_rtt_ms: 0,
       last_three_rtt: [0, 0, 0],
       total_bytes_received: 0,
       total_bytes_sent: 0,
@@ -60,17 +62,17 @@ export const getDefaultMetric = (previousStats) => {
     },
   };
 
-  if (previousStats) {
-    defaultMetrics = {
-      ...defaultMetrics,
-      audio: previousStats.audio,
-      video: previousStats.video,
-      network: previousStats.network,
-      data: previousStats.data,
-    };
+  if (!previousStats) {
+    return ({ ...defaultMetrics });
   }
 
-  return defaultMetrics;
+  return ({
+    ...defaultMetrics,
+    audio: { ...previousStats.audio },
+    video: { ...previousStats.video },
+    data: { ...previousStats.data },
+    network: { ...previousStats.network },
+  });
 };
 
 export const defaultConfig = {

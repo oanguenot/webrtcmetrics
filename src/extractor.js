@@ -63,6 +63,13 @@ const extractRoundTripTime = (bunch, rtt, max, index) => {
   return newRTT;
 };
 
+const extractLatestRoundTripTime = (bunch) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.CURRENT_ROUND_TRIP_TIME)) {
+    return 0;
+  }
+  return Number(1000) * (Number(bunch[PROPERTY.CURRENT_ROUND_TRIP_TIME]) || 0);
+};
+
 const extractJitter = (bunch, jitter, max, index) => {
   const newJitter = [...jitter];
 
@@ -72,6 +79,13 @@ const extractJitter = (bunch, jitter, max, index) => {
 
   newJitter[index % max] = Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
   return newJitter;
+};
+
+const extractLastJitter = (bunch) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.JITTER)) {
+    return 0;
+  }
+  return Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
 };
 
 const extractDecodeTime = (bunch, decodeTime, totalDecodedFrames) => {
@@ -232,8 +246,11 @@ export const extract = (bunch) => {
           lastThreeRtt = newRtt;
           rttIndex += 1;
         }
+        const rtt = extractLatestRoundTripTime(bunch);
+
         return [
           { type: STAT_TYPE.DATA, value: { last_three_rtt: lastThreeRtt } },
+          { type: STAT_TYPE.DATA, value: { delta_rtt_ms: rtt } },
           { type: STAT_TYPE.DATA, value: { total_bytes_received: valueSentReceived.total_bytes_received } },
           { type: STAT_TYPE.DATA, value: { total_bytes_sent: valueSentReceived.total_bytes_sent } },
           { type: STAT_TYPE.DATA, value: { delta_bytes_received: valueSentReceived.delta_bytes_received } },
@@ -278,6 +295,8 @@ export const extract = (bunch) => {
           jitterIndex += 1;
         }
 
+        const jitter = extractLastJitter(bunch);
+
         const audioTotalBytesReceived = bunch[PROPERTY.BYTES_RECEIVED] || 0;
         const audioBytesReceived = audioTotalBytesReceived - previousAudioTotalBytesReceived;
         previousAudioTotalBytesReceived = audioTotalBytesReceived;
@@ -290,6 +309,7 @@ export const extract = (bunch) => {
           { type: STAT_TYPE.AUDIO, value: { total_packets_lost: data.packetsLost } },
           { type: STAT_TYPE.AUDIO, value: { delta_packets_received: audioPacketReceivedDelta } },
           { type: STAT_TYPE.AUDIO, value: { delta_packets_lost: audioPacketLostDelta } },
+          { type: STAT_TYPE.AUDIO, value: { delta_jitter_ms: jitter } },
           { type: STAT_TYPE.AUDIO, value: { last_three_jitter: lastThreeJitter } },
           { type: STAT_TYPE.AUDIO, value: { total_bytes_received: audioTotalBytesReceived } },
           { type: STAT_TYPE.AUDIO, value: { delta_bytes_received: audioBytesReceived } },

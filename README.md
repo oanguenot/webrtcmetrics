@@ -105,6 +105,7 @@ This `report` obtained is a JSON object containing the following properties.
 | **input_level** | Number | Level of the input sound. Detect presence of incoming sound |
 | **output_codec** | JSON | Description of the audio output codec and parameters used |
 | **output_level** | Number | Level of the output sound. Detect presence of outgoing sound |
+| **delta_jitter_ms** | Number | Jitter (in ms) |
 | **last_three_jitter** | Array | Last 3 Jitter values received (in ms) |
 | **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
 | **total_packets_received** | Number | Number of packets received since the beginning of the call |
@@ -149,6 +150,7 @@ This `report` obtained is a JSON object containing the following properties.
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
+| **delta_rtt_ms** | Number | Round Trip Time (in ms) |
 | **last_three_rtt** | Array | last 3 RTT values received (in ms) |
 | **total_bytes_received** | Number | Number of bytes received since the beginning of the call (audio+video) |
 | **total_bytes_send** | Number | Number of bytes sent since the beginning of the call (audio+video) |

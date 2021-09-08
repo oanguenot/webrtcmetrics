@@ -69,4 +69,8 @@ export default class Exporter {
   getLastReport() {
     return this._reports.slice().pop() || null;
   }
+
+  getReportsNumber() {
+    return this._reports.length;
+  }
 }
