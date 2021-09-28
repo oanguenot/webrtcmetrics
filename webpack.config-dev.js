@@ -11,7 +11,7 @@ module.exports = {
     library: {
       type: 'umd',
       name: "WebRTCMetrics",
-      export: 'default'
+      export: 'default',
     },
   },
   plugins: [new ESLintPlugin()],

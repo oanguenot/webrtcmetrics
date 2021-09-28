@@ -61,11 +61,15 @@ If you are using **Vanilla** JavaScript without bundling your application (This 
 
 - Copy **WebRTCMetrics.js** from **node_modules/webrtcmetrics/dist/** to your **public** directory or a directory served.
 
-- Import using the following
+- Load the library from your HTML entry file (aka index.html)
+
+```html
+<script src="./WebRTCMetrics.js"></script>
+```
+
+- Initialize the analyzer 
 
 ```js
-import "./WebRTCMetrics.js"   // Correct path to the library
-
 const existingPeerConnection = new RTCPeerConnection(config);
 
 // Initialize the analyzer
