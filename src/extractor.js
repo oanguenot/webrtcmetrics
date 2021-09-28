@@ -90,6 +90,18 @@ const extractAudioPacketReceived = (bunch, previousBunch) => {
   return { percentPacketsLost, packetsReceived, packetsLost };
 };
 
+const extractVideoPacketReceived = (bunch, previousBunch) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_RECEIVED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST)) {
+    return { percent_packets_lost: previousBunch.video.percent_packets_lost, packetsReceived: previousBunch.video.total_packets_received, packetsLost: previousBunch.video.total_packets_lost };
+  }
+
+  const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0;
+  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0;
+  const percentPacketsLost = (packetsReceived !== previousBunch.video.total_packets_received) ? ((packetsLost - previousBunch.video.total_packets_lost) * 100) / (packetsReceived - previousBunch.video.total_packets_received) : 0.0;
+
+  return { percentPacketsLost, packetsReceived, packetsLost };
+};
+
 const extractInfrastructureValue = (bunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NETWORK_TYPE)) {
     // Assuming Wifi when not provided (firefox/Safari at this time)
@@ -261,15 +273,29 @@ export const extract = (bunch, previousBunch) => {
       }
 
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
+        // Decode time stats
         const data = extractDecodeTime(bunch, previousBunch);
 
+        // Packets stats
+        const packetsData = extractVideoPacketReceived(bunch, previousBunch);
+        const videoPacketReceivedDelta = packetsData.packetsReceived - previousBunch.video.total_packets_received;
+        const videoPacketLostDelta = packetsData.packetsLost - previousBunch.video.total_packets_lost;
+
+        // Bytes stats
         const videoTotalBytesReceived = bunch[PROPERTY.BYTES_RECEIVED] || 0;
         const videoBytesReceived = videoTotalBytesReceived - previousBunch.video.total_bytes_received;
+
+         // Codec stats
         const decoderImplementation = bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
         const videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
         return [
           { type: STAT_TYPE.VIDEO, value: { input_codec_id: videoInputCodecId } },
+          { type: STAT_TYPE.VIDEO, value: { percent_packets_lost: packetsData.percentPacketsLost } },
+          { type: STAT_TYPE.VIDEO, value: { total_packets_received: packetsData.packetsReceived } },
+          { type: STAT_TYPE.VIDEO, value: { total_packets_lost: packetsData.packetsLost } },
+          { type: STAT_TYPE.VIDEO, value: { delta_packets_received: videoPacketReceivedDelta } },
+          { type: STAT_TYPE.VIDEO, value: { delta_packets_lost: videoPacketLostDelta } },
           { type: STAT_TYPE.VIDEO, value: { total_bytes_received: videoTotalBytesReceived } },
           { type: STAT_TYPE.VIDEO, value: { delta_bytes_received: videoBytesReceived } },
           { type: STAT_TYPE.VIDEO, value: { decoder: decoderImplementation } },

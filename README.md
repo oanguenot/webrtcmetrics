@@ -136,6 +136,11 @@ This `report` obtained is a JSON object containing the following properties.
 | **output_codec_id** | String | ID of the video output codec used |
 | **output_codec** | JSON | Description of the video output codec and parameters used |
 | **output_size** | Number | Size of the output video (own video) |
+| **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
+| **total_packets_received** | Number | Number of packets received since the beginning of the call |
+| **total_packets_lost** | Number | Number of packets lost since the beginning of the call |
+| **delta_packets_received** | Number | Number of packets received since the last report |
+| **delta_packets_lost** | Number | Number of packets lost since last report |
 | **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
 | **total_bytes_send** | Number | Number of bytes sent since the beginning of the call |
 | **delta_bytes_received** | Number | Number of bytes received since the last report |
