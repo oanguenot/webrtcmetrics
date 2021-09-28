@@ -54,6 +54,14 @@ export const getDefaultMetric = (previousStats) => {
       delta_ms_decode_frame: 0,
       total_frames_decoded: 0,
       total_time_decoded: 0,
+      delta_nack_sent: 0,
+      delta_pli_sent: 0,
+      total_nack_sent: 0,
+      total_pli_sent: 0,
+      delta_nack_received: 0,
+      delta_pli_received: 0,
+      total_nack_received: 0,
+      total_pli_received: 0,
     },
     network: {
       infrastructure: 3,
@@ -151,6 +159,8 @@ export const PROPERTY = {
   FRAMES_ENCODED: "framesEncoded",
   TOTAL_DECODE_TIME: "totalDecodeTime",
   TOTAL_ENCODE_TIME: "totalEncodeTime",
+  PLI: "pliCount",
+  NACK: "nackCount",
 };
 
 export const VALUE = {

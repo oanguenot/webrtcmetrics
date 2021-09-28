@@ -136,6 +136,14 @@ const extractVideoSize = (bunch) => {
   return { width: bunch[PROPERTY.FRAME_WIDTH] || null, height: bunch[PROPERTY.FRAME_HEIGHT] || null };
 };
 
+const extractNackAndPliCount = (bunch) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PLI) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NACK)) {
+    return { pliCount: 0, nackCount: 0 };
+  }
+
+  return { pliCount: bunch[PROPERTY.PLI] || 0, nackCount: bunch[PROPERTY.NACK] || 0 };
+};
+
 const extractAudioCodec = (bunch) => (
   {
     channels: bunch[PROPERTY.CHANNELS] || null,
@@ -289,6 +297,11 @@ export const extract = (bunch, previousBunch) => {
         const decoderImplementation = bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
         const videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
+        // Nack & Pli stats
+        const nackPliData = extractNackAndPliCount(bunch);
+        const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_sent;
+        const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_sent;
+
         return [
           { type: STAT_TYPE.VIDEO, value: { input_codec_id: videoInputCodecId } },
           { type: STAT_TYPE.VIDEO, value: { percent_packets_lost: packetsData.percentPacketsLost } },
@@ -302,6 +315,10 @@ export const extract = (bunch, previousBunch) => {
           { type: STAT_TYPE.VIDEO, value: { delta_ms_decode_frame: data.delta_ms_decode_frame } },
           { type: STAT_TYPE.VIDEO, value: { total_frames_decoded: data.frames_decoded } },
           { type: STAT_TYPE.VIDEO, value: { total_time_decoded: data.total_decode_time } },
+          { type: STAT_TYPE.VIDEO, value: { total_nack_sent: nackPliData.nackCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_nack_sent: nackDelta } },
+          { type: STAT_TYPE.VIDEO, value: { total_pli_sent: nackPliData.pliCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_pli_sent: pliDelta } },
         ];
       }
       break;
@@ -327,6 +344,11 @@ export const extract = (bunch, previousBunch) => {
 
         const data = extractEncodeTime(bunch, previousBunch);
 
+        // Nack & Pli stats
+        const nackPliData = extractNackAndPliCount(bunch);
+        const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_received;
+        const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_received;
+
         return [
           { type: STAT_TYPE.VIDEO, value: { output_codec_id: videoOutputCodecId } },
           { type: STAT_TYPE.VIDEO, value: { total_bytes_sent: videoTotalBytesSent } },
@@ -335,6 +357,10 @@ export const extract = (bunch, previousBunch) => {
           { type: STAT_TYPE.VIDEO, value: { delta_ms_encode_frame: data.delta_ms_encode_frame } },
           { type: STAT_TYPE.VIDEO, value: { total_frames_encoded: data.frames_encoded } },
           { type: STAT_TYPE.VIDEO, value: { total_time_encoded: data.total_encode_time } },
+          { type: STAT_TYPE.VIDEO, value: { total_nack_received: nackPliData.nackCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_nack_received: nackDelta } },
+          { type: STAT_TYPE.VIDEO, value: { total_pli_received: nackPliData.pliCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_pli_received: pliDelta } },
         ];
       }
       break;
