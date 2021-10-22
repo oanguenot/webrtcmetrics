@@ -153,6 +153,14 @@ This `report` obtained is a JSON object containing the following properties.
 | **total_frames_decoded** | Number | Total of frames decoded |
 | **delta_ms_decode_frame** | Number | Time needed to decode a frame |
 | **delta_ms_encode_frame** | Number | Time needed to encode a frame |
+| **delta_nack_sent** | Number | Nack sent since the last report|
+| **delta_pli_sent** | Number | Pli sent since the last report|
+| **total_nack_sent** | Number | Total nack sent since the beginning of the call |
+| **total_pli_sent** | Number | Total pli sent since the beginning of the call |
+| **delta_nack_received** | Number | Nack received since the last report|
+| **delta_pli_received** | Number | Pli received since the last report|
+| **total_nack_received** | Number | Total nack received since the beginning of the call |
+| **total_pli_received** | Number | Total pli received since the beginning of the call |
 
 ### Network properties
 
