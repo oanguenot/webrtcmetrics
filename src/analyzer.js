@@ -25,7 +25,7 @@ export default class Analyzer {
     this._exporter = new Exporter(cfg);
   }
 
-  analyze(stats, previousReport) {
+  analyze(stats, previousReport, beforeLastReport) {
     const report = getDefaultMetric(previousReport);
 
     report.pname = this._config.pname;
@@ -33,11 +33,12 @@ export default class Analyzer {
     report.user_id = this._config.uid;
     report.count = previousReport ? previousReport.count + 1 : 1;
 
+    let timestamp = null;
     stats.forEach((stat) => {
-      if (!report.timestamp && stat.timestamp) {
-        report.timestamp = stat.timestamp;
+      if (!timestamp && stat.timestamp) {
+        timestamp = stat.timestamp;
       }
-      const values = extract(stat, report);
+      const values = extract(stat, report, report.pname);
       values.forEach((data) => {
         if (data.value && data.type) {
           Object.keys(data.value).forEach((key) => {
@@ -46,9 +47,9 @@ export default class Analyzer {
         }
       });
     });
-
-    report.audio.mos_emodel = computeEModelMOS(report);
-    report.audio.mos = computeMOS(report);
+    report.timestamp = timestamp;
+    report.audio.mos_emodel = computeEModelMOS(report, "audio", previousReport, beforeLastReport);
+    report.audio.mos = computeMOS(report, "audio", previousReport, beforeLastReport);
     return report;
   }
 
@@ -63,7 +64,7 @@ export default class Analyzer {
         debug(moduleName, `getstats() - got report ${this._config.pname}#${this._exporter.getReportsNumber() + 1}`);
 
         // Take into account last report in case no report have been generated (eg: candidate-pair)
-        const report = this.analyze(reports, this._exporter.getLastReport());
+        const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport());
 
         this.fireOnReport(report);
         this._exporter.addReport(report);
@@ -77,11 +78,13 @@ export default class Analyzer {
       clearInterval(this._intervalId);
     }
 
-    debug(moduleName, "start() - start analyzing...");
-    this._exporter.start();
-    this._intervalId = setInterval(() => {
-      getStats();
-    }, this._config.refreshTimer);
+    debug(moduleName, `start() - analyzing will start after ${this._config.startAfter}ms`);
+    setTimeout(() => {
+      this._exporter.start();
+      this._intervalId = setInterval(() => {
+        getStats();
+      }, this._config.refreshEvery);
+    }, this._config.startAfter);
   }
 
   stop() {

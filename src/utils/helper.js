@@ -18,7 +18,9 @@ export const getDefaultMetric = (previousStats) => {
       input_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
       output_codec: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
       delta_jitter_ms: 0,
-      last_three_jitter: [0, 0, 0],
+      delta_rtt_ms: 0,
+      total_rtt_ms: 0,
+      total_rtt_measure: 0,
       percent_packets_lost: 0,
       delta_packets_received: 0,
       delta_packets_lost: 0,
@@ -37,6 +39,10 @@ export const getDefaultMetric = (previousStats) => {
       output_size: { width: null, height: null },
       input_codec: { mime_type: null, clock_rate: null },
       output_codec: { mime_type: null, clock_rate: null },
+      delta_jitter_ms: 0,
+      delta_rtt_ms: 0,
+      total_rtt_ms: 0,
+      total_rtt_measure: 0,
       percent_packets_lost: 0,
       delta_packets_received: 0,
       delta_packets_lost: 0,
@@ -73,8 +79,6 @@ export const getDefaultMetric = (previousStats) => {
       remote_candidate_protocol: "",
     },
     data: {
-      delta_rtt_ms: 0,
-      last_three_rtt: [0, 0, 0],
       total_bytes_received: 0,
       total_bytes_sent: 0,
       delta_bytes_received: 0,
@@ -91,7 +95,7 @@ export const getDefaultMetric = (previousStats) => {
   }
 
   return ({
-    ...defaultMetrics,
+    ...previousStats,
     audio: { ...previousStats.audio },
     video: { ...previousStats.video },
     data: { ...previousStats.data },
@@ -100,13 +104,15 @@ export const getDefaultMetric = (previousStats) => {
 };
 
 export const defaultConfig = {
-  refreshTimer: 2500, // Default - generate a report every 2,5s
+  refreshEvery: 2000, // Default - generate a report every 2s
+  startAfter: 0, // Default - Wait 0s before starting to grab the stats
+  // keepMaxReport: 50, // Keep the last 50 tickets (new one erases the oldest)
   verbose: false, // Default - minimal logs
   pname: `p-${uuidv4()}`, // Default - peer connection name
   cid: `c-${uuidv4()}`, // Default - call identifier
   uid: `u-${uuidv4()}`, // Default - user identifier
   record: false, // Default - no record,
-  recordFields: ["*"], // Default all fields stored
+  // recordFields: ["*"], // Default all fields stored
 };
 
 export const TYPE = {
@@ -117,6 +123,7 @@ export const TYPE = {
   MEDIA_SOURCE: "media-source",
   OUTBOUND_RTP: "outbound-rtp",
   REMOTE_CANDIDATE: "remote-candidate",
+  REMOTE_INBOUND_RTP: "remote-inbound-rtp",
   TRACK: "track",
 };
 
@@ -131,6 +138,9 @@ export const PROPERTY = {
   CLOCK_RATE: "clockRate",
   CODEC_ID: "codecId",
   CURRENT_ROUND_TRIP_TIME: "currentRoundTripTime",
+  ROUND_TRIP_TIME: "roundTripTime",
+  TOTAL_ROUND_TRIP_TIME: "totalRoundTripTime",
+  TOTAL_ROUND_TRIP_TIME_MEASUREMENTS: "roundTripTimeMeasurements",
   FRAME_HEIGHT: "frameHeight",
   FRAME_WIDTH: "frameWidth",
   ID: "id",

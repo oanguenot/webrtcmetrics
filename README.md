@@ -33,7 +33,8 @@ const analyzer = new WebRTCMetrics(
     pname: 'PeerConnection_1',  // Name of the peer connection (Optional)
     cid: 'call007984',          // Call Id (Optional)
     uid: 'jdoe@mycorp.com',     // User Id (Optional)
-    refreshTimer: 3000,         // Timer to get the report (in ms). Default to 2500ms.
+    refreshEvery: 3000,         // Timer to get the report (in ms). Default to 2000.
+    startAfter: 10000,          // Start to grab the stats after a white (in ms). Default to 0
     verbose: true,              // Display verbose logs or not. Default to false.
     record: true                // Record reports in a ticket or not. Default to false.
 });
@@ -78,7 +79,8 @@ const analyzer = new WebRTCMetrics({
   pname: 'PeerConnection_1',  // Name of the peer connection (Optional)
   cid: 'call007984',          // Call Id (Optional)
   uid: 'jdoe@mycorp.com',     // User Id (Optional)
-  refreshTimer: 3000,         // Timer to get the report (in ms). Default to 2500ms.
+  refreshEvery: 3000,         // Timer to get the report (in ms). Default to 2000.
+  startAfter: 10000,          // Start to grab the stats after a white (in ms). Default to 0
   verbose: true,              // Display verbose logs or not. Default to false.
   record: true                // Record reports in a ticket or not. Default to false.
 });
@@ -88,7 +90,9 @@ const analyzer = new WebRTCMetrics({
 
 To start generating reports for a `RTCPeerConnection`, call the `start()` method.
 
-Reports can be obtained by registering to event `onreport`; the callback is called in loop with an interval equals to the value of the `refreshTimer` parameter and with the `report` generated.
+Reports can be obtained by registering to event `onreport`; the callback is called in loop with an interval equals to the value of the `refreshEvery` parameter and with the `report` generated.
+
+You can specify a delay before receiving metrics in order to avoid the first curve. So depending on your need, use the parameter `startAfter`. If value is 0, metrics will be retrieved as soon as possible.
 
 This `report` obtained is a JSON object containing the following properties.
 
@@ -106,61 +110,67 @@ This `report` obtained is a JSON object containing the following properties.
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
+| **delta_bytes_received** | Number | Number of bytes received since the last report |
+| **delta_bytes_sent** | Number | Number of bytes sent since last report |
+| **delta_jitter_ms** | Number | Jitter (in ms) |
+| **delta_packets_lost** | Number | Number of packets lost since last report |
+| **delta_packets_received** | Number | Number of packets received since the last report |
+| **delta_rtt_ms** | Number | Round Trip-Time (in ms) |
 | **input_codec** | JSON | Description of the audio input codec and parameters used |
 | **input_codec_id** | String | ID of the audio input codec used |
 | **input_level** | Number | Level of the input sound. Detect presence of incoming sound |
-| **output_codec_id** | String | ID of the audio output codec used |
-| **output_codec** | JSON | Description of the audio output codec and parameters used |
-| **output_level** | Number | Level of the output sound. Detect presence of outgoing sound |
-| **delta_jitter_ms** | Number | Jitter (in ms) |
-| **last_three_jitter** | Array | Last 3 Jitter values received (in ms) |
-| **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
-| **total_packets_received** | Number | Number of packets received since the beginning of the call |
-| **total_packets_lost** | Number | Number of packets lost since the beginning of the call |
-| **delta_packets_received** | Number | Number of packets received since the last report |
-| **delta_packets_lost** | Number | Number of packets lost since last report |
-| **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
-| **total_bytes_send** | Number | Number of bytes sent since the beginning of the call |
-| **delta_bytes_received** | Number | Number of bytes received since the last report |
-| **delta_bytes_sent** | Number | Number of bytes sent since last report |
 | **mos_emodel** | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
 | **mos** | Number | Audio quality indicator based on 'effective latency' |
+| **output_codec** | JSON | Description of the audio output codec and parameters used |
+| **output_codec_id** | String | ID of the audio output codec used |
+| **output_level** | Number | Level of the output sound. Detect presence of outgoing sound |
+| **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
+| **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
+| **total_bytes_sent** | Number | Number of bytes sent since the beginning of the call |
+| **total_packets_lost** | Number | Number of packets lost since the beginning of the call |
+| **total_packets_received** | Number | Number of packets received since the beginning of the call |
+| **total_rtt_measure** | Number | Number of RTT measurements done |
+| **total_rtt_ms** | Number | Total Round Trip Time since the beginning of the call |
 
 ### Video properties
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
-| **input_codec_id** | String | ID of the video input codec used |
-| **input_codec** | JSON | Description of the video input codec and parameters used |
-| **input_size** | Number | Size of the input video (from remote peer) |
-| **output_codec_id** | String | ID of the video output codec used |
-| **output_codec** | JSON | Description of the video output codec and parameters used |
-| **output_size** | Number | Size of the output video (own video) |
-| **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
-| **total_packets_received** | Number | Number of packets received since the beginning of the call |
-| **total_packets_lost** | Number | Number of packets lost since the beginning of the call |
-| **delta_packets_received** | Number | Number of packets received since the last report |
-| **delta_packets_lost** | Number | Number of packets lost since last report |
-| **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
-| **total_bytes_send** | Number | Number of bytes sent since the beginning of the call |
+| **decoder** | String | Description of the video decoder used |
 | **delta_bytes_received** | Number | Number of bytes received since the last report |
 | **delta_bytes_sent** | Number | Number of bytes sent since last report |
-| **encoder** | String | Description of the video encoder used |
-| **decoder** | String | Description of the video decoder used |
-| **total_time_encoded** | Number | Total time used for encoding all frames |
-| **total_frames_encoded** | Number | Total of frames encoded |
-| **total_time_decoded** | Number | Total time used for decoding all frames |
-| **total_frames_decoded** | Number | Total of frames decoded |
+| **delta_jitter_ms** | Number | Jitter (in ms) |
 | **delta_ms_decode_frame** | Number | Time needed to decode a frame |
 | **delta_ms_encode_frame** | Number | Time needed to encode a frame |
-| **delta_nack_sent** | Number | Nack sent since the last report|
-| **delta_pli_sent** | Number | Pli sent since the last report|
-| **total_nack_sent** | Number | Total nack sent since the beginning of the call |
-| **total_pli_sent** | Number | Total pli sent since the beginning of the call |
 | **delta_nack_received** | Number | Nack received since the last report|
+| **delta_nack_sent** | Number | Nack sent since the last report|
+| **delta_packets_lost** | Number | Number of packets lost since last report |
+| **delta_packets_received** | Number | Number of packets received since the last report |
 | **delta_pli_received** | Number | Pli received since the last report|
+| **delta_pli_sent** | Number | Pli sent since the last report|
+| **delta_rtt_ms** | Number | Round Trip-Time (in ms) |
+| **encoder** | String | Description of the video encoder used |
+| **input_codec** | JSON | Description of the video input codec and parameters used |
+| **input_codec_id** | String | ID of the video input codec used |
+| **input_size** | Number | Size of the input video (from remote peer) |
+| **output_codec** | JSON | Description of the video output codec and parameters used |
+| **output_codec_id** | String | ID of the video output codec used |
+| **output_size** | Number | Size of the output video (own video) |
+| **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
+| **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
+| **total_bytes_sent** | Number | Number of bytes sent since the beginning of the call |
+| **total_frames_decoded** | Number | Total of frames decoded |
+| **total_frames_encoded** | Number | Total of frames encoded |
 | **total_nack_received** | Number | Total nack received since the beginning of the call |
+| **total_nack_sent** | Number | Total nack sent since the beginning of the call |
+| **total_packets_lost** | Number | Number of packets lost since the beginning of the call |
+| **total_packets_received** | Number | Number of packets received since the beginning of the call |
 | **total_pli_received** | Number | Total pli received since the beginning of the call |
+| **total_pli_sent** | Number | Total pli sent since the beginning of the call |
+| **total_rtt_measure** | Number | Number of RTT measurements done |
+| **total_rtt_ms** | Number | Total Round Trip Time since the beginning of the call |
+| **total_time_decoded** | Number | Total time used for decoding all frames |
+| **total_time_encoded** | Number | Total time used for encoding all frames |
 
 ### Network properties
 
@@ -168,26 +178,25 @@ This `report` obtained is a JSON object containing the following properties.
 |:----:|:-----:|:------------|
 | **infrastructure** | Number | Infrastructure level (0: Eth, 3: Wifi, 5: 4G, 10: 3G) |
 | **local_candidate_id** | String | ID of the local candidate used |
-| **local_candidate_type** | String | Type of candidate used (host, relay, srflx) |
 | **local_candidate_protocol** | String | Protocol used (udp, tcp) |
+| **local_candidate_type** | String | Type of candidate used (host, relay, srflx) |
 | **remote_candidate_id** | String | ID of the remote candidate used |
-| **remote_candidate_type** | String | Type of candidate used (host, relay, srflx) |
 | **remote_candidate_protocol** | String | Protocol used (udp, tcp) |
+| **remote_candidate_type** | String | Type of candidate used (host, relay, srflx) |
+
 
 ### Data properties
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
-| **delta_rtt_ms** | Number | Round Trip Time (in ms) |
-| **last_three_rtt** | Array | last 3 RTT values received (in ms) |
-| **total_bytes_received** | Number | Number of bytes received since the beginning of the call (audio+video) |
-| **total_bytes_send** | Number | Number of bytes sent since the beginning of the call (audio+video) |
 | **delta_bytes_received** | Number | Number of bytes received since the last report (audio+video) |
 | **delta_bytes_sent** | Number | Number of bytes sent since last report (audio+video) |
-| **delta_kbs_received** | Number | Number of kbit received per seconds since the last report (audio+video) |
-| **delta_kbs_sent** | Number | Number of kbit sent per seconds since the last report (audio+video) |
-| **delta_kbs_incoming_bandwidth** | Number | Available incoming bitrate in kb/s for audio +video |
-| **delta_kbs_outgoing_bandwidth** | Number | Available outgoing bitrate in kb/s for audio +video |
+| **delta_kbs_incoming_bandwidth** | Number | Available incoming bitrate in kb/s (audio+video) |
+| **delta_kbs_outgoing_bandwidth** | Number | Available outgoing bitrate in kb/s for (audio+video) |
+| **delta_kbs_received** | Number | Number of kbit received per second since the last report (audio+video) |
+| **delta_kbs_sent** | Number | Number of kbit sent per second since the last report (audio+video) |
+| **total_bytes_received** | Number | Number of bytes received since the beginning of the call (audio+video) |
+| **total_bytes_sent** | Number | Number of bytes sent since the beginning of the call (audio+video) |
 
 ## Stop reporting
 

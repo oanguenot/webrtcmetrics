@@ -82,8 +82,8 @@ export default class WebRTCMetrics {
    * Start the analyzer
    */
   start() {
-    info(moduleName, `analyze started for peer connection every ${this._config.refreshTimer}ms`);
-    this._analyzer.start({ refreshTimer: this._config.refreshTimer });
+    info(moduleName, `analyze started for peer connection every ${this._config.refreshEvery}ms`);
+    this._analyzer.start({ refreshEvery: this._config.refreshEvery });
   }
 
   /**
