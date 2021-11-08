@@ -59,6 +59,17 @@ const max = (reports, key, subKey) => {
   return Math.max(...arr);
 };
 
+const last = (reports, key, subKey) => {
+  const lastReport = reports.slice().pop();
+  if (!lastReport) {
+    return null;
+  }
+  if (!subKey) {
+    return lastReport[key];
+  }
+  return lastReport[key][subKey];
+};
+
 export default class Exporter {
   constructor(cfg) {
     this._start = null;
@@ -93,14 +104,21 @@ export default class Exporter {
   get ticket() {
     info(moduleName, "ticket() - generate ticket");
     return {
-      ua: navigator.userAgent,
-      pname: this._cfg.pname,
-      call_id: this._cfg.cid,
-      user_id: this._cfg.uid,
-      start_time: this._start,
-      end_time: this._end,
       version: VERSION_EXPORTER,
-      count: this._reports.length,
+      ua: {
+        agent: navigator.userAgent,
+        pname: this._cfg.pname,
+        user_id: this._cfg.uid,
+      },
+      call: {
+        call_id: this._cfg.cid,
+        start_time: this._start,
+        end_time: this._end,
+      },
+      details: {
+        count: this._reports.length,
+        reports: this._cfg.record ? this._reports : [],
+      },
       jitter: {
         audio: {
           min: min(this._reports, "audio", "delta_jitter_ms"),
@@ -125,9 +143,19 @@ export default class Exporter {
           max: max(this._reports, "video", "delta_rtt_ms"),
         },
       },
-      mos: average(this._reports, "audio", "mos"),
-      mos_emodel: average(this._reports, "audio", "mos_emodel"),
-      reports: this._cfg.record ? this._reports : [],
+      mos_emodel: {
+        min: min(this._reports, "audio", "mos_emodel"),
+        avg: average(this._reports, "audio", "mos_emodel"),
+        max: max(this._reports, "audio", "mos_emodel"),
+      },
+      packetsLost: {
+        audio: {
+          percent: Math.round((((last(this._reports, "audio", "total_packets_lost") / last(this._reports, "audio", "total_packets_received")) * 100) || 0) * 100) / 100,
+        },
+        video: {
+          percent: Math.round((((last(this._reports, "video", "total_packets_lost") / last(this._reports, "video", "total_packets_received")) * 100) || 0) * 100) / 100,
+        },
+      },
     };
   }
 
