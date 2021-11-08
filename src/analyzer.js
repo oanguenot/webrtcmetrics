@@ -65,8 +65,10 @@ export default class Analyzer {
 
         // Take into account last report in case no report have been generated (eg: candidate-pair)
         const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport());
+        if (this._config.startAfter === 0 || this._exporter.getReportsNumber() > 0) {
+          this.fireOnReport(report);
+        }
 
-        this.fireOnReport(report);
         this._exporter.addReport(report);
       } catch (err) {
         error(moduleName, `getStats() - error ${err}`);
