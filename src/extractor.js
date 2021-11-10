@@ -14,6 +14,18 @@ const moduleName = "extractor   ";
 /* Globals */
 const maxValues = 3;
 
+const computeScore = (r) => {
+  if (r < 0) {
+    return 1;
+  }
+
+  if (r > 100) {
+    return 4.5;
+  }
+
+  return (1 + (0.035 * r) + (7.0 / 1000000) * r * (r - 60) * (100 - r));
+};
+
 const extractRTTBasedOnRTCP = (bunch) => {
   const currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]) || 0;
   const currentTotalRTT = Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) || null;
@@ -461,12 +473,13 @@ export const computeEModelMOS = (report, kind = "audio", previousReport, beforeL
     return 4.5;
   }
 
-  return (1 + (0.035 * r) + (7.0 / 1000000) * r * (r - 60) * (100 - r));
+  return (computeScore(r));
 };
 
 export const computeMOS = (report, kind = "audio", previousReport, beforeLastReport) => {
   const rttValues = [report[kind].delta_rtt_ms];
   const jitterValues = [report[kind].delta_jitter_ms];
+  const packetsLoss = report[kind].percent_packets_lost;
 
   if (previousReport) {
     rttValues.push(previousReport[kind].delta_rtt_ms);
@@ -479,27 +492,17 @@ export const computeMOS = (report, kind = "audio", previousReport, beforeLastRep
 
   const rtt = average(rttValues);
   const jitter = average(jitterValues);
-  const latency = rtt / 2;
-  const packetsLoss = report[kind].percent_packets_lost;
+  const codecFittingParameterA = 0;
+  const codecFittingParameterB = 19.8;
+  const codecFittingParameterC = 29.7;
+  const ld = 30;
+  const d = (rtt + jitter) / 2 + ld;
+  const h = d - 177.3 < 0 ? 0 : 1;
 
-  const effectiveLatency = latency + (2 * jitter) + 10.0;
+  const id = 0.024 * d + 0.11 * (d - 177.3) * h;
+  const ie = codecFittingParameterA + codecFittingParameterB * Math.log(1 + codecFittingParameterC * packetsLoss);
 
-  let r = 0;
-  if (effectiveLatency < 160) {
-    r = 93.2 - (effectiveLatency / 40);
-  } else {
-    r = 93.2 - ((effectiveLatency - 120) / 10);
-  }
+  const r = 93.2 - (ie + id);
 
-  r -= (2.5 * packetsLoss);
-
-  if (r < 0) {
-    return 1;
-  }
-
-  if (r > 100) {
-    return 4.5;
-  }
-
-  return (1 + (0.035 * r) + (7.0 / 1000000) * r * (r - 60) * (100 - r));
+  return (computeScore(r));
 };

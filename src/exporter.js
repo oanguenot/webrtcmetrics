@@ -148,6 +148,11 @@ export default class Exporter {
         avg: average(this._reports, "audio", "mos_emodel"),
         max: max(this._reports, "audio", "mos_emodel"),
       },
+      mos: {
+        min: min(this._reports, "audio", "mos"),
+        avg: average(this._reports, "audio", "mos"),
+        max: max(this._reports, "audio", "mos"),
+      },
       packetsLost: {
         audio: {
           percent: Math.round((((last(this._reports, "audio", "total_packets_lost") / last(this._reports, "audio", "total_packets_received")) * 100) || 0) * 100) / 100,
