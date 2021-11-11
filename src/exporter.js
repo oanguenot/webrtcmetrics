@@ -42,6 +42,7 @@ const min = (reports, key, subKey) => {
   });
 
   const arrWithoutZero = arr.filter((item) => item > 0);
+
   if (arrWithoutZero.length === 0) {
     return 0;
   }
@@ -75,6 +76,7 @@ export default class Exporter {
     this._start = null;
     this._end = null;
     this._cfg = cfg;
+    this._referenceReport = null;
     this._reports = [];
   }
 
@@ -89,6 +91,14 @@ export default class Exporter {
     return this.ticket;
   }
 
+  saveReferenceReport(report) {
+    this._referenceReport = report;
+  }
+
+  getReferenceReport() {
+    return this._referenceReport;
+  }
+
   addReport(report) {
     debug(moduleName, `addReport() - add report to exporter at ${report.timestamp}`);
     this._reports.push(report);
@@ -97,6 +107,7 @@ export default class Exporter {
   reset() {
     info(moduleName, "resetReports() - reset reports");
     this._reports = [];
+    this._referenceReport = null;
     this._start = null;
     this._end = null;
   }
@@ -118,6 +129,7 @@ export default class Exporter {
       details: {
         count: this._reports.length,
         reports: this._cfg.record ? this._reports : [],
+        reference: this._referenceReport || null,
       },
       jitter: {
         audio: {
@@ -159,6 +171,30 @@ export default class Exporter {
         },
         video: {
           percent: Math.round((((last(this._reports, "video", "total_packets_lost") / last(this._reports, "video", "total_packets_received")) * 100) || 0) * 100) / 100,
+        },
+      },
+      bitrate: {
+        in: {
+          min: min(this._reports, "data", "delta_kbs_received"),
+          avg: average(this._reports, "data", "delta_kbs_received"),
+          max: max(this._reports, "data", "delta_kbs_received"),
+        },
+        out: {
+          min: min(this._reports, "data", "delta_kbs_sent"),
+          avg: average(this._reports, "data", "delta_kbs_sent"),
+          max: max(this._reports, "data", "delta_kbs_sent"),
+        },
+      },
+      traffic: {
+        in: {
+          min: min(this._reports, "data", "delta_KBytes_received"),
+          avg: average(this._reports, "data", "delta_KBytes_received"),
+          max: max(this._reports, "data", "delta_KBytes_received"),
+        },
+        out: {
+          min: min(this._reports, "data", "delta_KBytes_sent"),
+          avg: average(this._reports, "data", "delta_KBytes_sent"),
+          max: max(this._reports, "data", "delta_KBytes_sent"),
         },
       },
     };

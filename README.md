@@ -110,8 +110,8 @@ This `report` obtained is a JSON object containing the following properties.
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
-| **delta_bytes_received** | Number | Number of bytes received since the last report |
-| **delta_bytes_sent** | Number | Number of bytes sent since last report |
+| **delta_KBytes_received** | Number | Number of kilobytes (KB) received since the last report |
+| **delta_KBytes_sent** | Number | Number of kilobytes (KB) sent since last report |
 | **delta_jitter_ms** | Number | Jitter (in ms) |
 | **delta_packets_lost** | Number | Number of packets lost since last report |
 | **delta_packets_received** | Number | Number of packets received since the last report |
@@ -125,8 +125,8 @@ This `report` obtained is a JSON object containing the following properties.
 | **output_codec_id** | String | ID of the audio output codec used |
 | **output_level** | Number | Level of the output sound. Detect presence of outgoing sound |
 | **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
-| **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
-| **total_bytes_sent** | Number | Number of bytes sent since the beginning of the call |
+| **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call |
+| **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call |
 | **total_packets_lost** | Number | Number of packets lost since the beginning of the call |
 | **total_packets_received** | Number | Number of packets received since the beginning of the call |
 | **total_rtt_measure** | Number | Number of RTT measurements done |
@@ -137,8 +137,8 @@ This `report` obtained is a JSON object containing the following properties.
 | Name | Value | Description |
 |:----:|:-----:|:------------|
 | **decoder** | String | Description of the video decoder used |
-| **delta_bytes_received** | Number | Number of bytes received since the last report |
-| **delta_bytes_sent** | Number | Number of bytes sent since last report |
+| **delta_KBytes_received** | Number | Number of kilobytes (KB) received since the last report |
+| **delta_KBytes_sent** | Number | Number of kilobytes (KB) sent since last report |
 | **delta_jitter_ms** | Number | Jitter (in ms) |
 | **delta_ms_decode_frame** | Number | Time needed to decode a frame |
 | **delta_ms_encode_frame** | Number | Time needed to encode a frame |
@@ -157,8 +157,8 @@ This `report` obtained is a JSON object containing the following properties.
 | **output_codec_id** | String | ID of the video output codec used |
 | **output_size** | Number | Size of the output video (own video) |
 | **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
-| **total_bytes_received** | Number | Number of bytes received since the beginning of the call |
-| **total_bytes_sent** | Number | Number of bytes sent since the beginning of the call |
+| **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call |
+| **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call |
 | **total_frames_decoded** | Number | Total of frames decoded |
 | **total_frames_encoded** | Number | Total of frames encoded |
 | **total_nack_received** | Number | Total nack received since the beginning of the call |
@@ -189,14 +189,14 @@ This `report` obtained is a JSON object containing the following properties.
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
-| **delta_bytes_received** | Number | Number of bytes received since the last report (audio+video) |
-| **delta_bytes_sent** | Number | Number of bytes sent since last report (audio+video) |
+| **delta_KBytes_received** | Number | Number of kilobytes (KB) received since the last report (audio+video) |
+| **delta_KBytes_sent** | Number | Number of kilobytes (KB) sent since last report (audio+video) |
 | **delta_kbs_incoming_bandwidth** | Number | Available incoming bitrate in kb/s (audio+video) |
 | **delta_kbs_outgoing_bandwidth** | Number | Available outgoing bitrate in kb/s for (audio+video) |
 | **delta_kbs_received** | Number | Number of kbit received per second since the last report (audio+video) |
 | **delta_kbs_sent** | Number | Number of kbit sent per second since the last report (audio+video) |
-| **total_bytes_received** | Number | Number of bytes received since the beginning of the call (audio+video) |
-| **total_bytes_sent** | Number | Number of bytes sent since the beginning of the call (audio+video) |
+| **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video) |
+| **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video) |
 
 ## Stop reporting
 

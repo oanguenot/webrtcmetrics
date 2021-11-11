@@ -25,7 +25,7 @@ export default class Analyzer {
     this._exporter = new Exporter(cfg);
   }
 
-  analyze(stats, previousReport, beforeLastReport) {
+  analyze(stats, previousReport, beforeLastReport, referenceReport) {
     const report = getDefaultMetric(previousReport);
 
     report.pname = this._config.pname;
@@ -38,7 +38,7 @@ export default class Analyzer {
       if (!timestamp && stat.timestamp) {
         timestamp = stat.timestamp;
       }
-      const values = extract(stat, report, report.pname);
+      const values = extract(stat, report, report.pname, referenceReport);
       values.forEach((data) => {
         if (data.value && data.type) {
           Object.keys(data.value).forEach((key) => {
@@ -54,25 +54,48 @@ export default class Analyzer {
   }
 
   async start() {
+    if (!this._config.pc) {
+      error(moduleName, "getstats() - no peer connection!");
+      return;
+    }
+
     const getStats = async () => {
-      if (!this._config.pc) {
-        error(moduleName, "getstats() - no peer connection!");
-        return;
-      }
       try {
         const reports = await this._config.pc.getStats();
         debug(moduleName, `getstats() - got report ${this._config.pname}#${this._exporter.getReportsNumber() + 1}`);
 
         // Take into account last report in case no report have been generated (eg: candidate-pair)
-        const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport());
-        if (this._config.startAfter === 0 || this._exporter.getReportsNumber() > 0) {
-          this.fireOnReport(report);
-        }
+        const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
 
         this._exporter.addReport(report);
+        this.fireOnReport(report);
       } catch (err) {
         error(moduleName, `getStats() - error ${err}`);
       }
+    };
+
+    const takeReferenceStat = async () => (
+      new Promise((resolve, reject) => {
+        setTimeout(async () => {
+          try {
+            const reports = await this._config.pc.getStats();
+            debug(moduleName, `getstats() - got reference report for ${this._config.pname}`);
+            const referenceReport = this.analyze(reports, null, null, null);
+            console.log(">>>ref", referenceReport);
+            this._exporter.saveReferenceReport(referenceReport);
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        }, this._config.startAfter);
+      })
+    );
+
+    const takeStats = () => {
+      const intervalId = setInterval(() => {
+        getStats();
+      }, this._config.refreshEvery);
+      return intervalId;
     };
 
     if (this._intervalId) {
@@ -81,12 +104,15 @@ export default class Analyzer {
     }
 
     debug(moduleName, `start() - analyzing will start after ${this._config.startAfter}ms`);
-    setTimeout(() => {
+    try {
+      await takeReferenceStat();
       this._exporter.start();
-      this._intervalId = setInterval(() => {
-        getStats();
-      }, this._config.refreshEvery);
-    }, this._config.startAfter);
+      debug(moduleName, "start() - analyzing started");
+      console.log(">>>Start");
+      this._intervalId = takeStats();
+    } catch (err) {
+      error(moduleName, `Can't grab stats ${err}`);
+    }
   }
 
   stop() {

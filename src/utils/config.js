@@ -34,7 +34,11 @@ export const getConfig = (cfg) => {
   }
 
   if (!cfg.startAfter) {
-    warn(moduleName, `Argument [Int] 'cfg.startAfter' for delaying grabbing the stats is missing - use generated '${_cfg.startAfter}'`);
+    warn(moduleName, `Argument [Int] 'cfg.startAfter' for delaying grabbing the stats is missing - use default '${_cfg.startAfter}'`);
+  }
+
+  if (!cfg.stopAfter) {
+    warn(moduleName, `Argument [Int] 'cfg.stopAfter' for automatically stop grabbing the stats - use default '${_cfg.stopAfter}'`);
   }
 
   const config = { ..._cfg, ...cfg };

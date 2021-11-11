@@ -26,10 +26,10 @@ export const getDefaultMetric = (previousStats) => {
       delta_packets_lost: 0,
       total_packets_received: 0,
       total_packets_lost: 0,
-      total_bytes_received: 0,
-      delta_bytes_received: 0,
-      total_bytes_sent: 0,
-      delta_bytes_sent: 0,
+      total_KBytes_received: 0,
+      delta_KBytes_received: 0,
+      total_KBytes_sent: 0,
+      delta_KBytes_sent: 0,
       mos: 0,
     },
     video: {
@@ -48,10 +48,10 @@ export const getDefaultMetric = (previousStats) => {
       delta_packets_lost: 0,
       total_packets_received: 0,
       total_packets_lost: 0,
-      total_bytes_received: 0,
-      delta_bytes_received: 0,
-      total_bytes_sent: 0,
-      delta_bytes_sent: 0,
+      total_KBytes_received: 0,
+      delta_KBytes_received: 0,
+      total_KBytes_sent: 0,
+      delta_KBytes_sent: 0,
       decoder: null,
       encoder: null,
       delta_ms_encode_frame: 0,
@@ -79,10 +79,10 @@ export const getDefaultMetric = (previousStats) => {
       remote_candidate_protocol: "",
     },
     data: {
-      total_bytes_received: 0,
-      total_bytes_sent: 0,
-      delta_bytes_received: 0,
-      delta_bytes_sent: 0,
+      total_KBytes_received: 0,
+      total_KBytes_sent: 0,
+      delta_KBytes_received: 0,
+      delta_KBytes_sent: 0,
       delta_kbs_received: 0,
       delta_kbs_sent: 0,
       delta_kbs_incoming_bandwidth: 0,
@@ -90,22 +90,31 @@ export const getDefaultMetric = (previousStats) => {
     },
   };
 
-  if (!previousStats) {
-    return ({ ...defaultMetrics });
+  let metrics = {
+    ...defaultMetrics,
+    audio: { ...defaultMetrics.audio },
+    video: { ...defaultMetrics.video },
+    data: { ...defaultMetrics.data },
+    network: { ...defaultMetrics.network },
+  };
+
+  if (previousStats) {
+    metrics = {
+      ...previousStats,
+      audio: { ...previousStats.audio },
+      video: { ...previousStats.video },
+      data: { ...previousStats.data },
+      network: { ...previousStats.network },
+    };
   }
 
-  return ({
-    ...previousStats,
-    audio: { ...previousStats.audio },
-    video: { ...previousStats.video },
-    data: { ...previousStats.data },
-    network: { ...previousStats.network },
-  });
+  return (metrics);
 };
 
 export const defaultConfig = {
-  refreshEvery: 2000, // Default - generate a report every 2s
-  startAfter: 0, // Default - Wait 0s before starting to grab the stats
+  refreshEvery: 2000, // Default - generate a report every 2s (in ms). Min 1s.
+  startAfter: 0, // Default - Duration (in ms) to wait before starting to grab the stats. 0 starts immediately
+  stopAfter: -1, // Default - Max duration (in ms) for grabbing the stats. -1 means until calling stop().
   // keepMaxReport: 50, // Keep the last 50 tickets (new one erases the oldest)
   verbose: false, // Default - minimal logs
   pname: `p-${uuidv4()}`, // Default - peer connection name
