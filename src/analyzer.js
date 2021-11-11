@@ -81,7 +81,6 @@ export default class Analyzer {
             const reports = await this._config.pc.getStats();
             debug(moduleName, `getstats() - got reference report for ${this._config.pname}`);
             const referenceReport = this.analyze(reports, null, null, null);
-            console.log(">>>ref", referenceReport);
             this._exporter.saveReferenceReport(referenceReport);
             resolve();
           } catch (err) {
@@ -108,7 +107,6 @@ export default class Analyzer {
       await takeReferenceStat();
       this._exporter.start();
       debug(moduleName, "start() - analyzing started");
-      console.log(">>>Start");
       this._intervalId = takeStats();
     } catch (err) {
       error(moduleName, `Can't grab stats ${err}`);
