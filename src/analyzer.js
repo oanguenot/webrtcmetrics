@@ -1,7 +1,7 @@
 import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
-import { getDefaultMetric } from "./utils/helper";
-import { debug, error } from "./utils/log";
+import { ANALYZER_STATE, getDefaultMetric } from "./utils/helper";
+import { debug, error, warn } from "./utils/log";
 
 const moduleName = "analyzer    ";
 
@@ -21,8 +21,10 @@ export default class Analyzer {
     };
 
     this._intervalId = null;
+    this._stopTimeoutId = null;
     this._config = cfg;
     this._exporter = new Exporter(cfg);
+    this._state = ANALYZER_STATE.IDLE;
   }
 
   analyze(stats, previousReport, beforeLastReport, referenceReport) {
@@ -54,8 +56,16 @@ export default class Analyzer {
   }
 
   async start() {
+    if (this._state === ANALYZER_STATE.RUNNING) {
+      warn(moduleName, "start() - can't start - Already running!");
+      return;
+    }
+
+    this._state = ANALYZER_STATE.RUNNING;
+    debug(moduleName, `start() - state is ${this._state}`);
+
     if (!this._config.pc) {
-      error(moduleName, "getstats() - no peer connection!");
+      error(moduleName, "start() - no peer connection!");
       return;
     }
 
@@ -97,9 +107,28 @@ export default class Analyzer {
       return intervalId;
     };
 
+    const runWatchdog = () => {
+      if (this._config.stopAfter === -1) {
+        debug(moduleName, "start() - watchdog disabled - stats will be stopped when calling stop()");
+        return null;
+      }
+
+      debug(moduleName, `start() - watchdog will stop the stats after ${this._config.stopAfter}ms`);
+      const stopTimeoutId = setTimeout(() => {
+        debug(moduleName, "start() - watchdog called - stop the stats");
+        this.stop();
+      }, this._config.stopAfter);
+      return stopTimeoutId;
+    };
+
     if (this._intervalId) {
       debug(moduleName, `start() - clear analyzer with id ${this._intervalId}`);
       clearInterval(this._intervalId);
+    }
+
+    if (this._stopTimeoutId) {
+      debug(moduleName, `start() - clear watchdog with id ${this._stopTimeoutId}`);
+      clearInterval(this._stopTimeoutId);
     }
 
     debug(moduleName, `start() - analyzing will start after ${this._config.startAfter}ms`);
@@ -108,17 +137,29 @@ export default class Analyzer {
       this._exporter.start();
       debug(moduleName, "start() - analyzing started");
       this._intervalId = takeStats();
+      this._stopTimeoutId = runWatchdog();
     } catch (err) {
       error(moduleName, `Can't grab stats ${err}`);
     }
   }
 
   stop() {
-    if (!this._intervalId) {
+    if (this._state === ANALYZER_STATE.IDLE) {
+      warn(moduleName, "stop() - can't stop - Already stopped!");
       return;
     }
 
-    clearInterval(this._intervalId);
+    this._state = ANALYZER_STATE.IDLE;
+    debug(moduleName, `stop() - state is ${this._state}`);
+
+    if (this._intervalId) {
+      clearInterval(this._intervalId);
+    }
+
+    if (this._stopTimeoutId) {
+      clearTimeout(this._stopTimeoutId);
+    }
+
     const ticket = this._exporter.stop();
     this.fireOnTicket(ticket);
     this._exporter.reset();
@@ -158,5 +199,9 @@ export default class Analyzer {
   updateConfig(config) {
     this._config = config;
     this._exporter.updateConfig(config);
+  }
+
+  get state() {
+    return this._state;
   }
 }

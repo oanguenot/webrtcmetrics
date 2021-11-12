@@ -106,4 +106,12 @@ export default class WebRTCMetrics {
   get name() {
     return this._config.name;
   }
+
+  /**
+   * Get the state of the analyzer
+   * Value can be 'running' or 'idle'
+   */
+  get state() {
+    return this._analyzer.state;
+  }
 }
