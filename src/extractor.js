@@ -128,14 +128,25 @@ const extractVideoSize = (bunch) => {
   return { width: bunch[PROPERTY.FRAME_WIDTH] || null, height: bunch[PROPERTY.FRAME_HEIGHT] || null };
 };
 
-const extractNackAndPliCount = (bunch, referenceReport) => {
+const extractNackAndPliCountSent = (bunch, referenceReport) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PLI) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NACK)) {
     return { pliCount: 0, nackCount: 0 };
   }
 
   return {
-    pliCount: (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport.video.pliCount : 0),
-    nackCount: (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport.video.nackCount : 0),
+    pliCount: (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport.video.total_pli_sent : 0),
+    nackCount: (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport.video.total_nack_sent : 0),
+  };
+};
+
+const extractNackAndPliCountReceived = (bunch, referenceReport) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PLI) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NACK)) {
+    return { pliCount: 0, nackCount: 0 };
+  }
+
+  return {
+    pliCount: (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport.video.total_pli_received : 0),
+    nackCount: (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport.video.total_nack_received : 0),
   };
 };
 
@@ -296,7 +307,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
         // Nack & Pli stats
-        const nackPliData = extractNackAndPliCount(bunch, referenceReport);
+        const nackPliData = extractNackAndPliCountSent(bunch, referenceReport);
         const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_sent;
         const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_sent;
 
@@ -343,7 +354,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const data = extractEncodeTime(bunch, previousBunch);
 
         // Nack & Pli stats
-        const nackPliData = extractNackAndPliCount(bunch, referenceReport);
+        const nackPliData = extractNackAndPliCountReceived(bunch, referenceReport);
         const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_received;
         const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_received;
 
