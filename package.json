@@ -1,6 +1,6 @@
 {
   "name": "webrtcmetrics",
-  "version": "1.4.1",
+  "version": "2.0.0",
   "description": "WebRTC stats library",
   "main": "dist/WebRTCMetrics.js",
   "scripts": {
@@ -29,18 +29,18 @@
   },
   "homepage": "https://github.com/oanguenot/webrtc-stats#readme",
   "devDependencies": {
-    "@babel/cli": "7.11.6",
-    "@babel/core": "7.11.6",
-    "@babel/preset-env": "7.11.5",
-    "@babel/register": "7.11.5",
-    "babel-loader": "8.1.0",
+    "@babel/cli": "7.16.0",
+    "@babel/core": "7.16.0",
+    "@babel/preset-env": "7.16.0",
+    "@babel/register": "7.16.0",
+    "babel-loader": "8.2.3",
     "eslint": "7.26.0",
     "eslint-config-airbnb-base": "14.2.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-webpack-plugin": "2.5.3",
     "rimraf": "3.0.2",
-    "webpack": "5.37.1",
-    "webpack-cli": "4.7.0"
+    "webpack": "5.64.0",
+    "webpack-cli": "4.9.1"
   },
   "babel": {
     "presets": [
