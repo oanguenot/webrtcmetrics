@@ -191,7 +191,6 @@ This `report` obtained is a JSON object containing the following properties.
 | **remote_candidate_protocol** | String | Protocol used (udp, tcp) |
 | **remote_candidate_type** | String | Type of candidate used (host, relay, srflx) |
 
-
 ### Data properties
 
 | Name | Value | Description |
