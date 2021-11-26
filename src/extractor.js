@@ -23,10 +23,25 @@ const computeScore = (r) => {
   return (1 + (0.035 * r) + (7.0 / 1000000) * r * (r - 60) * (100 - r));
 };
 
-const extractRTTBasedOnRTCP = (bunch, kind, referenceReport) => {
-  const currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]) || 0;
-  const currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms : 0)) || null;
-  const currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure : 0)) || null;
+const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
+  // If RTT is not part of the stat - return previous value
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.ROUND_TRIP_TIME)) {
+    return {
+      rtt: previousBunch[kind].delta_rtt_ms,
+      totalRTT: previousBunch[kind].total_rtt_ms,
+      totalRTTMeasurements: previousBunch[kind].total_rtt_measure,
+    };
+  }
+
+  const currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]);
+  let currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms : 0)) || null;
+  let currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure : 0)) || null;
+
+  // If total round trip time is not supported yet)
+  if (!currentTotalRTT) {
+    currentTotalRTT = (previousBunch[kind].total_rtt_ms || 0) + currentRTT;
+    currentTotalMeasurements += 1;
+  }
 
   return {
     rtt: currentRTT,
@@ -426,7 +441,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`, bunch);
       if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
         // Round Trip Time based on RTCP
-        const data = extractRTTBasedOnRTCP(bunch, VALUE.AUDIO, referenceReport);
+        const data = extractRTTBasedOnRTCP(bunch, VALUE.AUDIO, referenceReport, previousBunch);
 
         return [
           { type: STAT_TYPE.AUDIO, value: { delta_rtt_ms: data.rtt } },
@@ -437,7 +452,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
       if (bunch[PROPERTY.KIND] === VALUE.VIDEO) {
         // Round Trip Time based on RTCP
-        const data = extractRTTBasedOnRTCP(bunch, VALUE.VIDEO, referenceReport);
+        const data = extractRTTBasedOnRTCP(bunch, VALUE.VIDEO, referenceReport, previousBunch);
 
         return [
           { type: STAT_TYPE.VIDEO, value: { delta_rtt_ms: data.rtt } },
