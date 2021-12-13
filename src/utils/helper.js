@@ -126,6 +126,7 @@ export const defaultConfig = {
   cid: `c-${uuidv4()}`, // Default - call identifier
   uid: `u-${uuidv4()}`, // Default - user identifier
   record: false, // Default - no record,
+  ticket: true, // Default - ticket generated and so all reports are kept
   // recordFields: ["*"], // Default all fields stored
 };
 

@@ -100,8 +100,10 @@ export default class Exporter {
   }
 
   addReport(report) {
-    debug(moduleName, `addReport() - add report to exporter at ${report.timestamp}`);
-    this._reports.push(report);
+    if (this._cfg.ticket) {
+      debug(moduleName, `addReport() - add report to exporter at ${report.timestamp}`);
+      this._reports.push(report);
+    }
   }
 
   reset() {

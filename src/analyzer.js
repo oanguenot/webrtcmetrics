@@ -161,7 +161,9 @@ export default class Analyzer {
     }
 
     const ticket = this._exporter.stop();
-    this.fireOnTicket(ticket);
+    if (this._config.ticket) {
+      this.fireOnTicket(ticket);
+    }
     this._exporter.reset();
   }
 

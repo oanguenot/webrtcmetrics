@@ -37,7 +37,8 @@ const analyzer = new WebRTCMetrics(
     startAfter: 10000,          // Start to grab the stats after a while (in ms). Default to 0 (stats are collected as soon as possible).
     stopAfter: 30000,           // Stop to grab the stats after a white (in ms). Default is -1 (no automatic stop. Method stop() should be called).
     verbose: true,              // Display verbose logs or not. Default to false.
-    record: true                // Record reports in a ticket or not. Default to false.
+    ticket: true,               // Generate a ticket at the end of the call or not. Default is true.
+    record: true,               // Record reports in a ticket or not. Default to false.
 });
 
 analyzer.onreport = (report) => {
@@ -87,6 +88,7 @@ const analyzer = new WebRTCMetrics({
   startAfter: 10000,          // Start to grab the stats after a while (in ms). Default to 0 (stats are collected as soon as possible).
   stopAfter: 30000,           // Stop to grab the stats after a white (in ms). Default is -1 (no automatic stop. Method stop() should be called).
   verbose: true,              // Display verbose logs or not. Default to false.
+  ticket: true,               // Generate a ticket at the end of the call or not. Default is true.
   record: true                // Record reports in a ticket or not. Default to false.
 });
 ```
@@ -210,9 +212,9 @@ At any time, calling the method `stop()` ends the analyzer. No other reports are
 
 ## Generating a ticket
 
-When calling the methond `stop()` or automatically after a duration equals to `stopAfter`, a ticket is generated with the most important information collected. 
+When calling the method `stop()` or automatically after a duration equals to `stopAfter`, a ticket is generated with the most important information collected if the option `ticket` has not been manually set to `false`.
 
-To obtain that ticket, ssubscribe to the event `onticket`. The callback is fired when the analyzer is stopped (ie: by calling the method `stop()`)  or after the `stopAfter`. The callback is called with a JSON parameter corresponding to a **CDR**.
+To obtain that ticket, subscribe to the event `onticket`. The callback is fired when the analyzer is stopped (ie: by calling the method `stop()`)  or after the `stopAfter`. The callback is called with a JSON parameter corresponding to a **CDR**.
 
 If the option `record` has been set to `true`, the ticket contains all the reports generated.
 
