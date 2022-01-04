@@ -6,14 +6,6 @@ const _cfg = defaultConfig;
 const moduleName = "config      ";
 
 export const getConfig = (cfg) => {
-  if (!cfg) {
-    throw new Error("Argument [Object] 'cfg' for the configuration is missing");
-  }
-
-  if (!cfg.pc) {
-    throw new Error("Argument [RTCPeerConnection] 'cfg.pc' for the peer connection is missing");
-  }
-
   if (!cfg.pname) {
     warn(moduleName, `Argument [String] 'cfg.pname' for the peerConnection name or id is missing - use generated '${_cfg.pname}'`);
   }
@@ -51,3 +43,8 @@ export const getConfig = (cfg) => {
 
   return config;
 };
+
+export const getGlobalConfig = () => ({
+  name: getLibName(),
+  version: getVersion(),
+});

@@ -216,3 +216,5 @@ export const STAT_TYPE = {
 };
 
 export const average = (nums) => (nums.reduce((a, b) => (a + b)) / nums.length);
+
+export const createProbeId = () => (`probe-${uuidv4()}`);
