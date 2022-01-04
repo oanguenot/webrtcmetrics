@@ -1,7 +1,7 @@
 import { setVerboseLog, info } from "./utils/log";
 import Analyzer from "./analyzer";
 import { getConfig } from "./utils/config";
-import { createProbeId } from "./utils/helper";
+import { ANALYZER_STATE, createProbeId } from "./utils/helper";
 
 const moduleName = "probe       ";
 
@@ -74,6 +74,20 @@ export default class Probe {
    */
   get state() {
     return this._analyzer.state;
+  }
+
+  /**
+   * Return true if the probe is running
+   */
+  get isRunning() {
+    return this._state === ANALYZER_STATE.RUNNING;
+  }
+
+  /**
+   * Return true if the probe is idle
+   */
+  get isIdle() {
+    return this._state === ANALYZER_STATE.IDLE;
   }
 
   /**
