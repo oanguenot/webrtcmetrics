@@ -5,16 +5,9 @@ const _cfg = defaultConfig;
 
 const moduleName = "config      ";
 
-export const getConfig = (peerConnection, cfg) => {
+export const getConfig = (peerConnection, cfg, globalConfig) => {
   if (!cfg.pname) {
     warn(moduleName, `Argument [String] 'cfg.pname' for the peerConnection name or id is missing - use generated '${_cfg.pname}'`);
-  }
-
-  if (!cfg.refreshEvery) {
-    warn(moduleName, `Argument [Int] 'cfg.refreshEvery' for the timer is missing - use default '${_cfg.refreshEvery}'`);
-    if (cfg.refreshTimer) {
-      warn(moduleName, "Argument [Int] 'cfg.refreshTimer' is deprecated - use [Int] 'cfg.refreshEvery'");
-    }
   }
 
   if (!cfg.cid) {
@@ -25,27 +18,21 @@ export const getConfig = (peerConnection, cfg) => {
     warn(moduleName, `Argument [String] 'cfg.uid' for the user name or id is missing - use generated '${_cfg.uid}'`);
   }
 
-  if (!cfg.startAfter) {
-    warn(moduleName, `Argument [Int] 'cfg.startAfter' for delaying grabbing the stats is missing - use default '${_cfg.startAfter}'`);
-  }
-
-  if (!cfg.stopAfter) {
-    warn(moduleName, `Argument [Int] 'cfg.stopAfter' for automatically stop grabbing the stats - use default '${_cfg.stopAfter}'`);
-  }
-
   const config = { ..._cfg, ...cfg };
 
-  if (!cfg.refreshEvery && cfg.refreshTimer) {
-    config.refreshEvery = cfg.refreshTimer;
-  }
   config.name = getLibName();
   config.version = getVersion();
   config.pc = peerConnection;
-
+  config.refreshEvery = globalConfig.refreshEvery;
+  config.startAfter = globalConfig.startAfter;
+  config.stopAfter = globalConfig.stopAfter;
   return config;
 };
 
-export const getGlobalConfig = () => ({
+export const getGlobalConfig = (cfg) => ({
   name: getLibName(),
   version: getVersion(),
+  refreshEvery: "refreshEvery" in cfg ? cfg.refreshEvery : 2000,
+  startAfter: "startAfter" in cfg ? cfg.startAfter : 0,
+  stopAfter: "stopAfter" in cfg ? cfg.stopAfter : 1,
 });

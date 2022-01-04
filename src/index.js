@@ -7,10 +7,13 @@ import { ANALYZER_STATE } from "./utils/helper";
 const moduleName = "metrics-indx";
 
 export default class WebRTCMetrics {
-  constructor() {
-    this._config = getGlobalConfig();
+  constructor(cfg) {
+    this._config = getGlobalConfig(cfg);
     this._probes = [];
     info(moduleName, `welcome to ${this._config.name} version ${this._config.version}`);
+    info(moduleName, `configured for probing every ${this._config.refreshEvery}ms`);
+    info(moduleName, `started after ${this._config.startAfter}ms`);
+    info(moduleName, `${this._config.stopAfter !== -1 ? `stopped after ${this._config.stopAfter}ms` : "never stopped"}`);
   }
 
   /**
@@ -34,7 +37,7 @@ export default class WebRTCMetrics {
    * @return {Probe}
    */
   createProbe(peerConnection, options) {
-    const probeConfig = getConfig(peerConnection, options);
+    const probeConfig = getConfig(peerConnection, options, this._config);
     const probe = new Probe(probeConfig);
     this._probes.push(probe);
     return probe;
