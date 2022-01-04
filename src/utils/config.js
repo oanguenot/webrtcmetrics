@@ -5,7 +5,7 @@ const _cfg = defaultConfig;
 
 const moduleName = "config      ";
 
-export const getConfig = (cfg) => {
+export const getConfig = (peerConnection, cfg) => {
   if (!cfg.pname) {
     warn(moduleName, `Argument [String] 'cfg.pname' for the peerConnection name or id is missing - use generated '${_cfg.pname}'`);
   }
@@ -40,6 +40,7 @@ export const getConfig = (cfg) => {
   }
   config.name = getLibName();
   config.version = getVersion();
+  config.pc = peerConnection;
 
   return config;
 };

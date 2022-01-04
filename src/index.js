@@ -34,8 +34,8 @@ export default class WebRTCMetrics {
    * @return {Probe}
    */
   createProbe(peerConnection, options) {
-    const probeConfig = getConfig(options);
-    const probe = new Probe(peerConnection, probeConfig);
+    const probeConfig = getConfig(peerConnection, options);
+    const probe = new Probe(probeConfig);
     this._probes.push(probe);
     return probe;
   }

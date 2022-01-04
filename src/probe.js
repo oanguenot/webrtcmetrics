@@ -1,6 +1,5 @@
 import { setVerboseLog, info } from "./utils/log";
 import Analyzer from "./analyzer";
-import { getConfig } from "./utils/config";
 import { ANALYZER_STATE, createProbeId } from "./utils/helper";
 
 const moduleName = "probe       ";
@@ -8,8 +7,7 @@ const moduleName = "probe       ";
 export default class Probe {
   constructor(cfg) {
     this._id = createProbeId();
-    this._config = getConfig(cfg);
-    this._configured = !!this._config;
+    this._config = cfg;
     this._analyzer = new Analyzer(this._config);
     setVerboseLog(this._config.verbose || false);
   }
