@@ -1,6 +1,6 @@
 # WEBRTC METRICS & STATS
 
-**WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` and generates JSON reports in live during a call as well as a **CDR** ticket at the end of the call resuming the main statistics grabbed.
+**WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` and generates JSON reports in live during a call as well as a **CDR** ticket at the end of the call resuming the main statistics captured.
 
 **WebRTCMetrics** launches several **probes** that collect statistics. Each probe is associated to a `RTCPeerConnection`.
 
@@ -32,18 +32,21 @@ const configuration = {
   refreshEvery: 3000,   // Optional. Refresh every 3 seconds
   startAfter: 5000,     // Optional. Start collecting stats after 5 seconds
   stopAfter: 30000,     // Optional. Stop collecting stats after 30 seconds
+  verbose: true,        // Optional. Display verbose logs or not.
 };
 
 const metrics = new WebRTCMetrics(configuration);
 ```
 
-As defined in that sample, 3 parameters can be configured:
+As defined in that sample, the following parameters can be configured:
 
 - `refreshEvery`: Number. Contains the number of milliseconds to wait before collecting a new set of statistics. Default value is **2000**.
 
 - `startAfter`: Number. Contains the duration to wait before collecting the first set of statistics. Default value is equals to 0 for starting immediately.
 
 - `stopAfter`: Number. Contains the duration before stopping to collect the statistics. This duration starts after the `startAfter` duration. Default value is **-1** which means that the statistics are collected until the function `stop()` is called.
+
+- `verbose`: Boolean. True for displaying verbose information in the logger. default is **false**.
 
 _Note:_ The **configuration** parameter is optional.
 
@@ -66,7 +69,6 @@ const probe = metrics.createProbe(existingPeerConnection, {
   pname: 'PeerConnection_1',  // Optional. Name of the peer connection
   cid: 'call007984',          // Optional. Call Id
   uid: 'jdoe@mycorp.com',     // Optional. User Id
-  verbose: true,              // Optional. Display verbose logs or not.
   ticket: true,               // Optional. Generate a ticket at the end of the call or not.
   record: true,               // Optional. Record reports in the ticket or not. 
 });
@@ -81,8 +83,6 @@ As defined in that sample, the configuration contains the following parameters:
 - `cid`: String. Contains the identifier of the call. This is an arbitrary name that can be used to gather the statistics.
 
 - `uid`: String. Contains the identifier of the user. This is an arbitrary name that can be used to gather the statistics.
-
-- `verbose`: Boolean. True for displaying verbose information in the logger. default is **false**.
 
 - `ticket`: Boolean. True for generating a ticket when the collect of statistics is stopped. Default is **true**.
 
@@ -100,7 +100,6 @@ const probe = metrics.createProbe(existingPeerConnection, {
   pname: 'PeerConnection_1',  // Optional. Name of the peer connection
   cid: 'call007984',          // Optional. Call Id
   uid: 'jdoe@mycorp.com',     // Optional. User Id
-  verbose: true,              // Optional. Display verbose logs or not.
   ticket: true,               // Optional. Generate a ticket at the end of the call or not.
   record: true,               // Optional. Record reports in the ticket or not. 
 });
