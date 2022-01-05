@@ -273,7 +273,7 @@ The ticket generated contains the following information:
 | **bitrate** | Object | `min`, `max` and `avg` values  for incoming and outgoing |
 | **traffic** | Object | `min`, `max` and `avg` values  for incoming and outgoing |
 
-## Additional  information
+## Additional information
 
 ### Callbacks
 
@@ -293,4 +293,21 @@ metrics.createProbe(secondPeerConnection);
 
 // Get the list of existing probes
 const probes = metrics.probes;
+```
+
+Probes can be started and stopped all together.
+
+```javascript
+import WebRTCMetrics from "webrtcmetrics";
+
+const metrics = new WebRTCMetrics();
+
+metrics.createProbe(firstPeerConnection);
+metrics.createProbe(secondPeerConnection);
+
+// Start all probes
+metrics.startAllProbes();
+
+// Stop all probes
+metrics.stopAllProbes();
 ```

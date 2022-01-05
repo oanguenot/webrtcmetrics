@@ -31,6 +31,13 @@ export default class WebRTCMetrics {
   }
 
   /**
+   * Get the probes
+   */
+   get probes() {
+    return this._probes;
+  }
+
+  /**
    * Create a new probe and return it
    * @param {RTCPeerConnection} peerConnection The RTCPeerConnection instance to monitor
    * @param {Object} options  The option
@@ -43,6 +50,25 @@ export default class WebRTCMetrics {
     return probe;
   }
 
+  /**
+   * Start all probes
+   */
+  startAllProbes() {
+    this.probes.forEach((probe) => probe.start());
+  }
+
+  /**
+   * Stop all probes
+   */
+   stopAllProbes() {
+    this.probes.forEach((probe) => probe.stop());
+  }
+
+  /**
+   * Experimental
+   * Remote a probe
+   * @param {Probe} probe
+   */
   removeProbe(probe) {
     if (!probe) {
       throw new Error("undefined probe");
@@ -51,12 +77,5 @@ export default class WebRTCMetrics {
       probe.stop();
     }
     this._probes = this._probes.filter((existingProbe) => (probe.id !== existingProbe.id));
-  }
-
-  /**
-   * Get the probes
-   */
-  get probes() {
-    return this._probes;
   }
 }
