@@ -2,7 +2,7 @@
 
 **WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` and generates JSON reports in live during a call as well as a **CDR** ticket at the end of the call resuming the main statistics grabbed.
 
-**WebRTCMetrics** can launch several **probes** that collect statistics. Each probe is associated to a `RTCPeerConnection`.
+**WebRTCMetrics** launches several **probes** that collect statistics. Each probe is associated to a `RTCPeerConnection`.
 
 ## Install
 
@@ -22,7 +22,7 @@ $ yarn add webrtcmetrics
 
 ### Create a new instance
 
-A new instance of the WebRTCMetrics can be created by calling the constructor. A JSON configuration can be set to define the main characteristics of the collect of statistics.
+A new instance of the WebRTCMetrics is created when calling the constructor. A JSON configuration can be set to define the main characteristics of the collect of the statistics.
 
 ```javascript
 import WebRTCMetrics from "webrtcmetrics";
@@ -39,11 +39,11 @@ const metrics = new WebRTCMetrics(configuration);
 
 As defined in that sample, 3 parameters can be configured:
 
-- `refreshEvery`: Number. Contains the number of milliseconds to wait before collecting a new set of statistics. Default value is equals to **2000**.
+- `refreshEvery`: Number. Contains the number of milliseconds to wait before collecting a new set of statistics. Default value is **2000**.
 
 - `startAfter`: Number. Contains the duration to wait before collecting the first set of statistics. Default value is equals to 0 for starting immediately.
 
-- `stopAfter`: Number. Contains the duration before stopping collecting the statistics. That duration starts at `startAfter` after calling the `start()`function. Default value is **-1** which means that the statistics are collected until the function `stop()` is called.
+- `stopAfter`: Number. Contains the duration before stopping to collect the statistics. This duration starts after the `startAfter` duration. Default value is **-1** which means that the statistics are collected until the function `stop()` is called.
 
 _Note:_ The **configuration** parameter is optional.
 
@@ -51,7 +51,7 @@ _Note:_ The **configuration** parameter is optional.
 
 A **probe** collects the statistics associated to a `RTCPeerConnection`.
 
-To create a new probe, the function `createProbe()` has to be called.
+To create a new probe, call the function `createProbe()`.
 
 ```javascript
 import WebRTCMetrics from "webrtcmetrics";
@@ -90,9 +90,9 @@ As defined in that sample, the configuration contains the following parameters:
 
 ### Probe lifecycle
 
-Once a probe has been created, call the function `start()` to collect the statistics. You will need to listen to the event `onreport` to receive them.
+Once a probe has been created, call the function `start()` to collect the statistics. You need to listen to the event `onreport` to receive them.
 
-A final **ticket** that summarizes all the reports received can be received by listening to the event `onticket`. Parameter `ticket` has to be set to **true**.
+A final **ticket** that summarizes all the reports received for a probe can be received by listening to the event `onticket`. Don't forget to put the parameter `ticket` to **true** in the configuration of the WebRTCMetrics Object.
 
 ```javascript
 ...
@@ -126,20 +126,21 @@ if(probe.isRunning) {
 }
 ```
 
-Reports can be obtained by registering to event `onreport`; this callback is called in loop with an interval equals to the value of the `refreshEvery` parameter and with the `report` generated.
+Reports can be obtained by registering to event `onreport`; this callback is called in loop with an interval equals to the value of the `refreshEvery` parameter and with the **report** generated.
 
-If you don't want to capture the first curve, you can specify a delay before receiving the metrics. By default, the stats are captured immediately. But depending on your needs, use the parameter `startAfter` to delay the capture. 
+If you don't want to capture the first curve of statistics but something much more linear, you can specify a delay before receiving the metrics. By default, the stats are captured immediately. But depending on your needs, use the parameter `startAfter` to delay the capture. 
 
 Stats can't be captured during a period only. In that case, set a value to the parameter `stopAfter` to stop receiving reports after that duration given in ms. If you want to capture as long as the call is running, set the value to `-1`. In that case, you will have to call manually the method `stop()`. 
 
+The first set of statistics collected is called the **reference report**. It is not be reported as the others (can't be received in the `onreport` event) but is used for computing statistics of the next one (for example delta_packets_received).
 
-_Note:_ The `report` and `ticket` parameters received are JSON objects.
+_Note:_ The `report` and `ticket` parameters received from the events are JSON objects. See below for the content.
 
 ### Creating multiples probes
 
-When connecting to a conference calls such as an **SFU**, you can receive multiple `RTCPeerConnections`. You can collect statistics from each by creating as many as probes as needed. One for each **RTCPeerConnections**.
+When connecting to a conference server such as an **SFU**, you can receive multiple `RTCPeerConnection` objects. You can collect statistics from each by creating as many as probes as needed. One for each `RTCPeerConnection`.
 
-As the parameter **refreshEvery**, **startsAfter** and **stopAfter** are common to all probes created, the statistics of the RTCPeerConnections will be collected all one after the other, as soon as possible in order to be able to compare.
+As the parameter **refreshEvery**, **startsAfter** and **stopAfter** are common to all probes created, the statistics of all probes are collected one after the other, as soon as possible in order to be able to compare. To avoid any mistake, each probe has its own `timestamp` when the stats have been collected.
 
 ## Report Statistics
 
@@ -252,9 +253,9 @@ At any time, calling the method `stop()` stops collecting statistics on that pro
 
 ## Generating a ticket
 
-When calling the method `stop()` or automatically after a duration equals to `stopAfter`, a ticket is generated with the most important information collected if the option `ticket` has not been manually set to `false`.
+When calling the method `stop()` or automatically after a duration equals to `stopAfter`, a ticket is generated with the most important information collected. This ticket is generated only if the option `ticket` has not been manually set to `false`.
 
-To obtain that ticket, subscribe to the event `onticket`. The callback is fired when the probe is stopped (ie: by calling the method `stop()`)  or after the `stopAfter`. The callback is called with a JSON parameter corresponding to a **CDR**.
+To obtain that ticket, subscribe to the event `onticket`. The callback is fired when the probe is stopped (ie: by calling the method `stop()`)  or after the `stopAfter`. The callback is called with a JSON parameter corresponding to something like a **CDR**.
 
 If the option `record` has been set to `true`, the ticket contains all the reports generated.
 
@@ -272,6 +273,24 @@ The ticket generated contains the following information:
 | **bitrate** | Object | `min`, `max` and `avg` values  for incoming and outgoing |
 | **traffic** | Object | `min`, `max` and `avg` values  for incoming and outgoing |
 
-## Callbacks
+## Additional  information
+
+### Callbacks
 
 Setting the `onreport` and `onticket` to null, unregisters the callback previously registered.
+
+### Probes
+
+You can get the list of available probes by using the `probes` accessor.
+
+```javascript
+import WebRTCMetrics from "webrtcmetrics";
+
+const metrics = new WebRTCMetrics();
+
+metrics.createProbe(firstPeerConnection);
+metrics.createProbe(secondPeerConnection);
+
+// Get the list of existing probes
+const probes = metrics.probes;
+```

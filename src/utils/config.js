@@ -5,7 +5,7 @@ const _cfg = defaultConfig;
 
 const moduleName = "config      ";
 
-export const getConfig = (peerConnection, cfg, globalConfig) => {
+export const getConfig = (peerConnection, cfg = {}, globalConfig) => {
   if (!cfg.pname) {
     warn(moduleName, `Argument [String] 'cfg.pname' for the peerConnection name or id is missing - use generated '${_cfg.pname}'`);
   }
@@ -29,7 +29,7 @@ export const getConfig = (peerConnection, cfg, globalConfig) => {
   return config;
 };
 
-export const getGlobalConfig = (cfg) => ({
+export const getGlobalConfig = (cfg = {}) => ({
   name: getLibName(),
   version: getVersion(),
   refreshEvery: "refreshEvery" in cfg ? cfg.refreshEvery : 2000,
