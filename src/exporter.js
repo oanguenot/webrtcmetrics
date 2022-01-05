@@ -1,4 +1,4 @@
-import { info, debug } from "./utils/log";
+import { info, debug, trace } from "./utils/log";
 
 const moduleName = "exporter    ";
 
@@ -81,12 +81,12 @@ export default class Exporter {
   }
 
   start() {
-    info(moduleName, "start() - start exporter...");
+    trace(moduleName, "start() - start exporter...");
     this._start = new Date().toJSON();
   }
 
   stop() {
-    info(moduleName, "stop() - stop exporter...");
+    trace(moduleName, "stop() - stop exporter...");
     this._end = new Date().toJSON();
     return this.ticket;
   }
@@ -107,7 +107,7 @@ export default class Exporter {
   }
 
   reset() {
-    info(moduleName, "resetReports() - reset reports");
+    trace(moduleName, "resetReports() - reset reports");
     this._reports = [];
     this._referenceReport = null;
     this._start = null;
@@ -115,7 +115,7 @@ export default class Exporter {
   }
 
   get ticket() {
-    info(moduleName, "ticket() - generate ticket");
+    debug(moduleName, "ticket() - generate ticket");
     return {
       version: VERSION_EXPORTER,
       ua: {
