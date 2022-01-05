@@ -1,4 +1,4 @@
-import { setVerboseLog, info } from "./utils/log";
+import { setVerboseLog, info, warn } from "./utils/log";
 import Analyzer from "./analyzer";
 import { ANALYZER_STATE, createProbeId } from "./utils/helper";
 
@@ -78,14 +78,14 @@ export default class Probe {
    * Return true if the probe is running
    */
   get isRunning() {
-    return this._state === ANALYZER_STATE.RUNNING;
+    return this.state === ANALYZER_STATE.RUNNING;
   }
 
   /**
    * Return true if the probe is idle
    */
   get isIdle() {
-    return this._state === ANALYZER_STATE.IDLE;
+    return this.state === ANALYZER_STATE.IDLE;
   }
 
   /**
@@ -108,14 +108,25 @@ export default class Probe {
    * Start the probe
    */
   start() {
-    info(moduleName, `analyze started for probe ${this._id} every ${this._config.refreshEvery}ms`);
-    this._analyzer.start({ refreshEvery: this._config.refreshEvery });
+    if (!this.isIdle) {
+      warn(moduleName, `probe ${this._id} is already running`);
+      return;
+    }
+
+    info(moduleName, `start probe ${this._id}`);
+    this._analyzer.start();
   }
 
   /**
    * Stop the probe
    */
   stop() {
+    if (!this.isRunning) {
+      warn(moduleName, `probe ${this._id} is not running`);
+      return;
+    }
+
+    info(moduleName, `stop probe ${this._id}`);
     this._analyzer.stop();
   }
 }
