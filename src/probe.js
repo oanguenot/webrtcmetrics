@@ -9,7 +9,6 @@ export default class Probe {
     this._id = createProbeId();
     this._config = cfg;
     this._analyzer = new Analyzer(this._config);
-    setVerboseLog(this._config.verbose || false);
   }
 
   /**

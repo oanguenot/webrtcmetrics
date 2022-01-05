@@ -11,6 +11,7 @@ export default class WebRTCMetrics {
     this._config = getGlobalConfig(cfg);
     this._probes = [];
     info(moduleName, `welcome to ${this._config.name} version ${this._config.version}`);
+    setVerboseLog(this._config.verbose || false);
     info(moduleName, `configured for probing every ${this._config.refreshEvery}ms`);
     info(moduleName, `started after ${this._config.startAfter}ms`);
     info(moduleName, `${this._config.stopAfter !== -1 ? `stopped after ${this._config.stopAfter}ms` : "never stopped"}`);
