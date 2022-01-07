@@ -82,7 +82,9 @@ export default class Exporter {
 
   start() {
     trace(moduleName, "start() - start exporter...");
-    this._start = new Date().toJSON();
+    const date = new Date();
+    this._start = date.toJSON();
+    return date;
   }
 
   stop() {

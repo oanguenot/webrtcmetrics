@@ -27,7 +27,7 @@ export default class Collector {
     this._id = createCollectorId();
     this._moduleName = this._id;
     this._probeId = refProbeId;
-    this._stopTimeoutId = null;
+    this._startedTime = null;
     this._config = cfg;
     this._exporter = new Exporter(cfg);
     this._state = ANALYZER_STATE.IDLE;
@@ -63,14 +63,18 @@ export default class Collector {
   }
 
   async start() {
-    const getStats = async () => {
+    const getStats = async (waitTime) => {
       try {
-        const reports = await this._config.pc.getStats();
         if (this._state === ANALYZER_STATE.RUNNING) {
-          debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
           // Take into account last report in case no report have been generated (eg: candidate-pair)
+          const preTime = Date.now();
+          const reports = await this._config.pc.getStats();
           const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
+          const postTime = Date.now();
+          report.experimental.time_to_measure_ms = postTime - preTime;
+          report.experimental.time_to_wait_ms = waitTime;
           this._exporter.addReport(report);
+          debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
           this.fireOnReport(report);
         } else {
           debug(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
@@ -82,12 +86,18 @@ export default class Collector {
 
     const takeReferenceStat = async () => (
       new Promise((resolve, reject) => {
+        const preWaitTime = Date.now();
         setTimeout(async () => {
           try {
+            const waitTime = Date.now() - preWaitTime;
+            const preTime = Date.now();
             const reports = await this._config.pc.getStats();
-            debug(this._moduleName, `got reference report for probe ${this._probeId}`);
             const referenceReport = this.analyze(reports, null, null, null);
+            const postTime = Date.now();
+            referenceReport.experimental.time_to_measure_ms = postTime - preTime;
+            referenceReport.experimental.time_to_wait_ms = waitTime;
             this._exporter.saveReferenceReport(referenceReport);
+            debug(this._moduleName, `got reference report for probe ${this._probeId}`);
             resolve();
           } catch (err) {
             reject(err);
@@ -96,28 +106,30 @@ export default class Collector {
       })
     );
 
-    const takeStats = () => {
-     this._intervalId = setInterval(() => {
-       if (this._state === ANALYZER_STATE.RUNNING) {
-        getStats();
-       }
-      }, this._config.refreshEvery);
-    };
-
-    const runWatchdog = () => {
-      if (this._config.stopAfter === -1) {
-        debug(this._moduleName, "watchdog disabled - stats will be stopped when calling stop()");
-        return null;
+    const shouldCollectStats = () => {
+      if (this._state === ANALYZER_STATE.IDLE) {
+        // Don't collect when collector is not running
+        return false;
       }
-
-      info(this._moduleName, `watchdog will stop collector after ${this._config.stopAfter}ms`);
-      this._stopTimeoutId = setTimeout(() => {
-        debug(this._moduleName, "watchdog called - stop the stats");
-        this.stop(true);
-      }, this._config.stopAfter);
-
-      return null;
+      if (this._config.stopAfter < 0) {
+        // Don 't stop collect automatically when stopAfter is not set
+        return true;
+      }
+      return (Date.now() < this._startedTime.getTime() + this._config.stopAfter);
     };
+
+    const collectStats = async () => (
+      new Promise((resolve) => {
+        const preTime = Date.now();
+        this._intervalId = setTimeout(async () => {
+          const waitTime = Date.now() - preTime;
+          if (this._state === ANALYZER_STATE.RUNNING) {
+           await getStats(waitTime);
+           resolve();
+          }
+         }, this._config.refreshEvery);
+      })
+    );
 
     if (!this._config.pc) {
       error(this._moduleName, "can't start - no peer connection!");
@@ -137,20 +149,16 @@ export default class Collector {
       this._intervalId = null;
     }
 
-    if (this._stopTimeoutId) {
-      warn(this._moduleName, "clean previous watchdog");
-      clearTimeout(this._stopTimeoutId);
-      this._stopTimeoutId = null;
-    }
-
     debug(this._moduleName, `delay start after ${this._config.startAfter}ms`);
 
     try {
       info(this._moduleName, "started");
       await takeReferenceStat();
-      this._exporter.start();
-      runWatchdog();
-      takeStats();
+      this._startedTime = this._exporter.start();
+      while (shouldCollectStats()) {
+        await collectStats();
+      }
+      this.stop(true);
     } catch (err) {
       error(this._moduleName, `can't grab stats ${err}`);
     }
@@ -168,11 +176,6 @@ export default class Collector {
     if (this._intervalId) {
       clearInterval(this._intervalId);
       this._intervalId = null;
-    }
-
-    if (this._stopTimeoutId) {
-      clearTimeout(this._stopTimeoutId);
-      this._stopTimeoutId = null;
     }
 
     const ticket = this._exporter.stop();

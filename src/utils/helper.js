@@ -95,6 +95,10 @@ export const getDefaultMetric = (previousStats) => {
       delta_kbs_incoming_bandwidth: 0,
       delta_kbs_outgoing_bandwidth: 0,
     },
+    experimental: {
+      time_to_measure_ms: 0,
+      time_to_wait_ms: 0,
+    },
   };
 
   let metrics = {
