@@ -1,4 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
+import ShortUniqueId from "short-unique-id";
+
+const shortUUID = new ShortUniqueId();
 
 export const getLibName = () => ("WebRTCMetrics");
 export const getVersion = () => ("3.0.0");
@@ -122,9 +124,9 @@ export const defaultConfig = {
   stopAfter: -1, // Default - Max duration (in ms) for grabbing the stats. -1 means until calling stop().
   // keepMaxReport: 50, // Keep the last 50 tickets (new one erases the oldest)
   verbose: false, // Default - minimal logs
-  pname: `p-${uuidv4()}`, // Default - peer connection name
-  cid: `c-${uuidv4()}`, // Default - call identifier
-  uid: `u-${uuidv4()}`, // Default - user identifier
+  pname: `p-${shortUUID()}`, // Default - peer connection name
+  cid: `c-${shortUUID()}`, // Default - call identifier
+  uid: `u-${shortUUID()}`, // Default - user identifier
   record: false, // Default - no record,
   ticket: true, // Default - ticket generated and so all reports are kept
   // recordFields: ["*"], // Default all fields stored
@@ -217,4 +219,6 @@ export const STAT_TYPE = {
 
 export const average = (nums) => (nums.reduce((a, b) => (a + b)) / nums.length);
 
-export const createProbeId = () => (`probe-${uuidv4()}`);
+export const createProbeId = () => (`probe-${shortUUID()}`);
+
+export const createCollectorId = () => (`coltr-${shortUUID()}`);

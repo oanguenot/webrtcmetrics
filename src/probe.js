@@ -1,14 +1,14 @@
-import { setVerboseLog, info, warn } from "./utils/log";
-import Analyzer from "./analyzer";
+import { info, warn } from "./utils/log";
+import Collector from "./collector";
 import { ANALYZER_STATE, createProbeId } from "./utils/helper";
-
-const moduleName = "probe       ";
 
 export default class Probe {
   constructor(cfg) {
-    this._id = createProbeId();
+    this._id = (cfg.pname && cfg.pname.substr(0, 12).padEnd(12, " ")) || createProbeId();
+    this._moduleName = this._id;
+    info(this._moduleName, "probe created");
     this._config = cfg;
-    this._analyzer = new Analyzer(this._config);
+    this._collector = new Collector(this._config, this._id);
   }
 
   /**
@@ -18,9 +18,9 @@ export default class Probe {
    */
   set onreport(callback) {
     if (callback) {
-      this._analyzer.registerCallback("onreport", callback);
+      this._collector.registerCallback("onreport", callback);
     } else {
-      this._analyzer.unregisterCallback("onreport");
+      this._collector.unregisterCallback("onreport");
     }
   }
 
@@ -31,9 +31,9 @@ export default class Probe {
    */
   set onticket(callback) {
     if (callback) {
-      this._analyzer.registerCallback("onticket", callback);
+      this._collector.registerCallback("onticket", callback);
     } else {
-      this._analyzer.unregisterCallback("onticket");
+      this._collector.unregisterCallback("onticket");
     }
   }
 
@@ -70,7 +70,7 @@ export default class Probe {
    * Value can be 'running' or 'idle'
    */
   get state() {
-    return this._analyzer.state;
+    return this._collector.state;
   }
 
   /**
@@ -92,7 +92,7 @@ export default class Probe {
    */
   updateUserId(value) {
     this._config.uid = value;
-    this._analyzer.updateConfig(this._config);
+    this._collector.updateConfig(this._config);
   }
 
   /**
@@ -100,7 +100,7 @@ export default class Probe {
    */
    updateCallId(value) {
     this._config.cid = value;
-    this._analyzer.updateConfig(this._config);
+    this._collector.updateConfig(this._config);
   }
 
   /**
@@ -108,12 +108,12 @@ export default class Probe {
    */
   start() {
     if (!this.isIdle) {
-      warn(moduleName, `probe ${this._id} is already running`);
+      warn(this._moduleName, "probe is already running");
       return;
     }
 
-    info(moduleName, `start probe ${this._id}`);
-    this._analyzer.start();
+    info(this._moduleName, "start probe");
+    this._collector.start();
   }
 
   /**
@@ -121,11 +121,11 @@ export default class Probe {
    */
   stop() {
     if (!this.isRunning) {
-      warn(moduleName, `probe ${this._id} is not running`);
+      warn(this._moduleName, "probe is not running");
       return;
     }
 
-    info(moduleName, `stop probe ${this._id}`);
-    this._analyzer.stop();
+    info(this._moduleName, "stop probe");
+    this._collector.stop();
   }
 }

@@ -1,9 +1,12 @@
 import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
-import { ANALYZER_STATE, getDefaultMetric } from "./utils/helper";
-import { debug, error, warn } from "./utils/log";
-
-const moduleName = "analyzer    ";
+import { ANALYZER_STATE, createCollectorId, getDefaultMetric } from "./utils/helper";
+import {
+  debug,
+  error,
+  info,
+  warn,
+} from "./utils/log";
 
 const call = (fct, context, value) => {
   if (!context) {
@@ -13,18 +16,22 @@ const call = (fct, context, value) => {
   }
 };
 
-export default class Analyzer {
-  constructor(cfg) {
+export default class Collector {
+  constructor(cfg, refProbeId) {
     this._callbacks = {
       onreport: null,
       onticket: null,
     };
 
     this._intervalId = null;
+    this._id = createCollectorId();
+    this._moduleName = this._id;
+    this._probeId = refProbeId;
     this._stopTimeoutId = null;
     this._config = cfg;
     this._exporter = new Exporter(cfg);
     this._state = ANALYZER_STATE.IDLE;
+    info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
   analyze(stats, previousReport, beforeLastReport, referenceReport) {
@@ -56,23 +63,10 @@ export default class Analyzer {
   }
 
   async start() {
-    if (this._state === ANALYZER_STATE.RUNNING) {
-      warn(moduleName, "start() - can't start - Already running!");
-      return;
-    }
-
-    this._state = ANALYZER_STATE.RUNNING;
-    debug(moduleName, `start() - state is ${this._state}`);
-
-    if (!this._config.pc) {
-      error(moduleName, "start() - no peer connection!");
-      return;
-    }
-
     const getStats = async () => {
       try {
         const reports = await this._config.pc.getStats();
-        debug(moduleName, `getstats() - got report ${this._config.pname}#${this._exporter.getReportsNumber() + 1}`);
+        debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
 
         // Take into account last report in case no report have been generated (eg: candidate-pair)
         const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
@@ -80,7 +74,7 @@ export default class Analyzer {
         this._exporter.addReport(report);
         this.fireOnReport(report);
       } catch (err) {
-        error(moduleName, `getStats() - error ${err}`);
+        error(this._moduleName, `got error ${err}`);
       }
     };
 
@@ -89,7 +83,7 @@ export default class Analyzer {
         setTimeout(async () => {
           try {
             const reports = await this._config.pc.getStats();
-            debug(moduleName, `getstats() - got reference report for ${this._config.pname}`);
+            debug(this._moduleName, `got reference report for probe ${this._probeId}`);
             const referenceReport = this.analyze(reports, null, null, null);
             this._exporter.saveReferenceReport(referenceReport);
             resolve();
@@ -109,48 +103,61 @@ export default class Analyzer {
 
     const runWatchdog = () => {
       if (this._config.stopAfter === -1) {
-        debug(moduleName, "start() - watchdog disabled - stats will be stopped when calling stop()");
+        debug(this._moduleName, "watchdog disabled - stats will be stopped when calling stop()");
         return null;
       }
 
-      debug(moduleName, `start() - watchdog will stop the stats after ${this._config.stopAfter}ms`);
+      debug(this._moduleName, `watchdog will stop after ${this._config.stopAfter}ms`);
       const stopTimeoutId = setTimeout(() => {
-        debug(moduleName, "start() - watchdog called - stop the stats");
+        debug(this._moduleName, "watchdog called - stop the stats");
         this.stop();
       }, this._config.stopAfter);
       return stopTimeoutId;
     };
 
+    if (!this._config.pc) {
+      error(this._moduleName, "can't start - no peer connection!");
+      return;
+    }
+
+    if (this._state === ANALYZER_STATE.RUNNING) {
+      warn(this._moduleName, "can't start - already running!");
+      return;
+    }
+
+    info(this._moduleName, "starting...");
+    this._state = ANALYZER_STATE.RUNNING;
     if (this._intervalId) {
-      debug(moduleName, `start() - clear analyzer with id ${this._intervalId}`);
+      warn(this._moduleName, "clean previous collector");
       clearInterval(this._intervalId);
     }
 
     if (this._stopTimeoutId) {
-      debug(moduleName, `start() - clear watchdog with id ${this._stopTimeoutId}`);
+      warn(this._moduleName, "clean previous watchdog");
       clearInterval(this._stopTimeoutId);
     }
 
-    debug(moduleName, `start() - analyzing will start after ${this._config.startAfter}ms`);
+    debug(this._moduleName, `delay start after ${this._config.startAfter}ms`);
+
     try {
+      info(this._moduleName, "started");
       await takeReferenceStat();
       this._exporter.start();
-      debug(moduleName, "start() - analyzing started");
       this._intervalId = takeStats();
       this._stopTimeoutId = runWatchdog();
     } catch (err) {
-      error(moduleName, `Can't grab stats ${err}`);
+      error(this._moduleName, `can't grab stats ${err}`);
     }
   }
 
   stop() {
     if (this._state === ANALYZER_STATE.IDLE) {
-      warn(moduleName, "stop() - can't stop - Already stopped!");
+      warn(this._moduleName, "can't stop - already stopped!");
       return;
     }
 
     this._state = ANALYZER_STATE.IDLE;
-    debug(moduleName, `stop() - state is ${this._state}`);
+    debug(this._moduleName, "stopping...");
 
     if (this._intervalId) {
       clearInterval(this._intervalId);
@@ -165,14 +172,15 @@ export default class Analyzer {
       this.fireOnTicket(ticket);
     }
     this._exporter.reset();
+    info(this._moduleName, "stopped");
   }
 
   registerCallback(name, callback, context) {
     if (name in this._callbacks) {
       this._callbacks[name] = { callback, context };
-      debug(moduleName, `registered callback '${name}'`);
+      debug(this._moduleName, `registered callback '${name}'`);
     } else {
-      error(moduleName, `can't register callback for '${name}' - already exists`);
+      error(this._moduleName, `can't register callback for '${name}' - already exists`);
     }
   }
 
@@ -180,9 +188,9 @@ export default class Analyzer {
     if (name in this._callbacks) {
       this._callbacks[name] = null;
       delete this._callbacks[name];
-      debug(moduleName, `unregistered callback '${name}'`);
+      debug(this._moduleName, `unregistered callback '${name}'`);
     } else {
-      error(moduleName, `can't unregister callback for '${name}' - not found`);
+      error(this._moduleName, `can't unregister callback for '${name}' - not found`);
     }
   }
 

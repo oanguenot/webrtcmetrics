@@ -49,6 +49,6 @@
   },
   "dependencies": {
     "loglevel": "1.7.1",
-    "uuid": "8.3.2"
+    "short-unique-id": "^4.4.4"
   }
 }

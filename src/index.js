@@ -1,10 +1,10 @@
 import "regenerator-runtime/runtime.js";
-import { info } from "./utils/log";
+import { info, setVerboseLog } from "./utils/log";
 import { getConfig, getGlobalConfig } from "./utils/config";
 import Probe from "./probe";
 import { ANALYZER_STATE } from "./utils/helper";
 
-const moduleName = "metrics-indx";
+const moduleName = "interface   ";
 
 export default class WebRTCMetrics {
   constructor(cfg) {
@@ -48,6 +48,7 @@ export default class WebRTCMetrics {
     const probeConfig = getConfig(peerConnection, options, this._config);
     const probe = new Probe(probeConfig);
     this._probes.push(probe);
+    info(moduleName, `${this._probes.length} probes registered`);
     return probe;
   }
 

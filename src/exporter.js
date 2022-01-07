@@ -1,4 +1,4 @@
-import { info, debug, trace } from "./utils/log";
+import { debug, trace } from "./utils/log";
 
 const moduleName = "exporter    ";
 
