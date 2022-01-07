@@ -1,6 +1,6 @@
 # WEBRTC METRICS & STATS
 
-**WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` and generates JSON reports in live during a call as well as a **CDR** ticket at the end of the call resuming the main statistics captured.
+**WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` objects and generates JSON reports in live during a call as well as a **CDR** ticket at the end of the call resuming the main statistics captured.
 
 **WebRTCMetrics** launches several **probes** that collect statistics. Each probe is associated to a `RTCPeerConnection`.
 

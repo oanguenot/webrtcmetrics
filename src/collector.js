@@ -67,13 +67,13 @@ export default class Collector {
       try {
         const reports = await this._config.pc.getStats();
         if (this._state === ANALYZER_STATE.RUNNING) {
-          info(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
+          debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
           // Take into account last report in case no report have been generated (eg: candidate-pair)
           const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
           this._exporter.addReport(report);
           this.fireOnReport(report);
         } else {
-          info(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
+          debug(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
         }
       } catch (err) {
         error(this._moduleName, `got error ${err}`);
@@ -85,7 +85,7 @@ export default class Collector {
         setTimeout(async () => {
           try {
             const reports = await this._config.pc.getStats();
-            info(this._moduleName, `got reference report for probe ${this._probeId}`);
+            debug(this._moduleName, `got reference report for probe ${this._probeId}`);
             const referenceReport = this.analyze(reports, null, null, null);
             this._exporter.saveReferenceReport(referenceReport);
             resolve();
