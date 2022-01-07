@@ -1,53 +1,30 @@
 import { defaultConfig, getLibName, getVersion } from "./helper";
 import { warn } from "./log";
 
-const _cfg = defaultConfig;
-
 const moduleName = "config      ";
 
-export const getConfig = (cfg) => {
-  if (!cfg) {
-    throw new Error("Argument [Object] 'cfg' for the configuration is missing");
-  }
-
-  if (!cfg.pc) {
-    throw new Error("Argument [RTCPeerConnection] 'cfg.pc' for the peer connection is missing");
-  }
+export const getConfig = (peerConnection, cfg = {}, globalConfig) => {
+  const config = { ...globalConfig, ...cfg };
 
   if (!cfg.pname) {
-    warn(moduleName, `Argument [String] 'cfg.pname' for the peerConnection name or id is missing - use generated '${_cfg.pname}'`);
-  }
-
-  if (!cfg.refreshEvery) {
-    warn(moduleName, `Argument [Int] 'cfg.refreshEvery' for the timer is missing - use default '${_cfg.refreshEvery}'`);
-    if (cfg.refreshTimer) {
-      warn(moduleName, "Argument [Int] 'cfg.refreshTimer' is deprecated - use [Int] 'cfg.refreshEvery'");
-    }
+    warn(moduleName, `Argument [String] 'cfg.pname' for the peerConnection name or id is missing - use generated '${globalConfig.pname}'`);
   }
 
   if (!cfg.cid) {
-    warn(moduleName, `Argument [String] 'cfg.cid' for the call name or id is missing - use generated '${_cfg.cid}'`);
+    warn(moduleName, `Argument [String] 'cfg.cid' for the call name or id is missing - use generated '${globalConfig.cid}'`);
   }
 
   if (!cfg.uid) {
-    warn(moduleName, `Argument [String] 'cfg.uid' for the user name or id is missing - use generated '${_cfg.uid}'`);
+    warn(moduleName, `Argument [String] 'cfg.uid' for the user name or id is missing - use generated '${globalConfig.uid}'`);
   }
 
-  if (!cfg.startAfter) {
-    warn(moduleName, `Argument [Int] 'cfg.startAfter' for delaying grabbing the stats is missing - use default '${_cfg.startAfter}'`);
-  }
+  config.pc = peerConnection;
+  return config;
+};
 
-  if (!cfg.stopAfter) {
-    warn(moduleName, `Argument [Int] 'cfg.stopAfter' for automatically stop grabbing the stats - use default '${_cfg.stopAfter}'`);
-  }
-
-  const config = { ..._cfg, ...cfg };
-
-  if (!cfg.refreshEvery && cfg.refreshTimer) {
-    config.refreshEvery = cfg.refreshTimer;
-  }
+export const getGlobalConfig = (cfg = {}) => {
+  const config = { ...defaultConfig, ...cfg };
   config.name = getLibName();
   config.version = getVersion();
-
   return config;
 };

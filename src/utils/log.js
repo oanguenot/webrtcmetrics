@@ -6,8 +6,8 @@ const format = (header, module, message) => `${header} | ${module} | ${message}`
 log.setDefaultLevel(log.levels.TRACE);
 
 export const setVerboseLog = (shouldHaveVerboseLog) => {
-  log.info(format(getHeader(), "log", `set log level to ${shouldHaveVerboseLog ? "verbose" : "warn only"}`));
-  log.setLevel(shouldHaveVerboseLog ? log.levels.TRACE : log.levels.WARN);
+  log.info(format(getHeader(), "log         ", `set log level to ${shouldHaveVerboseLog ? "verbose" : "info"}`));
+  log.setLevel(shouldHaveVerboseLog ? log.levels.TRACE : log.levels.INFO);
 };
 
 export const debug = (name, message, data) => {
