@@ -66,13 +66,15 @@ export default class Collector {
     const getStats = async () => {
       try {
         const reports = await this._config.pc.getStats();
-        debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
-
-        // Take into account last report in case no report have been generated (eg: candidate-pair)
-        const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
-
-        this._exporter.addReport(report);
-        this.fireOnReport(report);
+        if (this._state === ANALYZER_STATE.RUNNING) {
+          info(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
+          // Take into account last report in case no report have been generated (eg: candidate-pair)
+          const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
+          this._exporter.addReport(report);
+          this.fireOnReport(report);
+        } else {
+          info(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
+        }
       } catch (err) {
         error(this._moduleName, `got error ${err}`);
       }
@@ -83,7 +85,7 @@ export default class Collector {
         setTimeout(async () => {
           try {
             const reports = await this._config.pc.getStats();
-            debug(this._moduleName, `got reference report for probe ${this._probeId}`);
+            info(this._moduleName, `got reference report for probe ${this._probeId}`);
             const referenceReport = this.analyze(reports, null, null, null);
             this._exporter.saveReferenceReport(referenceReport);
             resolve();
@@ -95,10 +97,11 @@ export default class Collector {
     );
 
     const takeStats = () => {
-      const intervalId = setInterval(() => {
+     this._intervalId = setInterval(() => {
+       if (this._state === ANALYZER_STATE.RUNNING) {
         getStats();
+       }
       }, this._config.refreshEvery);
-      return intervalId;
     };
 
     const runWatchdog = () => {
@@ -107,12 +110,13 @@ export default class Collector {
         return null;
       }
 
-      debug(this._moduleName, `watchdog will stop after ${this._config.stopAfter}ms`);
-      const stopTimeoutId = setTimeout(() => {
+      info(this._moduleName, `watchdog will stop collector after ${this._config.stopAfter}ms`);
+      this._stopTimeoutId = setTimeout(() => {
         debug(this._moduleName, "watchdog called - stop the stats");
-        this.stop();
+        this.stop(true);
       }, this._config.stopAfter);
-      return stopTimeoutId;
+
+      return null;
     };
 
     if (!this._config.pc) {
@@ -130,11 +134,13 @@ export default class Collector {
     if (this._intervalId) {
       warn(this._moduleName, "clean previous collector");
       clearInterval(this._intervalId);
+      this._intervalId = null;
     }
 
     if (this._stopTimeoutId) {
       warn(this._moduleName, "clean previous watchdog");
-      clearInterval(this._stopTimeoutId);
+      clearTimeout(this._stopTimeoutId);
+      this._stopTimeoutId = null;
     }
 
     debug(this._moduleName, `delay start after ${this._config.startAfter}ms`);
@@ -143,28 +149,30 @@ export default class Collector {
       info(this._moduleName, "started");
       await takeReferenceStat();
       this._exporter.start();
-      this._intervalId = takeStats();
-      this._stopTimeoutId = runWatchdog();
+      runWatchdog();
+      takeStats();
     } catch (err) {
       error(this._moduleName, `can't grab stats ${err}`);
     }
   }
 
-  stop() {
+  stop(forced) {
     if (this._state === ANALYZER_STATE.IDLE) {
       warn(this._moduleName, "can't stop - already stopped!");
       return;
     }
 
     this._state = ANALYZER_STATE.IDLE;
-    debug(this._moduleName, "stopping...");
+    info(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
 
     if (this._intervalId) {
       clearInterval(this._intervalId);
+      this._intervalId = null;
     }
 
     if (this._stopTimeoutId) {
       clearTimeout(this._stopTimeoutId);
+      this._stopTimeoutId = null;
     }
 
     const ticket = this._exporter.stop();
