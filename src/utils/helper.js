@@ -10,6 +10,12 @@ export const ANALYZER_STATE = {
   RUNNING: "running",
 };
 
+export const ENGINE_STATE = {
+  IDLE: "idle",
+  COLLECTING: "collecting",
+  ENDED: "ended",
+};
+
 export const getDefaultMetric = (previousStats) => {
   const defaultMetrics = {
     pname: "",
@@ -226,3 +232,5 @@ export const average = (nums) => (nums.reduce((a, b) => (a + b)) / nums.length);
 export const createProbeId = () => (`probe-${shortUUID()}`);
 
 export const createCollectorId = () => (`coltr-${shortUUID()}`);
+
+export const timeout = (ms) => (new Promise((resolve) => setTimeout(resolve, ms)));

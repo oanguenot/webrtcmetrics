@@ -73,6 +73,10 @@ export default class Probe {
     return this._collector.state;
   }
 
+  set state(newState) {
+    this._collector.state = newState;
+  }
+
   /**
    * Return true if the probe is running
    */
@@ -98,34 +102,38 @@ export default class Probe {
   /**
    * Update the call identifier
    */
-   updateCallId(value) {
+  updateCallId(value) {
     this._config.cid = value;
     this._collector.updateConfig(this._config);
   }
 
   /**
-   * Start the probe
+   * Set a probe to running state
    */
   start() {
     if (!this.isIdle) {
       warn(this._moduleName, "probe is already running");
       return;
     }
-
-    info(this._moduleName, "start probe");
     this._collector.start();
   }
 
   /**
-   * Stop the probe
+   * Set a probe to idle state
    */
   stop() {
     if (!this.isRunning) {
       warn(this._moduleName, "probe is not running");
       return;
     }
-
-    info(this._moduleName, "stop probe");
     this._collector.stop();
+  }
+
+  async takeReferenceStats() {
+    return this._collector.takeReferenceStats();
+  }
+
+  async collectStats() {
+    return this._collector.collectStats();
   }
 }

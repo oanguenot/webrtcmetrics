@@ -48,7 +48,7 @@ export default class WebRTCMetrics {
    * Start all probes
    */
   startAllProbes() {
-    this._engine.startAll();
+    this._engine.start();
   }
 
   /**

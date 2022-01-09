@@ -5,7 +5,6 @@ import {
   debug,
   error,
   info,
-  warn,
 } from "./utils/log";
 
 const call = (fct, context, value) => {
@@ -62,8 +61,31 @@ export default class Collector {
     return report;
   }
 
-  async start() {
-    const getStats = async (waitTime) => {
+  async takeReferenceStats() {
+    return new Promise((resolve, reject) => {
+      const preWaitTime = Date.now();
+      setTimeout(async () => {
+        try {
+          const waitTime = Date.now() - preWaitTime;
+          const preTime = Date.now();
+          const reports = await this._config.pc.getStats();
+          const referenceReport = this.analyze(reports, null, null, null);
+          const postTime = Date.now();
+          referenceReport.experimental.time_to_measure_ms = postTime - preTime;
+          referenceReport.experimental.time_to_wait_ms = waitTime;
+          this._exporter.saveReferenceReport(referenceReport);
+          debug(this._moduleName, `got reference report for probe ${this._probeId}`);
+          console.log(">>>Got reference for probe", this);
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      }, this._config.startAfter);
+    });
+  }
+
+  async collectStats() {
+    const getStats = async () => {
       try {
         if (this._state === ANALYZER_STATE.RUNNING) {
           // Take into account last report in case no report have been generated (eg: candidate-pair)
@@ -72,7 +94,7 @@ export default class Collector {
           const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
           const postTime = Date.now();
           report.experimental.time_to_measure_ms = postTime - preTime;
-          report.experimental.time_to_wait_ms = waitTime;
+          // report.experimental.time_to_wait_ms = waitTime;
           this._exporter.addReport(report);
           debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
           this.fireOnReport(report);
@@ -84,106 +106,31 @@ export default class Collector {
       }
     };
 
-    const takeReferenceStat = async () => (
-      new Promise((resolve, reject) => {
-        const preWaitTime = Date.now();
-        setTimeout(async () => {
-          try {
-            const waitTime = Date.now() - preWaitTime;
-            const preTime = Date.now();
-            const reports = await this._config.pc.getStats();
-            const referenceReport = this.analyze(reports, null, null, null);
-            const postTime = Date.now();
-            referenceReport.experimental.time_to_measure_ms = postTime - preTime;
-            referenceReport.experimental.time_to_wait_ms = waitTime;
-            this._exporter.saveReferenceReport(referenceReport);
-            debug(this._moduleName, `got reference report for probe ${this._probeId}`);
-            resolve();
-          } catch (err) {
-            reject(err);
-          }
-        }, this._config.startAfter);
-      })
-    );
-
-    const shouldCollectStats = () => {
-      if (this._state === ANALYZER_STATE.IDLE) {
-        // Don't collect when collector is not running
-        return false;
-      }
-      if (this._config.stopAfter < 0) {
-        // Don 't stop collect automatically when stopAfter is not set
-        return true;
-      }
-      return (Date.now() < this._startedTime.getTime() + this._config.stopAfter);
-    };
-
-    const collectStats = async () => (
-      new Promise((resolve) => {
-        const preTime = Date.now();
-        this._intervalId = setTimeout(async () => {
-          const waitTime = Date.now() - preTime;
-          if (this._state === ANALYZER_STATE.RUNNING) {
-           await getStats(waitTime);
-           resolve();
-          }
-         }, this._config.refreshEvery);
-      })
-    );
-
-    if (!this._config.pc) {
-      error(this._moduleName, "can't start - no peer connection!");
-      return;
-    }
-
-    if (this._state === ANALYZER_STATE.RUNNING) {
-      warn(this._moduleName, "can't start - already running!");
-      return;
-    }
-
-    info(this._moduleName, "starting...");
-    this._state = ANALYZER_STATE.RUNNING;
-    if (this._intervalId) {
-      warn(this._moduleName, "clean previous collector");
-      clearInterval(this._intervalId);
-      this._intervalId = null;
-    }
-
-    debug(this._moduleName, `delay start after ${this._config.startAfter}ms`);
-
-    try {
-      info(this._moduleName, "started");
-      await takeReferenceStat();
-      this._startedTime = this._exporter.start();
-      while (shouldCollectStats()) {
-        await collectStats();
-      }
-      this.stop(true);
-    } catch (err) {
-      error(this._moduleName, `can't grab stats ${err}`);
+    // const preTime = Date.now();
+    // const waitTime = Date.now() - preTime;
+    if (this._state === ANALYZER_STATE.RUNNING && this._config.pc) {
+      await getStats();
     }
   }
 
-  stop(forced) {
-    if (this._state === ANALYZER_STATE.IDLE) {
-      warn(this._moduleName, "can't stop - already stopped!");
-      return;
-    }
+  async start() {
+    debug(this._moduleName, "starting");
+    this.state = ANALYZER_STATE.RUNNING;
+    this._startedTime = this._exporter.start();
+    debug(this._moduleName, "started");
+  }
 
-    this._state = ANALYZER_STATE.IDLE;
-    info(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
-
-    if (this._intervalId) {
-      clearInterval(this._intervalId);
-      this._intervalId = null;
-    }
-
+  async stop(forced) {
+    debug(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
     const ticket = this._exporter.stop();
+
+    this.state = ANALYZER_STATE.IDLE;
+
     if (this._config.ticket) {
       this.fireOnTicket(ticket);
     }
     this._exporter.reset();
-    info(this._moduleName, "stopped");
+    debug(this._moduleName, "stopped");
   }
 
   registerCallback(name, callback, context) {
@@ -224,5 +171,10 @@ export default class Collector {
 
   get state() {
     return this._state;
+  }
+
+  set state(newState) {
+    this._state = newState;
+    debug(this._moduleName, `state changed to ${newState}`);
   }
 }
