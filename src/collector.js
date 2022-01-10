@@ -75,7 +75,6 @@ export default class Collector {
           referenceReport.experimental.time_to_wait_ms = waitTime;
           this._exporter.saveReferenceReport(referenceReport);
           debug(this._moduleName, `got reference report for probe ${this._probeId}`);
-          console.log(">>>Got reference for probe", this);
           resolve();
         } catch (err) {
           reject(err);
@@ -85,31 +84,25 @@ export default class Collector {
   }
 
   async collectStats() {
-    const getStats = async () => {
-      try {
-        if (this._state === ANALYZER_STATE.RUNNING) {
-          // Take into account last report in case no report have been generated (eg: candidate-pair)
-          const preTime = Date.now();
-          const reports = await this._config.pc.getStats();
-          const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
-          const postTime = Date.now();
-          report.experimental.time_to_measure_ms = postTime - preTime;
-          // report.experimental.time_to_wait_ms = waitTime;
-          this._exporter.addReport(report);
-          debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
-          this.fireOnReport(report);
-        } else {
-          debug(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
-        }
-      } catch (err) {
-        error(this._moduleName, `got error ${err}`);
+    try {
+      if (this._state !== ANALYZER_STATE.RUNNING || !this._config.pc) {
+        debug(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
+        return null;
       }
-    };
 
-    // const preTime = Date.now();
-    // const waitTime = Date.now() - preTime;
-    if (this._state === ANALYZER_STATE.RUNNING && this._config.pc) {
-      await getStats();
+      // Take into account last report in case no report have been generated (eg: candidate-pair)
+      const preTime = Date.now();
+      const reports = await this._config.pc.getStats();
+      const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
+      const postTime = Date.now();
+      report.experimental.time_to_measure_ms = postTime - preTime;
+      this._exporter.addReport(report);
+      debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
+      this.fireOnReport(report);
+      return report;
+    } catch (err) {
+      error(this._moduleName, `got error ${err}`);
+      return null;
     }
   }
 

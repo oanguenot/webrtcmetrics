@@ -2,6 +2,7 @@ import { info, debug } from "./utils/log";
 import { getConfig } from "./utils/config";
 import Probe from "./probe";
 import { ANALYZER_STATE, timeout, ENGINE_STATE } from "./utils/helper";
+import { sum } from "./exporter";
 
 const moduleName = "engine      ";
 
@@ -61,11 +62,19 @@ export default class ProbesEngine {
     };
 
     const collectStats = async () => {
+      const reports = [];
       for (const probe of this._probes) {
-        await probe.collectStats();
+        const report = await probe.collectStats();
+        if (report) {
+          reports.push(report);
+        }
         debug(moduleName, `got probe ${probe.id}`);
-        await timeout(1);
+        await timeout(0);
       }
+
+      // Compute total measure time
+      const totalTimeMeasureMs = sum(reports, "experimental", "time_to_measure_ms");
+      debug(moduleName, `Total Time to measure = ${totalTimeMeasureMs}ms`);
     };
 
     debug(moduleName, "starting...");

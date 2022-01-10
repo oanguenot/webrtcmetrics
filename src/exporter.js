@@ -14,6 +14,16 @@ const average = (reports, key, subKey) => {
   return arr.reduce((p, c) => p + c, 0) / arr.length;
 };
 
+export const sum = (reports, key, subKey) => {
+  const arr = reports.map((report) => {
+    if (!subKey) {
+      return report[key];
+    }
+    return report[key][subKey];
+  });
+  return arr.reduce((p, c) => p + c, 0);
+};
+
 const averageRTT = (reports, kind) => {
   if (!reports || reports.length === 0) {
     return 0;

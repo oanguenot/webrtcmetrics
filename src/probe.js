@@ -134,6 +134,6 @@ export default class Probe {
   }
 
   async collectStats() {
-    return this._collector.collectStats();
+    return (this._collector.collectStats());
   }
 }

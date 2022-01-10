@@ -122,6 +122,7 @@ export const getDefaultMetric = (previousStats) => {
       video: { ...previousStats.video },
       data: { ...previousStats.data },
       network: { ...previousStats.network },
+      experimental: { ...previousStats.experimental },
     };
   }
 
@@ -227,7 +228,7 @@ export const STAT_TYPE = {
   DATA: "data",
 };
 
-export const average = (nums) => (nums.reduce((a, b) => (a + b)) / nums.length);
+export const average = (nums) => (nums.reduce((a, b) => a + b, 0) / nums.length);
 
 export const createProbeId = () => (`probe-${shortUUID()}`);
 
