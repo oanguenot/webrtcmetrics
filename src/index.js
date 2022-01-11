@@ -66,4 +66,12 @@ export default class WebRTCMetrics {
   removeProbe(probe) {
    this._engine.removeExistingProbe(probe);
   }
+
+  set onresult(callback) {
+    if (callback) {
+      this._engine.registerCallback("onresult", callback);
+    } else {
+      this._engine.unregisterCallback("onresult");
+    }
+  }
 }

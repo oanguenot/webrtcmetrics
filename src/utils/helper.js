@@ -16,6 +16,19 @@ export const ENGINE_STATE = {
   ENDED: "ended",
 };
 
+export const getDefaultGlobalMetric = () => {
+  const defaultMetrics = {
+    total_time_to_measure_ms: 0,
+    probes: [],
+  };
+
+  const metrics = {
+    ...defaultMetrics,
+  };
+
+  return metrics;
+};
+
 export const getDefaultMetric = (previousStats) => {
   const defaultMetrics = {
     pname: "",
@@ -103,7 +116,6 @@ export const getDefaultMetric = (previousStats) => {
     },
     experimental: {
       time_to_measure_ms: 0,
-      time_to_wait_ms: 0,
     },
   };
 
@@ -235,3 +247,11 @@ export const createProbeId = () => (`probe-${shortUUID()}`);
 export const createCollectorId = () => (`coltr-${shortUUID()}`);
 
 export const timeout = (ms) => (new Promise((resolve) => setTimeout(resolve, ms)));
+
+export const call = (fct, context, value) => {
+  if (!context) {
+    fct(value);
+  } else {
+    fct.call(context, value);
+  }
+};

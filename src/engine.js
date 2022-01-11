@@ -1,7 +1,13 @@
-import { info, debug } from "./utils/log";
+import { info, debug, error } from "./utils/log";
 import { getConfig } from "./utils/config";
 import Probe from "./probe";
-import { ANALYZER_STATE, timeout, ENGINE_STATE } from "./utils/helper";
+import {
+  ANALYZER_STATE,
+  timeout,
+  ENGINE_STATE,
+  getDefaultGlobalMetric,
+  call,
+} from "./utils/helper";
 import { sum } from "./exporter";
 
 const moduleName = "engine      ";
@@ -11,6 +17,9 @@ export default class ProbesEngine {
     this._config = cfg;
     this._probes = [];
     this._startedTime = null;
+    this._callbacks = {
+      onresult: null,
+    };
     this._state = ENGINE_STATE.IDLE;
     info(moduleName, `configured for probing every ${this._config.refreshEvery}ms`);
     info(moduleName, `configured for starting after ${this._config.startAfter}ms`);
@@ -62,19 +71,24 @@ export default class ProbesEngine {
     };
 
     const collectStats = async () => {
-      const reports = [];
+      const globalReport = getDefaultGlobalMetric();
+
       for (const probe of this._probes) {
         const report = await probe.collectStats();
         if (report) {
-          reports.push(report);
+          globalReport.probes.push(report);
         }
         debug(moduleName, `got probe ${probe.id}`);
         await timeout(0);
       }
 
       // Compute total measure time
-      const totalTimeMeasureMs = sum(reports, "experimental", "time_to_measure_ms");
+      const totalTimeMeasureMs = sum(globalReport.probes, "experimental", "time_to_measure_ms");
       debug(moduleName, `Total Time to measure = ${totalTimeMeasureMs}ms`);
+
+      globalReport.total_time_to_measure_ms = totalTimeMeasureMs;
+
+      this.fireOnReports(globalReport);
     };
 
     debug(moduleName, "starting...");
@@ -107,5 +121,30 @@ export default class ProbesEngine {
     this._state = ENGINE_STATE.ENDED;
     stopProbes(forced);
     // this._probes.forEach((probe) => probe.stop());
+  }
+
+  registerCallback(name, callback, context) {
+    if (name in this._callbacks) {
+      this._callbacks[name] = { callback, context };
+      debug(moduleName, `registered callback '${name}'`);
+    } else {
+      error(moduleName, `can't register callback for '${name}' - not found`);
+    }
+  }
+
+  unregisterCallback(name) {
+    if (name in this._callbacks) {
+      this._callbacks[name] = null;
+      delete this._callbacks[name];
+      debug(this._moduleName, `unregistered callback '${name}'`);
+    } else {
+      error(this._moduleName, `can't unregister callback for '${name}' - not found`);
+    }
+  }
+
+  fireOnReports(report) {
+    if (this._callbacks.onresult) {
+      call(this._callbacks.onresult.callback, this._callbacks.onresult.context, report);
+    }
   }
 }

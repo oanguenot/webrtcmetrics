@@ -1,19 +1,16 @@
 import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
-import { ANALYZER_STATE, createCollectorId, getDefaultMetric } from "./utils/helper";
+import {
+  ANALYZER_STATE,
+  createCollectorId,
+  getDefaultMetric,
+  call,
+} from "./utils/helper";
 import {
   debug,
   error,
   info,
 } from "./utils/log";
-
-const call = (fct, context, value) => {
-  if (!context) {
-    fct(value);
-  } else {
-    fct.call(context, value);
-  }
-};
 
 export default class Collector {
   constructor(cfg, refProbeId) {
@@ -131,7 +128,7 @@ export default class Collector {
       this._callbacks[name] = { callback, context };
       debug(this._moduleName, `registered callback '${name}'`);
     } else {
-      error(this._moduleName, `can't register callback for '${name}' - already exists`);
+      error(this._moduleName, `can't register callback for '${name}' - not found`);
     }
   }
 
