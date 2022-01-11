@@ -1,4 +1,4 @@
-import { defaultConfig, getLibName, getVersion } from "./helper";
+import { defaultConfig, getLibName, getVersion } from "./models";
 import { warn } from "./log";
 
 const moduleName = "config      ";

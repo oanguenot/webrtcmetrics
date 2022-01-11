@@ -1,6 +1,7 @@
 import { info, warn } from "./utils/log";
 import Collector from "./collector";
-import { ANALYZER_STATE, createProbeId } from "./utils/helper";
+import { ANALYZER_STATE } from "./utils/models";
+import { createProbeId } from "./utils/helper";
 
 export default class Probe {
   constructor(cfg) {

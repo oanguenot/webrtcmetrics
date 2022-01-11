@@ -2,10 +2,9 @@ import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
 import {
   ANALYZER_STATE,
-  createCollectorId,
   getDefaultMetric,
-  call,
-} from "./utils/helper";
+} from "./utils/models";
+import { createCollectorId, call } from "./utils/helper";
 import {
   debug,
   error,

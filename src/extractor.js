@@ -4,8 +4,9 @@ import {
   STAT_TYPE,
   INFRASTRUCTURE_LABEL,
   TYPE, VALUE,
-  average,
-} from "./utils/helper";
+} from "./utils/models";
+
+import { average } from "./utils/helper";
 
 import { debug } from "./utils/log";
 

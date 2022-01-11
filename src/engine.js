@@ -3,12 +3,10 @@ import { getConfig } from "./utils/config";
 import Probe from "./probe";
 import {
   ANALYZER_STATE,
-  timeout,
   ENGINE_STATE,
   getDefaultGlobalMetric,
-  call,
-} from "./utils/helper";
-import { sum } from "./exporter";
+} from "./utils/models";
+import { call, sumValuesOfReports, timeout } from "./utils/helper";
 
 const moduleName = "engine      ";
 
@@ -83,12 +81,9 @@ export default class ProbesEngine {
       }
 
       // Compute total measure time
-      const totalTimeMeasureMs = sum(globalReport.probes, "experimental", "time_to_measure_ms");
-      debug(moduleName, `Total Time to measure = ${totalTimeMeasureMs}ms`);
-
+      const totalTimeMeasureMs = sumValuesOfReports(globalReport.probes, "experimental", "time_to_measure_ms");
       globalReport.total_time_to_measure_ms = totalTimeMeasureMs;
-
-      this.fireOnReports(globalReport);
+      return globalReport;
     };
 
     debug(moduleName, "starting...");
@@ -99,17 +94,20 @@ export default class ProbesEngine {
     debug(moduleName, "reference reports generated");
     this._startedTime = Date.now();
     while (shouldCollectStats()) {
-      debug(moduleName, "collecting...");
-      debug(moduleName, `wait ${this._config.refreshEvery}ms`);
+      debug(moduleName, `wait ${this._config.refreshEvery}ms before collecting`);
       await timeout(this._config.refreshEvery);
-      debug(moduleName, "ready");
-      await collectStats();
-      debug(moduleName, "collected...");
+      debug(moduleName, "collecting...");
+      const preTime = Date.now();
+      const globalReport = await collectStats();
+      const postTime = Date.now();
+      globalReport.total_time_consumed_ms = postTime - preTime;
+      this.fireOnReports(globalReport);
+      debug(moduleName, "collected");
     }
 
     setTimeout(() => {
       this.stop(true);
-    }, 1);
+    }, 0);
   }
 
   stop(forced) {
