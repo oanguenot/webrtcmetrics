@@ -5,9 +5,10 @@ const shortUUID = new ShortUniqueId();
 export const getLibName = () => ("WebRTCMetrics");
 export const getVersion = () => ("3.0.0");
 
-export const ANALYZER_STATE = {
+export const COLLECTOR_STATE = {
   IDLE: "idle",
   RUNNING: "running",
+  MUTED: "muted",
 };
 
 export const ENGINE_STATE = {

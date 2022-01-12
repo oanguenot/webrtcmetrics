@@ -2,7 +2,7 @@ import { info, debug, error } from "./utils/log";
 import { getConfig } from "./utils/config";
 import Probe from "./probe";
 import {
-  ANALYZER_STATE,
+  COLLECTOR_STATE,
   ENGINE_STATE,
   getDefaultGlobalMetric,
 } from "./utils/models";
@@ -40,7 +40,7 @@ export default class ProbesEngine {
     if (!probe) {
       throw new Error("undefined probe");
     }
-    if (probe.state === ANALYZER_STATE.RUNNING) {
+    if (probe.state === COLLECTOR_STATE.RUNNING) {
       probe.stop();
     }
     this._probes = this._probes.filter((existingProbe) => (probe.id !== existingProbe.id));
@@ -70,8 +70,8 @@ export default class ProbesEngine {
 
     const collectStats = async () => {
       const globalReport = getDefaultGlobalMetric();
-
-      for (const probe of this._probes) {
+      const runningProbes = this._probes.filter((probe) => (probe.isRunning));
+      for (const probe of runningProbes) {
         const report = await probe.collectStats();
         if (report) {
           globalReport.probes.push(report);

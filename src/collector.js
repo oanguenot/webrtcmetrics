@@ -1,7 +1,7 @@
 import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
 import {
-  ANALYZER_STATE,
+  COLLECTOR_STATE,
   getDefaultMetric,
 } from "./utils/models";
 import { createCollectorId, call } from "./utils/helper";
@@ -25,7 +25,7 @@ export default class Collector {
     this._startedTime = null;
     this._config = cfg;
     this._exporter = new Exporter(cfg);
-    this._state = ANALYZER_STATE.IDLE;
+    this._state = COLLECTOR_STATE.IDLE;
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
@@ -81,7 +81,7 @@ export default class Collector {
 
   async collectStats() {
     try {
-      if (this._state !== ANALYZER_STATE.RUNNING || !this._config.pc) {
+      if (this._state !== COLLECTOR_STATE.RUNNING || !this._config.pc) {
         debug(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
         return null;
       }
@@ -104,16 +104,26 @@ export default class Collector {
 
   async start() {
     debug(this._moduleName, "starting");
-    this.state = ANALYZER_STATE.RUNNING;
+    this.state = COLLECTOR_STATE.RUNNING;
     this._startedTime = this._exporter.start();
     debug(this._moduleName, "started");
+  }
+
+  async mute() {
+    this.state = COLLECTOR_STATE.MUTED;
+    debug(this._moduleName, "muted");
+  }
+
+  async unmute() {
+    this.state = COLLECTOR_STATE.RUNNING;
+    debug(this._moduleName, "unmuted");
   }
 
   async stop(forced) {
     debug(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
     const ticket = this._exporter.stop();
 
-    this.state = ANALYZER_STATE.IDLE;
+    this.state = COLLECTOR_STATE.IDLE;
 
     if (this._config.ticket) {
       this.fireOnTicket(ticket);

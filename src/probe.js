@@ -1,6 +1,6 @@
 import { info, warn } from "./utils/log";
 import Collector from "./collector";
-import { ANALYZER_STATE } from "./utils/models";
+import { COLLECTOR_STATE } from "./utils/models";
 import { createProbeId } from "./utils/helper";
 
 export default class Probe {
@@ -82,14 +82,14 @@ export default class Probe {
    * Return true if the probe is running
    */
   get isRunning() {
-    return this.state === ANALYZER_STATE.RUNNING;
+    return this.state === COLLECTOR_STATE.RUNNING;
   }
 
   /**
    * Return true if the probe is idle
    */
   get isIdle() {
-    return this.state === ANALYZER_STATE.IDLE;
+    return this.state === COLLECTOR_STATE.IDLE;
   }
 
   /**
