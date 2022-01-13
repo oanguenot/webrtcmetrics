@@ -18,6 +18,26 @@ export const call = (fct, context, value) => {
   }
 };
 
+export const volatilityValuesOfReports = (reports, key, subKey) => {
+  const arr = reports.map((report) => {
+    if (!subKey) {
+      return report[key];
+    }
+    return report[key][subKey];
+  });
+
+  const avg = arr.reduce((p, c) => p + c, 0) / arr.length;
+
+  if (avg === 0) {
+    return 0;
+  }
+
+  const diff = arr.map((data) => (Math.abs(avg - data)));
+  const totalDiff = diff.reduce((p, c) => p + c, 0);
+  const volatility = ((totalDiff / arr.length) * 100) / avg;
+  return volatility;
+};
+
 export const averageValuesOfReports = (reports, key, subKey) => {
   const arr = reports.map((report) => {
     if (!subKey) {

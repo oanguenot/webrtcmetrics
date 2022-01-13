@@ -2,7 +2,7 @@ import { debug, trace } from "./utils/log";
 import {
   averageValuesOfReports,
   minValueOfReport,
-  maxValueOfReport, lastOfReports,
+  maxValueOfReport, lastOfReports, volatilityValuesOfReports,
 } from "./utils/helper";
 
 const moduleName = "exporter    ";
@@ -94,68 +94,113 @@ export default class Exporter {
       },
       jitter: {
         audio: {
-          min: minValueOfReport(this._reports, "audio", "delta_jitter_ms"),
           avg: averageValuesOfReports(this._reports, "audio", "delta_jitter_ms"),
+          min: minValueOfReport(this._reports, "audio", "delta_jitter_ms"),
           max: maxValueOfReport(this._reports, "audio", "delta_jitter_ms"),
+          volatility: volatilityValuesOfReports(this._reports, "audio", "delta_jitter_ms"),
         },
         video: {
-          min: minValueOfReport(this._reports, "video", "delta_jitter_ms"),
           avg: averageValuesOfReports(this._reports, "video", "delta_jitter_ms"),
+          min: minValueOfReport(this._reports, "video", "delta_jitter_ms"),
           max: maxValueOfReport(this._reports, "video", "delta_jitter_ms"),
+          volatility: volatilityValuesOfReports(this._reports, "video", "delta_jitter_ms"),
+        },
+        unit: {
+          avg: "ms",
+          min: "ms",
+          max: "ms",
+          volatility: "percent",
         },
       },
       rtt: {
         audio: {
-          min: minValueOfReport(this._reports, "audio", "delta_rtt_ms"),
           avg: averageRTT(this._reports, "audio"),
+          min: minValueOfReport(this._reports, "audio", "delta_rtt_ms"),
           max: maxValueOfReport(this._reports, "audio", "delta_rtt_ms"),
+          volatility: volatilityValuesOfReports(this._reports, "audio", "delta_rtt_ms"),
         },
         video: {
-          min: minValueOfReport(this._reports, "video", "delta_rtt_ms"),
           avg: averageRTT(this._reports, "video"),
+          min: minValueOfReport(this._reports, "video", "delta_rtt_ms"),
           max: maxValueOfReport(this._reports, "video", "delta_rtt_ms"),
+          volatility: volatilityValuesOfReports(this._reports, "video", "delta_rtt_ms"),
+        },
+        unit: {
+          avg: "ms",
+          min: "ms",
+          max: "ms",
+          volatility: "percent",
         },
       },
-      mos_emodel: {
-        min: minValueOfReport(this._reports, "audio", "mos_emodel"),
-        avg: averageValuesOfReports(this._reports, "audio", "mos_emodel"),
-        max: maxValueOfReport(this._reports, "audio", "mos_emodel"),
-      },
       mos: {
-        min: minValueOfReport(this._reports, "audio", "mos"),
-        avg: averageValuesOfReports(this._reports, "audio", "mos"),
-        max: maxValueOfReport(this._reports, "audio", "mos"),
+        emodel: {
+          avg: averageValuesOfReports(this._reports, "audio", "mos_emodel"),
+          min: minValueOfReport(this._reports, "audio", "mos_emodel"),
+          max: maxValueOfReport(this._reports, "audio", "mos_emodel"),
+          volatility: volatilityValuesOfReports(this._reports, "audio", "mos_emodel"),
+        },
+        effective: {
+          avg: averageValuesOfReports(this._reports, "audio", "mos"),
+          min: minValueOfReport(this._reports, "audio", "mos"),
+          max: maxValueOfReport(this._reports, "audio", "mos"),
+          volatility: volatilityValuesOfReports(this._reports, "audio", "mos"),
+        },
+        unit: {
+          avg: "number (1-5)",
+          min: "number (1-5)",
+          max: "number (1-5)",
+          volatility: "percent",
+        },
       },
       packetsLost: {
         audio: {
-          percent: Math.round((((lastOfReports(this._reports, "audio", "total_packets_lost") / lastOfReports(this._reports, "audio", "total_packets_received")) * 100) || 0) * 100) / 100,
+          avg: Math.round((((lastOfReports(this._reports, "audio", "total_packets_lost") / lastOfReports(this._reports, "audio", "total_packets_received")) * 100) || 0) * 100) / 100,
         },
         video: {
-          percent: Math.round((((lastOfReports(this._reports, "video", "total_packets_lost") / lastOfReports(this._reports, "video", "total_packets_received")) * 100) || 0) * 100) / 100,
+          avg: Math.round((((lastOfReports(this._reports, "video", "total_packets_lost") / lastOfReports(this._reports, "video", "total_packets_received")) * 100) || 0) * 100) / 100,
+        },
+        unit: {
+          avg: "percent",
         },
       },
       bitrate: {
         in: {
-          min: minValueOfReport(this._reports, "data", "delta_kbs_received"),
           avg: averageValuesOfReports(this._reports, "data", "delta_kbs_received"),
+          min: minValueOfReport(this._reports, "data", "delta_kbs_received"),
           max: maxValueOfReport(this._reports, "data", "delta_kbs_received"),
+          volatility: volatilityValuesOfReports(this._reports, "data", "delta_kbs_received"),
         },
         out: {
-          min: minValueOfReport(this._reports, "data", "delta_kbs_sent"),
           avg: averageValuesOfReports(this._reports, "data", "delta_kbs_sent"),
+          min: minValueOfReport(this._reports, "data", "delta_kbs_sent"),
           max: maxValueOfReport(this._reports, "data", "delta_kbs_sent"),
+          volatility: volatilityValuesOfReports(this._reports, "data", "delta_kbs_sent"),
+        },
+        unit: {
+          avg: "kbs",
+          min: "kbs",
+          max: "kbs",
+          volatility: "percent",
         },
       },
       traffic: {
         in: {
-          min: minValueOfReport(this._reports, "data", "delta_KBytes_received"),
           avg: averageValuesOfReports(this._reports, "data", "delta_KBytes_received"),
+          min: minValueOfReport(this._reports, "data", "delta_KBytes_received"),
           max: maxValueOfReport(this._reports, "data", "delta_KBytes_received"),
+          volatility: volatilityValuesOfReports(this._reports, "data", "delta_KBytes_received"),
         },
         out: {
-          min: minValueOfReport(this._reports, "data", "delta_KBytes_sent"),
           avg: averageValuesOfReports(this._reports, "data", "delta_KBytes_sent"),
+          min: minValueOfReport(this._reports, "data", "delta_KBytes_sent"),
           max: maxValueOfReport(this._reports, "data", "delta_KBytes_sent"),
+          volatility: volatilityValuesOfReports(this._reports, "data", "delta_KBytes_sent"),
+        },
+        unit: {
+          avg: "KBytes",
+          min: "KBytes",
+          max: "KBytes",
+          volatility: "percent",
         },
       },
     };
