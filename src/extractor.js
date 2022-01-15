@@ -28,20 +28,25 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   // If RTT is not part of the stat - return previous value
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.ROUND_TRIP_TIME)) {
     return {
-      rtt: previousBunch[kind].delta_rtt_ms,
+      rtt: null,
       totalRTT: previousBunch[kind].total_rtt_ms,
       totalRTTMeasurements: previousBunch[kind].total_rtt_measure,
     };
   }
 
-  const currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]);
+  let currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]);
   let currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms : 0)) || null;
   let currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure : 0)) || null;
 
-  // If total round trip time is not supported yet)
-  if (!currentTotalRTT) {
+  // If total round trip time measurements is not supported yet)
+  if (!currentTotalMeasurements) {
     currentTotalRTT = (previousBunch[kind].total_rtt_ms || 0) + currentRTT;
     currentTotalMeasurements += 1;
+  }
+
+  // Same value for measurements so no new value, return null
+  if (currentTotalMeasurements && currentTotalMeasurements === previousBunch[kind].total_rtt_measure) {
+    currentRTT = null;
   }
 
   return {
