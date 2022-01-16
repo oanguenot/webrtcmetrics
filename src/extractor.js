@@ -87,8 +87,9 @@ const extractEncodeTime = (bunch, previousBunch) => {
 
   const encodeTimeDelta = totalEncodeTime - previousBunch.video.total_time_encoded;
   const frameDelta = encodedFrames - previousBunch.video.total_frames_encoded;
+  const framesEncodedDelta = (frameDelta > 0 && encodeTimeDelta) ? (encodeTimeDelta * 1000) / frameDelta : 0;
 
-  return { delta_ms_encode_frame: frameDelta > 0 ? (encodeTimeDelta * 1000) / frameDelta : 0, frames_encoded: encodedFrames, total_encode_time: totalEncodeTime };
+  return { delta_ms_encode_frame: framesEncodedDelta, frames_encoded: encodedFrames, total_encode_time: totalEncodeTime };
 };
 
 const extractAudioPacketReceived = (bunch, previousBunch, referenceReport) => {
@@ -143,10 +144,10 @@ const extractAudioLevel = (bunch) => {
 
 const extractVideoSize = (bunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_HEIGHT) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_WIDTH)) {
-    return { width: null, height: null };
+    return { width: null, height: null, framerate: null };
   }
 
-  return { width: bunch[PROPERTY.FRAME_WIDTH] || null, height: bunch[PROPERTY.FRAME_HEIGHT] || null };
+  return { width: bunch[PROPERTY.FRAME_WIDTH] || null, height: bunch[PROPERTY.FRAME_HEIGHT] || null, framerate: bunch[PROPERTY.FRAMES_PER_SECOND] };
 };
 
 const extractNackAndPliCountSent = (bunch, referenceReport) => {
@@ -323,9 +324,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const videoTotalKBytesReceived = ((bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024) - (referenceReport ? referenceReport.video.total_KBytes_received : 0);
         const videoKBytesReceived = videoTotalKBytesReceived - previousBunch.video.total_KBytes_received;
 
-         // Codec stats
+        // Codec stats
         const decoderImplementation = bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
         const videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        // Video size
+        const inputVideo = extractVideoSize(bunch);
 
         // Nack & Pli stats
         const nackPliData = extractNackAndPliCountSent(bunch, referenceReport);
@@ -350,6 +354,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           { type: STAT_TYPE.VIDEO, value: { delta_nack_sent: nackDelta } },
           { type: STAT_TYPE.VIDEO, value: { total_pli_sent: nackPliData.pliCount } },
           { type: STAT_TYPE.VIDEO, value: { delta_pli_sent: pliDelta } },
+          { type: STAT_TYPE.VIDEO, value: { input_size: inputVideo } },
         ];
       }
       break;
@@ -372,7 +377,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         const videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
+        // Encode time
         const data = extractEncodeTime(bunch, previousBunch);
+
+        // Video size
+        const outputVideo = extractVideoSize(bunch);
 
         // Nack & Pli stats
         const nackPliData = extractNackAndPliCountReceived(bunch, referenceReport);
@@ -391,6 +400,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           { type: STAT_TYPE.VIDEO, value: { delta_nack_received: nackDelta } },
           { type: STAT_TYPE.VIDEO, value: { total_pli_received: nackPliData.pliCount } },
           { type: STAT_TYPE.VIDEO, value: { delta_pli_received: pliDelta } },
+          { type: STAT_TYPE.VIDEO, value: { output_size: outputVideo } },
         ];
       }
       break;
@@ -405,21 +415,10 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`, bunch);
       // Note: All "track" stats have been made obsolete
       // Safari: compute kind property that don't exists
-      const kindVideo = (PROPERTY.KIND in bunch && bunch[PROPERTY.KIND] === VALUE.VIDEO) || (PROPERTY.FRAME_HEIGHT in bunch);
 
       if (bunch[PROPERTY.REMOTE_SOURCE] === true) {
-        if (kindVideo) {
-          const inputSize = extractVideoSize(bunch);
-          return [{ type: STAT_TYPE.VIDEO, value: { input_size: inputSize } }];
-        }
-
         const inputLevel = extractAudioLevel(bunch);
         return [{ type: STAT_TYPE.AUDIO, value: { input_level: inputLevel } }];
-      }
-
-      if (kindVideo) {
-        const outputSize = extractVideoSize(bunch);
-        return [{ type: STAT_TYPE.VIDEO, value: { output_size: outputSize } }];
       }
       break;
     case TYPE.CODEC:

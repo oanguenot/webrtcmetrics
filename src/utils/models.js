@@ -209,6 +209,7 @@ export const PROPERTY = {
   ENCODER_IMPLEMENTATION: "encoderImplementation",
   FRAMES_DECODED: "framesDecoded",
   FRAMES_ENCODED: "framesEncoded",
+  FRAMES_PER_SECOND: "framesPerSecond",
   TOTAL_DECODE_TIME: "totalDecodeTime",
   TOTAL_ENCODE_TIME: "totalEncodeTime",
   PLI: "pliCount",
