@@ -63,8 +63,8 @@ export const getDefaultMetric = (previousStats) => {
     video: {
       input_codec_id: "",
       output_codec_id: "",
-      input_size: { width: null, height: null },
-      output_size: { width: null, height: null },
+      input_size: { width: null, height: null, framerate: null },
+      output_size: { width: null, height: null, framerate: null },
       input_codec: { mime_type: null, clock_rate: null },
       output_codec: { mime_type: null, clock_rate: null },
       delta_jitter_ms: 0,
@@ -96,6 +96,7 @@ export const getDefaultMetric = (previousStats) => {
       delta_pli_received: 0,
       total_nack_received: 0,
       total_pli_received: 0,
+      limitation: { reason: null, durations: null, resolutionChanges: 0 },
     },
     network: {
       infrastructure: 3,
@@ -127,6 +128,7 @@ export const getDefaultMetric = (previousStats) => {
     video: { ...defaultMetrics.video },
     data: { ...defaultMetrics.data },
     network: { ...defaultMetrics.network },
+    experimental: { ...defaultMetrics.experimental },
   };
 
   if (previousStats) {
@@ -185,6 +187,9 @@ export const PROPERTY = {
   TOTAL_ROUND_TRIP_TIME_MEASUREMENTS: "roundTripTimeMeasurements",
   FRAME_HEIGHT: "frameHeight",
   FRAME_WIDTH: "frameWidth",
+  QUALITY_LIMITATION_REASON: "qualityLimitationReason",
+  QUALITY_LIMITATION_DURATIONS: "qualityLimitationDurations",
+  QUALITY_LIMITATION_RESOLUTION_CHANGES: "qualityLimitationResolutionChanges",
   ID: "id",
   JITTER: "jitter",
   KIND: "kind",

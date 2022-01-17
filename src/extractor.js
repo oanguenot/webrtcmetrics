@@ -150,6 +150,21 @@ const extractVideoSize = (bunch) => {
   return { width: bunch[PROPERTY.FRAME_WIDTH] || null, height: bunch[PROPERTY.FRAME_HEIGHT] || null, framerate: bunch[PROPERTY.FRAMES_PER_SECOND] };
 };
 
+const extractQualityLimitation = (bunch) => {
+  const reason = Object.prototype.hasOwnProperty.call(bunch, PROPERTY.QUALITY_LIMITATION_REASON) ? bunch[PROPERTY.QUALITY_LIMITATION_REASON] : null;
+  const resolutionChanges = Object.prototype.hasOwnProperty.call(bunch, PROPERTY.QUALITY_LIMITATION_RESOLUTION_CHANGES) ? bunch[PROPERTY.QUALITY_LIMITATION_RESOLUTION_CHANGES] : null;
+  const durations = Object.prototype.hasOwnProperty.call(bunch, PROPERTY.QUALITY_LIMITATION_DURATIONS) ? bunch[PROPERTY.QUALITY_LIMITATION_DURATIONS] : null;
+
+  if (durations) {
+    Object.keys(durations).forEach((key) => {
+      if (durations[key] > 1000) {
+        durations[key] = Number(durations[key] / 1000);
+      }
+    });
+  }
+  return { reason, durations, resolutionChanges };
+};
+
 const extractNackAndPliCountSent = (bunch, referenceReport) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PLI) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NACK)) {
     return { pliCount: 0, nackCount: 0 };
@@ -383,6 +398,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Video size
         const outputVideo = extractVideoSize(bunch);
 
+        // limitations
+        const limitation = extractQualityLimitation(bunch);
+
         // Nack & Pli stats
         const nackPliData = extractNackAndPliCountReceived(bunch, referenceReport);
         const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_received;
@@ -401,6 +419,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           { type: STAT_TYPE.VIDEO, value: { total_pli_received: nackPliData.pliCount } },
           { type: STAT_TYPE.VIDEO, value: { delta_pli_received: pliDelta } },
           { type: STAT_TYPE.VIDEO, value: { output_size: outputVideo } },
+          { type: STAT_TYPE.VIDEO, value: { limitation } },
         ];
       }
       break;
