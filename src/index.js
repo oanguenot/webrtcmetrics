@@ -55,7 +55,7 @@ export default class WebRTCMetrics {
    * Stop all probes
    */
    stopAllProbes() {
-    this._engine.stopAll();
+    this._engine.stop();
   }
 
   /**

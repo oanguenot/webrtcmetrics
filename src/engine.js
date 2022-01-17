@@ -118,7 +118,6 @@ export default class ProbesEngine {
     info(moduleName, "stopping");
     this._state = ENGINE_STATE.ENDED;
     stopProbes(forced);
-    // this._probes.forEach((probe) => probe.stop());
   }
 
   registerCallback(name, callback, context) {
