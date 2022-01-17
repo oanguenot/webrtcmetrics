@@ -82,14 +82,14 @@ export default class Probe {
    * Return true if the probe is running
    */
   get isRunning() {
-    return this.state === COLLECTOR_STATE.RUNNING;
+    return this._collector.state === COLLECTOR_STATE.RUNNING;
   }
 
   /**
    * Return true if the probe is idle
    */
   get isIdle() {
-    return this.state === COLLECTOR_STATE.IDLE;
+    return this._collector.state === COLLECTOR_STATE.IDLE;
   }
 
   /**
@@ -122,12 +122,12 @@ export default class Probe {
   /**
    * Set a probe to idle state
    */
-  stop() {
+  stop(forced = false) {
     if (!this.isRunning) {
       warn(this._moduleName, "probe is not running");
       return;
     }
-    this._collector.stop();
+    this._collector.stop(forced);
   }
 
   async takeReferenceStats() {

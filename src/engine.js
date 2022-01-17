@@ -25,6 +25,10 @@ export default class ProbesEngine {
     debug(moduleName, "engine initialized");
   }
 
+  get probes() {
+    return this._probes;
+  }
+
   addNewProbe(peerConnection, options) {
     if (!peerConnection) {
       throw new Error("undefined peer connection");
@@ -104,6 +108,7 @@ export default class ProbesEngine {
       this.fireOnReports(globalReport);
       debug(moduleName, "collected");
     }
+    debug(moduleName, "Engine is no more collecting...");
 
     setTimeout(() => {
       this.stop(true);
@@ -112,7 +117,9 @@ export default class ProbesEngine {
 
   stop(forced) {
     const stopProbes = () => {
-      this._probes.forEach((probe) => probe.stop());
+      this._probes.forEach((probe) => {
+        probe.stop(forced);
+      });
     };
 
     info(moduleName, "stopping");

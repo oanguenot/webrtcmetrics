@@ -31,7 +31,7 @@ export default class WebRTCMetrics {
    * Get the probes
    */
   get probes() {
-    return this._probes;
+    return this._engine.probes;
   }
 
   /**
