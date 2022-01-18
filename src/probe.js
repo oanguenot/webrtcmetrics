@@ -124,7 +124,6 @@ export default class Probe {
    */
   stop(forced = false) {
     if (!this.isRunning) {
-      warn(this._moduleName, "probe is not running");
       return;
     }
     this._collector.stop(forced);

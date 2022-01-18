@@ -3,7 +3,6 @@ import { getConfig } from "./utils/config";
 import Probe from "./probe";
 import {
   COLLECTOR_STATE,
-  ENGINE_STATE,
   getDefaultGlobalMetric,
 } from "./utils/models";
 import { call, sumValuesOfReports, timeout } from "./utils/helper";
@@ -18,7 +17,6 @@ export default class ProbesEngine {
     this._callbacks = {
       onresult: null,
     };
-    this._state = ENGINE_STATE.IDLE;
     info(moduleName, `configured for probing every ${this._config.refreshEvery}ms`);
     info(moduleName, `configured for starting after ${this._config.startAfter}ms`);
     info(moduleName, `${this._config.stopAfter !== -1 ? `configured for stopped after ${this._config.stopAfter}ms` : "configured for never stopped"}`);
@@ -27,6 +25,14 @@ export default class ProbesEngine {
 
   get probes() {
     return this._probes;
+  }
+
+  get isRunning() {
+    return this._probes.some((probe) => (probe.isRunning));
+  }
+
+  get isIdle() {
+    return this._probes.every((probe) => (probe.isIdle));
   }
 
   addNewProbe(peerConnection, options) {
@@ -60,8 +66,8 @@ export default class ProbesEngine {
     );
 
     const shouldCollectStats = () => {
-      if (this._state !== ENGINE_STATE.COLLECTING) {
-        // don't collect if not in the right state
+      if (this.isIdle) {
+        // don't collect if there is no running probes
         return false;
       }
       if (this._config.stopAfter < 0) {
@@ -90,8 +96,7 @@ export default class ProbesEngine {
       return globalReport;
     };
 
-    debug(moduleName, "starting...");
-    this._state = ENGINE_STATE.COLLECTING;
+    debug(moduleName, "starting to collect");
     startProbes();
     debug(moduleName, "generating reference reports...");
     await takeReferenceStat();
@@ -108,22 +113,24 @@ export default class ProbesEngine {
       this.fireOnReports(globalReport);
       debug(moduleName, "collected");
     }
-    debug(moduleName, "Engine is no more collecting...");
 
-    setTimeout(() => {
-      this.stop(true);
-    }, 0);
+    debug(moduleName, "reaching end of the collecting period...");
+
+    if (this.isRunning) {
+      setTimeout(() => {
+        this.stop();
+      }, 0);
+    }
   }
 
   stop(forced) {
-    const stopProbes = () => {
+    const stopProbes = (manual) => {
       this._probes.forEach((probe) => {
-        probe.stop(forced);
+        probe.stop(manual);
       });
     };
 
-    info(moduleName, "stopping");
-    this._state = ENGINE_STATE.ENDED;
+    info(moduleName, "stop collecting");
     stopProbes(forced);
   }
 
@@ -147,7 +154,7 @@ export default class ProbesEngine {
   }
 
   fireOnReports(report) {
-    if (this._callbacks.onresult) {
+    if (this._callbacks.onresult && report.probes.length > 0) {
       call(this._callbacks.onresult.callback, this._callbacks.onresult.context, report);
     }
   }
