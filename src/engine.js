@@ -91,8 +91,13 @@ export default class ProbesEngine {
       }
 
       // Compute total measure time
-      const totalTimeMeasureMs = sumValuesOfReports(globalReport.probes, "experimental", "time_to_measure_ms");
-      globalReport.total_time_to_measure_ms = totalTimeMeasureMs;
+      globalReport.delta_time_to_measure_ms = sumValuesOfReports(globalReport.probes, "experimental", "time_to_measure_ms");
+      globalReport.delta_KBytes_received = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_received");
+      globalReport.delta_KBytes_sent = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_sent");
+      globalReport.delta_kbs_received = sumValuesOfReports(globalReport.probes, "data", "delta_kbs_received");
+      globalReport.delta_kbs_sent = sumValuesOfReports(globalReport.probes, "data", "delta_kbs_sent");
+      globalReport.total_time_decoded = sumValuesOfReports(globalReport.probes, "video", "total_time_decoded");
+      globalReport.total_time_encoded = sumValuesOfReports(globalReport.probes, "video", "total_time_encoded");
       return globalReport;
     };
 
@@ -109,7 +114,7 @@ export default class ProbesEngine {
       const preTime = Date.now();
       const globalReport = await collectStats();
       const postTime = Date.now();
-      globalReport.total_time_consumed_ms = postTime - preTime;
+      globalReport.delta_time_consumed_ms = postTime - preTime;
       this.fireOnReports(globalReport);
       debug(moduleName, "collected");
     }
