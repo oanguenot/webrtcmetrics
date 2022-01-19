@@ -151,9 +151,9 @@ Register to the event `onresult` from the metrics Object created to get a global
 
 _Note:_ This method is equivalent to register to the event `onreport` on each probe individually.
 
-## Report Statistics
+## Report Statistics 
 
-Each **report** contains the following statistics.
+Each **report** collected from the event `onreport` contains the following statistics.
 
 ### Global part
 
@@ -285,18 +285,18 @@ The ticket generated contains the following information:
 | **ua** | Object | Contains the `ua`, the `pname` and the `user_id` |
 | **call** | Object | Contains the `call_id` and the `start_time` and `end_time` |
 | **details** | Object | Contains the list of reports as well as the reference report |
-| **jitter** | Object | `min`, `max` and `avg` values for audio and video |
-| **rtt** | Object | `min`, `max` and `avg` values for audio and video |
-| **mos** | Object | `min`, `max` and `avg` values |
+| **jitter** | Object | `min`, `max`, `avg` and `volatility` values for audio and video |
+| **rtt** | Object | `min`, `max`, `avg` and `volatility` values for audio and video |
+| **mos** | Object | `min`, `max`, `avg` and `volatility` values |
 | **packetsLost** | Object | `percent` values for audio and video |
-| **bitrate** | Object | `min`, `max` and `avg` values  for incoming and outgoing |
-| **traffic** | Object | `min`, `max` and `avg` values  for incoming and outgoing |
+| **bitrate** | Object | `min`, `max`, `avg` and `volatility` values  for incoming and outgoing |
+| **traffic** | Object | `min`, `max`, `avg` and `volatility` values  for incoming and outgoing |
 
 ## Additional information
 
 ### Callbacks
 
-Setting the `onreport` and `onticket` to null, unregisters the callback previously registered.
+Setting the `onreport`, `onticket` and `onresult` to `null`, unregisters the callback previously registered.
 
 ### Probes
 
