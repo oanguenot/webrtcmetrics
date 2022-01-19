@@ -91,7 +91,7 @@ export default class ProbesEngine {
       }
 
       // Compute total measure time
-      globalReport.delta_time_to_measure_ms = sumValuesOfReports(globalReport.probes, "experimental", "time_to_measure_ms");
+      globalReport.delta_time_to_measure_probes_ms = sumValuesOfReports(globalReport.probes, "experimental", "time_to_measure_ms");
       globalReport.delta_KBytes_received = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_received");
       globalReport.delta_KBytes_sent = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_sent");
       globalReport.delta_kbs_received = sumValuesOfReports(globalReport.probes, "data", "delta_kbs_received");
@@ -109,12 +109,13 @@ export default class ProbesEngine {
     this._startedTime = Date.now();
     while (shouldCollectStats()) {
       debug(moduleName, `wait ${this._config.refreshEvery}ms before collecting`);
+
       await timeout(this._config.refreshEvery);
       debug(moduleName, "collecting...");
       const preTime = Date.now();
       const globalReport = await collectStats();
       const postTime = Date.now();
-      globalReport.delta_time_consumed_ms = postTime - preTime;
+      globalReport.delta_time_consumed_to_measure_ms = postTime - preTime;
       this.fireOnReports(globalReport);
       debug(moduleName, "collected");
     }

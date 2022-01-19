@@ -19,8 +19,14 @@ export const ENGINE_STATE = {
 
 export const getDefaultGlobalMetric = () => {
   const defaultMetrics = {
-    total_time_to_measure_ms: 0, // Total time to measure each probe
-    total_time_consumed_ms: 0, // Total time to measure at engine level (additional time needed to compute global stats)
+    delta_time_to_measure_probes_ms: 0, // Total time to measure all probes
+    delta_time_consumed_to_measurems: 0, // Total time to measure at engine level (additional time needed to compute global stats)
+    delta_KBytes_received: 0,
+    delta_KBytes_sent: 0,
+    delta_kbs_received: 0,
+    delta_kbs_sent: 0,
+    total_time_decoded: 0,
+    total_time_encoded: 0,
     probes: [],
   };
 

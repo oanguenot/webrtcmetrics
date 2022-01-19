@@ -105,12 +105,16 @@ const probe = metrics.createProbe(existingPeerConnection, {
 });
 
 probe.onreport = (report) => {
-  // Do something with the metrics received (JSON)
+  // Do something with a report collected (JSON)
 };
 
 probe.onticket = (ticket) => {
-  // Do something with the metrics received (JSON)
+  // Do something with the ticket collected at the end of the call (JSON)
 };
+
+metrics.onresult = (result) => {
+  // Do something with the global report collected (JSON)
+}
 
 // Start collecting statistics
 probe.start();
@@ -140,6 +144,12 @@ _Note:_ The `report` and `ticket` parameters received from the events are JSON o
 When connecting to a conference server such as an **SFU**, you can receive multiple `RTCPeerConnection` objects. You can collect statistics from each by creating as many as probes as needed. One for each `RTCPeerConnection`.
 
 As the parameter **refreshEvery**, **startsAfter** and **stopAfter** are common to all probes created, the statistics of all probes are collected one after the other, as soon as possible in order to be able to compare. To avoid any mistake, each probe has its own `timestamp` when the stats have been collected.
+
+### Collecting stats from all probes
+
+Register to the event `onresult` from the metrics Object created to get a global report that contains all probes reports as well as some global stats. 
+
+_Note:_ This method is equivalent to register to the event `onreport` on each probe individually.
 
 ## Report Statistics
 
@@ -235,6 +245,8 @@ Each **report** contains the following statistics.
 
 ### Data properties
 
+These stats are collected from the candidate-pair stats.
+
 | Name | Value | Description |
 |:----:|:-----:|:------------|
 | **delta_KBytes_received** | Number | Number of kilobytes (KB) received since the last report (audio+video) |
@@ -245,6 +257,14 @@ Each **report** contains the following statistics.
 | **delta_kbs_sent** | Number | Number of kbit sent per second since the last report (audio+video) |
 | **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video) |
 | **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video) |
+
+### Experimental
+
+These stats are subject to changes in the future
+
+| Name | Value | Description |
+|:----:|:-----:|:------------|
+| **time_to_measure_ms** | Number | Time (ms) to measure a probe which means the time to collect and the time to compute the stats |
 
 ## Stop reporting
 
