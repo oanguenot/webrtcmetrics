@@ -211,10 +211,11 @@ Each **report** collected from the event `onreport` contains the following stati
 | **encoder** | String | Description of the video encoder used |
 | **input_codec** | JSON | Description of the video input codec and parameters used |
 | **input_codec_id** | String | ID of the video input codec used |
-| **input_size** | Number | Size of the input video (from remote peer) |
+| **input_size** | Number | Size of the input video (from remote peer) + framerate |
 | **output_codec** | JSON | Description of the video output codec and parameters used |
 | **output_codec_id** | String | ID of the video output codec used |
-| **output_size** | Number | Size of the output video (own video) |
+| **output_size** | Number | Size of the output video (own video) + framerate |
+| **limitation** | Object| Object containing the reason and the durations spent in each state |
 | **percent_packets_lost** | Number | Percent of audio packet lost since the last report |
 | **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call |
 | **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call |
