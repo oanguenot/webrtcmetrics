@@ -75,6 +75,12 @@ export default class Exporter {
 
   get ticket() {
     debug(moduleName, "ticket() - generate ticket");
+
+    const audioPacketsLost = lastOfReports(this._reports, "audio", "total_packets_lost_received");
+    const audioPacketsReceived = lastOfReports(this._reports, "audio", "total_packets_received");
+    const videoPacketsLost = lastOfReports(this._reports, "video", "total_packets_lost_received");
+    const videoPacketsReceived = lastOfReports(this._reports, "video", "total_packets_received");
+
     return {
       version: VERSION_EXPORTER,
       ua: {
@@ -154,10 +160,14 @@ export default class Exporter {
       },
       packetsLost: {
         audio: {
-          avg: Math.round((((lastOfReports(this._reports, "audio", "total_packets_lost") / lastOfReports(this._reports, "audio", "total_packets_received")) * 100) || 0) * 100) / 100,
+          received: {
+            avg: Math.round((((audioPacketsLost / (audioPacketsLost + audioPacketsReceived)) * 100) || 0) * 100) / 100,
+          },
         },
         video: {
-          avg: Math.round((((lastOfReports(this._reports, "video", "total_packets_lost") / lastOfReports(this._reports, "video", "total_packets_received")) * 100) || 0) * 100) / 100,
+          received: {
+            avg: Math.round((((videoPacketsLost / (videoPacketsLost + videoPacketsReceived)) * 100) || 0) * 100) / 100,
+          },
         },
         unit: {
           avg: "percent",

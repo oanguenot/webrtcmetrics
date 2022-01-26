@@ -316,11 +316,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
         return [
           { type: STAT_TYPE.AUDIO, value: { input_codec_id: audioInputCodecId } },
-          { type: STAT_TYPE.AUDIO, value: { percent_packets_lost: data.percentPacketsLost } },
+          { type: STAT_TYPE.AUDIO, value: { percent_packets_lost_received: data.percentPacketsLost } },
           { type: STAT_TYPE.AUDIO, value: { total_packets_received: data.packetsReceived } },
-          { type: STAT_TYPE.AUDIO, value: { total_packets_lost: data.packetsLost } },
+          { type: STAT_TYPE.AUDIO, value: { total_packets_lost_received: data.packetsLost } },
           { type: STAT_TYPE.AUDIO, value: { delta_packets_received: audioPacketReceivedDelta } },
-          { type: STAT_TYPE.AUDIO, value: { delta_packets_lost: audioPacketLostDelta } },
+          { type: STAT_TYPE.AUDIO, value: { delta_packets_lost_received: audioPacketLostDelta } },
           { type: STAT_TYPE.AUDIO, value: { delta_jitter_ms: jitter } },
           { type: STAT_TYPE.AUDIO, value: { total_KBytes_received: audioTotalKBytesReceived } },
           { type: STAT_TYPE.AUDIO, value: { delta_KBytes_received: audioKBytesReceived } },
@@ -357,11 +357,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
         return [
           { type: STAT_TYPE.VIDEO, value: { input_codec_id: videoInputCodecId } },
-          { type: STAT_TYPE.VIDEO, value: { percent_packets_lost: packetsData.percentPacketsLost } },
+          { type: STAT_TYPE.VIDEO, value: { percent_packets_lost_received: packetsData.percentPacketsLost } },
           { type: STAT_TYPE.VIDEO, value: { total_packets_received: packetsData.packetsReceived } },
-          { type: STAT_TYPE.VIDEO, value: { total_packets_lost: packetsData.packetsLost } },
+          { type: STAT_TYPE.VIDEO, value: { total_packets_lost_received: packetsData.packetsLost } },
           { type: STAT_TYPE.VIDEO, value: { delta_packets_received: videoPacketReceivedDelta } },
-          { type: STAT_TYPE.VIDEO, value: { delta_packets_lost: videoPacketLostDelta } },
+          { type: STAT_TYPE.VIDEO, value: { delta_packets_lost_received: videoPacketLostDelta } },
           { type: STAT_TYPE.VIDEO, value: { delta_jitter_ms: jitter } },
           { type: STAT_TYPE.VIDEO, value: { total_KBytes_received: videoTotalKBytesReceived } },
           { type: STAT_TYPE.VIDEO, value: { delta_KBytes_received: videoKBytesReceived } },
