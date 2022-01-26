@@ -99,7 +99,9 @@ const extractAudioPacketReceived = (bunch, previousBunch, referenceReport) => {
 
   const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.audio.total_packets_received : 0);
   const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.audio.total_packets_lost : 0);
-  const percentPacketsLost = (packetsReceived !== previousBunch.audio.total_packets_received) ? ((packetsLost - previousBunch.audio.total_packets_lost) * 100) / (packetsReceived - previousBunch.audio.total_packets_received) : 0.0;
+  const deltaPacketsLost = packetsLost - previousBunch.audio.total_packets_lost;
+  const deltaPacketsReceived = packetsReceived - previousBunch.audio.total_packets_received;
+  const percentPacketsLost = (packetsReceived !== previousBunch.audio.total_packets_received) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
 
   return { percentPacketsLost, packetsReceived, packetsLost };
 };
@@ -111,7 +113,9 @@ const extractVideoPacketReceived = (bunch, previousBunch, referenceReport) => {
 
   const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.video.total_packets_received : 0);
   const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.video.total_packets_lost : 0);
-  const percentPacketsLost = (packetsReceived !== previousBunch.video.total_packets_received) ? ((packetsLost - previousBunch.video.total_packets_lost) * 100) / (packetsReceived - previousBunch.video.total_packets_received) : 0.0;
+  const deltaPacketsLost = packetsLost - previousBunch.video.total_packets_lost;
+  const deltaPacketsReceived = packetsReceived - previousBunch.video.total_packets_received;
+  const percentPacketsLost = (packetsReceived !== previousBunch.video.total_packets_received) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
 
   return { percentPacketsLost, packetsReceived, packetsLost };
 };
