@@ -94,12 +94,12 @@ const extractEncodeTime = (bunch, previousBunch) => {
 
 const extractAudioPacketReceived = (bunch, previousBunch, referenceReport) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_RECEIVED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST)) {
-    return { percent_packets_lost: previousBunch.audio.percent_packets_lost, packetsReceived: previousBunch.audio.total_packets_received, packetsLost: previousBunch.audio.total_packets_lost };
+    return { percent_packets_lost: previousBunch.audio.percent_packets_lost_received, packetsReceived: previousBunch.audio.total_packets_received, packetsLost: previousBunch.audio.total_packets_lost_received };
   }
 
   const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.audio.total_packets_received : 0);
-  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.audio.total_packets_lost : 0);
-  const deltaPacketsLost = packetsLost - previousBunch.audio.total_packets_lost;
+  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.audio.total_packets_lost_received : 0);
+  const deltaPacketsLost = packetsLost - previousBunch.audio.total_packets_lost_received;
   const deltaPacketsReceived = packetsReceived - previousBunch.audio.total_packets_received;
   const percentPacketsLost = (packetsReceived !== previousBunch.audio.total_packets_received) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
 
@@ -108,12 +108,12 @@ const extractAudioPacketReceived = (bunch, previousBunch, referenceReport) => {
 
 const extractVideoPacketReceived = (bunch, previousBunch, referenceReport) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_RECEIVED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST)) {
-    return { percent_packets_lost: previousBunch.video.percent_packets_lost, packetsReceived: previousBunch.video.total_packets_received, packetsLost: previousBunch.video.total_packets_lost };
+    return { percent_packets_lost: previousBunch.video.percent_packets_lost_received, packetsReceived: previousBunch.video.total_packets_received, packetsLost: previousBunch.video.total_packets_lost_received };
   }
 
   const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.video.total_packets_received : 0);
-  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.video.total_packets_lost : 0);
-  const deltaPacketsLost = packetsLost - previousBunch.video.total_packets_lost;
+  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.video.total_packets_lost_received : 0);
+  const deltaPacketsLost = packetsLost - previousBunch.video.total_packets_lost_received;
   const deltaPacketsReceived = packetsReceived - previousBunch.video.total_packets_received;
   const percentPacketsLost = (packetsReceived !== previousBunch.video.total_packets_received) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
 
@@ -302,7 +302,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Packets stats
         const data = extractAudioPacketReceived(bunch, previousBunch, referenceReport);
         const audioPacketReceivedDelta = data.packetsReceived - previousBunch.audio.total_packets_received;
-        const audioPacketLostDelta = data.packetsLost - previousBunch.audio.total_packets_lost;
+        const audioPacketLostDelta = data.packetsLost - previousBunch.audio.total_packets_lost_received;
 
         // Jitter stats
         const jitter = extractLastJitter(bunch, previousBunch);
@@ -334,7 +334,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Packets stats
         const packetsData = extractVideoPacketReceived(bunch, previousBunch, referenceReport);
         const videoPacketReceivedDelta = packetsData.packetsReceived - previousBunch.video.total_packets_received;
-        const videoPacketLostDelta = packetsData.packetsLost - previousBunch.video.total_packets_lost;
+        const videoPacketLostDelta = packetsData.packetsLost - previousBunch.video.total_packets_lost_received;
 
         // Jitter stats
         const jitter = extractLastJitter(bunch, previousBunch);
@@ -513,25 +513,15 @@ export const computeEModelMOS = (report, kind = "audio", previousReport, beforeL
   const rtt = average(rttValues);
 
   const jitter = average(jitterValues);
-  const rx = 93.2 - report[kind].percent_packets_lost;
+  const rx = 93.2 - report[kind].percent_packets_lost_received;
   const ry = 0.18 * rx * rx - 27.9 * rx + 1126.62;
 
-  const d = rtt + jitter;
-  const h = d - 177.3 < 0 ? 0 : 1;
+  const d = (rtt + jitter) / 2;
+  const h = (d - 177.3 < 0) ? 0 : 1;
 
   const id = 0.024 * d + 0.11 * (d - 177.3) * h;
 
-  const a = report.network.infrastructure;
-
-  const r = ry - (id + a);
-
-  if (r < 0) {
-    return 1;
-  }
-
-  if (r > 100) {
-    return 4.5;
-  }
+  const r = ry - id;
 
   return (computeScore(r));
 };
@@ -539,7 +529,7 @@ export const computeEModelMOS = (report, kind = "audio", previousReport, beforeL
 export const computeMOS = (report, kind = "audio", previousReport, beforeLastReport) => {
   const rttValues = [report[kind].delta_rtt_ms];
   const jitterValues = [report[kind].delta_jitter_ms];
-  const packetsLoss = report[kind].percent_packets_lost;
+  const packetsLoss = report[kind].percent_packets_lost_received;
 
   if (previousReport) {
     rttValues.push(previousReport[kind].delta_rtt_ms);
