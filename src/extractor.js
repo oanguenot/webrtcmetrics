@@ -498,22 +498,43 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 };
 
 export const computeEModelMOS = (report, kind = "audio", previousReport, beforeLastReport) => {
-  const rttValues = [report[kind].delta_rtt_ms];
-  const jitterValues = [report[kind].delta_jitter_ms];
+  const rttValues = [];
+  const jitterValues = [];
+  const packetsLoss = report[kind].percent_packets_lost_received;
+  const currentRtt = report[kind].delta_rtt_ms;
+  const lastRtt = (previousReport && previousReport[kind].delta_rtt_ms) || null;
+  const beforeLastRtt = (beforeLastReport && beforeLastReport[kind].delta_rtt_ms) || null;
+  const currentJitter = report[kind].delta_jitter_ms;
+  const lastJitter = (previousReport && previousReport[kind].delta_jitter_ms) || null;
+  const beforeLastJitter = (beforeLastReport && beforeLastReport[kind].delta_jitter_ms) || null;
 
-  if (previousReport) {
-    rttValues.push(previousReport[kind].delta_rtt_ms);
-    jitterValues.push(previousReport[kind].delta_jitter_ms);
+  // Put RTT values when exist
+  if (currentRtt) {
+    rttValues.push(currentRtt);
   }
-  if (beforeLastReport) {
-    rttValues.push(beforeLastReport[kind].delta_rtt_ms);
-    jitterValues.push(beforeLastReport[kind].delta_jitter_ms);
+  if (previousReport && lastRtt) {
+    rttValues.push(lastRtt);
+  }
+  if (beforeLastReport && beforeLastRtt) {
+    rttValues.push(beforeLastRtt);
   }
 
-  const rtt = average(rttValues);
+  // Put Jitter values
+  if (currentJitter) {
+    jitterValues.push(currentJitter);
+  }
+  if (previousReport && lastJitter) {
+    jitterValues.push(lastJitter);
+  }
+  if (beforeLastReport && beforeLastJitter) {
+    jitterValues.push(beforeLastJitter);
+  }
 
-  const jitter = average(jitterValues);
-  const rx = 93.2 - report[kind].percent_packets_lost_received;
+  const rtt = rttValues.length > 0 ? average(rttValues) : 100; // Default value if no value;
+
+  const jitter = jitterValues.length > 0 ? average(jitterValues) : 10; // Default value if no value;
+
+  const rx = 93.2 - packetsLoss;
   const ry = 0.18 * rx * rx - 27.9 * rx + 1126.62;
 
   const d = (rtt + jitter) / 2;
@@ -527,21 +548,41 @@ export const computeEModelMOS = (report, kind = "audio", previousReport, beforeL
 };
 
 export const computeMOS = (report, kind = "audio", previousReport, beforeLastReport) => {
-  const rttValues = [report[kind].delta_rtt_ms];
-  const jitterValues = [report[kind].delta_jitter_ms];
+  const rttValues = [];
+  const jitterValues = [];
   const packetsLoss = report[kind].percent_packets_lost_received;
+  const currentRtt = report[kind].delta_rtt_ms;
+  const lastRtt = (previousReport && previousReport[kind].delta_rtt_ms) || null;
+  const beforeLastRtt = (beforeLastReport && beforeLastReport[kind].delta_rtt_ms) || null;
+  const currentJitter = report[kind].delta_jitter_ms;
+  const lastJitter = (previousReport && previousReport[kind].delta_jitter_ms) || null;
+  const beforeLastJitter = (beforeLastReport && beforeLastReport[kind].delta_jitter_ms) || null;
 
-  if (previousReport) {
-    rttValues.push(previousReport[kind].delta_rtt_ms);
-    jitterValues.push(previousReport[kind].delta_jitter_ms);
+  // Put RTT values when exist
+  if (currentRtt) {
+    rttValues.push(currentRtt);
   }
-  if (beforeLastReport) {
-    rttValues.push(beforeLastReport[kind].delta_rtt_ms);
-    jitterValues.push(beforeLastReport[kind].delta_jitter_ms);
+  if (previousReport && lastRtt) {
+    rttValues.push(lastRtt);
+  }
+  if (beforeLastReport && beforeLastRtt) {
+    rttValues.push(beforeLastRtt);
   }
 
-  const rtt = average(rttValues);
-  const jitter = average(jitterValues);
+  // Put Jitter values
+  if (currentJitter) {
+    jitterValues.push(currentJitter);
+  }
+  if (previousReport && lastJitter) {
+    jitterValues.push(lastJitter);
+  }
+  if (beforeLastReport && beforeLastJitter) {
+    jitterValues.push(beforeLastJitter);
+  }
+
+  const rtt = rttValues.length > 0 ? average(rttValues) : 100; // Default value if no value;
+  const jitter = jitterValues.length > 0 ? average(jitterValues) : 10; // Default value if no value;
+
   const codecFittingParameterA = 0;
   const codecFittingParameterB = 19.8;
   const codecFittingParameterC = 29.7;
