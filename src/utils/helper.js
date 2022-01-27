@@ -41,6 +41,9 @@ export const call = (fct, context, value) => {
 
 export const volatilityValuesOfReports = (reports, key, subKey) => {
   const values = getValues(reports, key, subKey, true);
+  if(values.length === 0) {
+    return 0;
+  }
   const avg = values.reduce((p, c) => p + c, 0) / values.length;
   if (avg === 0) {
     return 0;
