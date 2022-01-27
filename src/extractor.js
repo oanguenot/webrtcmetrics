@@ -56,6 +56,38 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   };
 };
 
+const extractRTTBasedOnSTUNConnectivityCheck = (bunch, kind, referenceReport, previousBunch) => {
+  // If RTT is not part of the stat - return null value
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.CURRENT_ROUND_TRIP_TIME)) {
+    return {
+      rtt: null,
+      totalRTT: previousBunch[kind].total_rtt_connectivity_ms,
+      totalRTTMeasurements: previousBunch[kind].total_rtt_connectivity_measure,
+    };
+  }
+
+  let currentRTT = Number(1000) * Number(bunch[PROPERTY.CURRENT_ROUND_TRIP_TIME]);
+  let currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_ms : 0)) || null;
+  let currentTotalMeasurements = (Number(bunch[PROPERTY.RESPONSES_RECEIVED]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_measure : 0)) || null;
+
+  // If total round trip time measurements is not supported yet)
+  if (!currentTotalMeasurements) {
+    currentTotalRTT = (previousBunch[kind].total_rtt_connectivity_ms || 0) + currentRTT;
+    currentTotalMeasurements += 1;
+  }
+
+  // Same value for measurements so no new value, return null
+  if (currentTotalMeasurements && currentTotalMeasurements === previousBunch[kind].total_rtt_connectivity_measure) {
+    currentRTT = null;
+  }
+
+  return {
+    rtt: currentRTT,
+    totalRTT: currentTotalRTT,
+    totalRTTMeasurements: currentTotalMeasurements,
+  };
+};
+
 const extractLastJitter = (bunch, previousBunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.JITTER)) {
     return previousBunch.audio.delta_jitter_ms;
@@ -264,6 +296,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const remoteCandidateId = bunch[PROPERTY.REMOTE_CANDIDATE_ID];
         const valueSentReceived = extractBytesSentReceived(bunch, previousBunch, referenceReport);
         const bandwidth = extractAvailableBandwidth(bunch);
+        const rttConnectivity = extractRTTBasedOnSTUNConnectivityCheck(bunch, "data", referenceReport, previousBunch);
 
         return [
           { type: STAT_TYPE.NETWORK, value: { local_candidate_id: localCandidateId } },
@@ -276,6 +309,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           { type: STAT_TYPE.DATA, value: { delta_kbs_sent: valueSentReceived.kbs_speed_sent } },
           { type: STAT_TYPE.DATA, value: { delta_kbs_incoming_bandwidth: bandwidth.kbs_incoming_bandwidth } },
           { type: STAT_TYPE.DATA, value: { delta_kbs_outgoing_bandwidth: bandwidth.kbs_outgoing_bandwidth } },
+          { type: STAT_TYPE.DATA, value: { delta_rtt_connectivity_ms: rttConnectivity.rtt } },
+          { type: STAT_TYPE.DATA, value: { total_rtt_connectivity_ms: rttConnectivity.totalRTT } },
+          { type: STAT_TYPE.DATA, value: { total_rtt_connectivity_measure: rttConnectivity.totalRTTMeasurements } },
         ];
       }
       break;

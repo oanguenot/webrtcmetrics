@@ -256,8 +256,11 @@ These stats are collected from the candidate-pair stats.
 | **delta_kbs_outgoing_bandwidth** | Number | Available outgoing bitrate in kb/s for (audio+video) |
 | **delta_kbs_received** | Number | Number of kbit received per second since the last report (audio+video) |
 | **delta_kbs_sent** | Number | Number of kbit sent per second since the last report (audio+video) |
+| **delta_rtt_connectivity_ms** | Number | Round Trip-Time (in ms) computed from STUN connectivity checks  |
 | **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video) |
 | **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video) |
+| **total_rtt_connectivity_measure** | Number | Number of RTT measurements done (from STUN connectivity checks) |
+| **total_rtt_connectivity_ms** | Number | Total Round Trip Time since the beginning of the call (from STUN connectivity checks) |
 
 ### Experimental
 
@@ -287,7 +290,7 @@ The ticket generated contains the following information:
 | **call** | Object | Contains the `call_id` and the `start_time` and `end_time` |
 | **details** | Object | Contains the list of reports as well as the reference report |
 | **jitter** | Object | `min`, `max`, `avg` and `volatility` values for audio and video |
-| **rtt** | Object | `min`, `max`, `avg` and `volatility` values for audio and video |
+| **rtt** | Object | `min`, `max`, `avg` and `volatility` values for audio and video and connectivity (STUN) |
 | **mos** | Object | `min`, `max`, `avg` and `volatility` values |
 | **packetsLost** | Object | `percent` values for audio and video |
 | **bitrate** | Object | `min`, `max`, `avg` and `volatility` values  for incoming and outgoing |
