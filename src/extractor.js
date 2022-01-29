@@ -34,19 +34,14 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
     };
   }
 
-  let currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]);
-  let currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms : 0)) || null;
-  let currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure : 0)) || null;
+  const currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]);
+  let currentTotalRTT = previousBunch[kind].total_rtt_ms + currentRTT;
+  let currentTotalMeasurements = previousBunch[kind].total_rtt_measure + 1;
 
-  // If total round trip time measurements is not supported yet)
-  if (!currentTotalMeasurements) {
-    currentTotalRTT = (previousBunch[kind].total_rtt_ms || 0) + currentRTT;
-    currentTotalMeasurements += 1;
-  }
-
-  // Same value for measurements so no new value, return null
-  if (currentTotalMeasurements && currentTotalMeasurements === previousBunch[kind].total_rtt_measure) {
-    currentRTT = null;
+  // If support of totalRoundTripTime
+  if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ROUND_TRIP_TIME)) {
+    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms : 0));
+    currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure : 0));
   }
 
   return {
@@ -66,19 +61,17 @@ const extractRTTBasedOnSTUNConnectivityCheck = (bunch, kind, referenceReport, pr
     };
   }
 
-  let currentRTT = Number(1000) * Number(bunch[PROPERTY.CURRENT_ROUND_TRIP_TIME]);
-  let currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_ms : 0)) || null;
-  let currentTotalMeasurements = (Number(bunch[PROPERTY.RESPONSES_RECEIVED]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_measure : 0)) || null;
+  const currentRTT = Number(1000) * Number(bunch[PROPERTY.CURRENT_ROUND_TRIP_TIME]);
+  let currentTotalRTT = previousBunch[kind].total_rtt_connectivity_ms + currentRTT;
+  let currentTotalMeasurements = previousBunch[kind].total_rtt_connectivity_measure + 1;
 
-  // If total round trip time measurements is not supported yet)
-  if (!currentTotalMeasurements) {
-    currentTotalRTT = (previousBunch[kind].total_rtt_connectivity_ms || 0) + currentRTT;
-    currentTotalMeasurements += 1;
+  // If support of totalRoundTripTime
+  if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ROUND_TRIP_TIME)) {
+    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_ms : 0));
   }
-
-  // Same value for measurements so no new value, return null
-  if (currentTotalMeasurements && currentTotalMeasurements === previousBunch[kind].total_rtt_connectivity_measure) {
-    currentRTT = null;
+  // If support of responsesReceived
+  if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.RESPONSES_RECEIVED)) {
+    currentTotalMeasurements = (Number(bunch[PROPERTY.RESPONSES_RECEIVED]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_measure : 0));
   }
 
   return {
