@@ -29,19 +29,19 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.ROUND_TRIP_TIME)) {
     return {
       rtt: null,
-      totalRTT: previousBunch[kind].total_rtt_ms,
-      totalRTTMeasurements: previousBunch[kind].total_rtt_measure,
+      totalRTT: previousBunch[kind].total_rtt_ms_out,
+      totalRTTMeasurements: previousBunch[kind].total_rtt_measure_out,
     };
   }
 
   const currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]);
-  let currentTotalRTT = previousBunch[kind].total_rtt_ms + currentRTT;
-  let currentTotalMeasurements = previousBunch[kind].total_rtt_measure + 1;
+  let currentTotalRTT = previousBunch[kind].total_rtt_ms_out + currentRTT;
+  let currentTotalMeasurements = previousBunch[kind].total_rtt_measure_out + 1;
 
   // If support of totalRoundTripTime
   if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ROUND_TRIP_TIME)) {
-    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms : 0));
-    currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure : 0));
+    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms_out : 0));
+    currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure_out : 0));
   }
 
   return {
@@ -56,22 +56,22 @@ const extractRTTBasedOnSTUNConnectivityCheck = (bunch, kind, referenceReport, pr
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.CURRENT_ROUND_TRIP_TIME)) {
     return {
       rtt: null,
-      totalRTT: previousBunch[kind].total_rtt_connectivity_ms,
-      totalRTTMeasurements: previousBunch[kind].total_rtt_connectivity_measure,
+      totalRTT: previousBunch[kind].total_rtt_connectivity_ms_out,
+      totalRTTMeasurements: previousBunch[kind].total_rtt_connectivity_measure_out,
     };
   }
 
   const currentRTT = Number(1000) * Number(bunch[PROPERTY.CURRENT_ROUND_TRIP_TIME]);
-  let currentTotalRTT = previousBunch[kind].total_rtt_connectivity_ms + currentRTT;
-  let currentTotalMeasurements = previousBunch[kind].total_rtt_connectivity_measure + 1;
+  let currentTotalRTT = previousBunch[kind].total_rtt_connectivity_ms_out + currentRTT;
+  let currentTotalMeasurements = previousBunch[kind].total_rtt_connectivity_measure_out + 1;
 
   // If support of totalRoundTripTime
   if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ROUND_TRIP_TIME)) {
-    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_ms : 0));
+    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_ms_out : 0));
   }
   // If support of responsesReceived
   if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.RESPONSES_RECEIVED)) {
-    currentTotalMeasurements = (Number(bunch[PROPERTY.RESPONSES_RECEIVED]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_measure : 0));
+    currentTotalMeasurements = (Number(bunch[PROPERTY.RESPONSES_RECEIVED]) - (referenceReport ? referenceReport[kind].total_rtt_connectivity_measure_out : 0));
   }
 
   return {
@@ -83,35 +83,35 @@ const extractRTTBasedOnSTUNConnectivityCheck = (bunch, kind, referenceReport, pr
 
 const extractLastJitter = (bunch, previousBunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.JITTER)) {
-    return previousBunch.audio.delta_jitter_ms;
+    return previousBunch.audio.delta_jitter_ms_in;
   }
   return Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
 };
 
 const extractDecodeTime = (bunch, previousBunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAMES_DECODED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_DECODE_TIME)) {
-    return { delta_ms_decode_frame: previousBunch.video.delta_ms_decode_frame, frames_decoded: previousBunch.video.total_frames_decoded, total_decode_time: previousBunch.video.total_time_decoded };
+    return { delta_ms_decode_frame: previousBunch.video.delta_ms_decode_frame_in, frames_decoded: previousBunch.video.total_frames_decoded_in, total_decode_time: previousBunch.video.total_time_decoded_in };
   }
 
   const decodedFrames = bunch[PROPERTY.FRAMES_DECODED];
   const totalDecodeTime = bunch[PROPERTY.TOTAL_DECODE_TIME];
 
-  const decodeTimeDelta = totalDecodeTime - previousBunch.video.total_time_decoded;
-  const frameDelta = decodedFrames - previousBunch.video.total_frames_decoded;
+  const decodeTimeDelta = totalDecodeTime - previousBunch.video.total_time_decoded_in;
+  const frameDelta = decodedFrames - previousBunch.video.total_frames_decoded_in;
 
   return { delta_ms_decode_frame: frameDelta > 0 ? (decodeTimeDelta * 1000) / frameDelta : 0, frames_decoded: decodedFrames, total_decode_time: totalDecodeTime };
 };
 
 const extractEncodeTime = (bunch, previousBunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAMES_ENCODED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ENCODE_TIME)) {
-    return { delta_ms_encode_frame: previousBunch.video.delta_ms_encode_frame, frames_encoded: previousBunch.video.total_frames_encoded, total_encode_time: previousBunch.video.total_time_encoded };
+    return { delta_ms_encode_frame: previousBunch.video.delta_ms_encode_frame_out, frames_encoded: previousBunch.video.total_frames_encoded_out, total_encode_time: previousBunch.video.total_time_encoded_out };
   }
 
   const encodedFrames = bunch[PROPERTY.FRAMES_ENCODED];
   const totalEncodeTime = bunch[PROPERTY.TOTAL_ENCODE_TIME];
 
-  const encodeTimeDelta = totalEncodeTime - previousBunch.video.total_time_encoded;
-  const frameDelta = encodedFrames - previousBunch.video.total_frames_encoded;
+  const encodeTimeDelta = totalEncodeTime - previousBunch.video.total_time_encoded_out;
+  const frameDelta = encodedFrames - previousBunch.video.total_frames_encoded_out;
   const framesEncodedDelta = (frameDelta > 0 && encodeTimeDelta) ? (encodeTimeDelta * 1000) / frameDelta : 0;
 
   return { delta_ms_encode_frame: framesEncodedDelta, frames_encoded: encodedFrames, total_encode_time: totalEncodeTime };
@@ -119,28 +119,28 @@ const extractEncodeTime = (bunch, previousBunch) => {
 
 const extractAudioPacketReceived = (bunch, previousBunch, referenceReport) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_RECEIVED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST)) {
-    return { percent_packets_lost: previousBunch.audio.percent_packets_lost_received, packetsReceived: previousBunch.audio.total_packets_received, packetsLost: previousBunch.audio.total_packets_lost_received };
+    return { percent_packets_lost: previousBunch.audio.percent_packets_lost_in, packetsReceived: previousBunch.audio.total_packets_in, packetsLost: previousBunch.audio.total_packets_lost_in };
   }
 
-  const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.audio.total_packets_received : 0);
-  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.audio.total_packets_lost_received : 0);
-  const deltaPacketsLost = packetsLost - previousBunch.audio.total_packets_lost_received;
-  const deltaPacketsReceived = packetsReceived - previousBunch.audio.total_packets_received;
-  const percentPacketsLost = (packetsReceived !== previousBunch.audio.total_packets_received) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
+  const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.audio.total_packets_in : 0);
+  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.audio.total_packets_lost_in : 0);
+  const deltaPacketsLost = packetsLost - previousBunch.audio.total_packets_lost_in;
+  const deltaPacketsReceived = packetsReceived - previousBunch.audio.total_packets_in;
+  const percentPacketsLost = (packetsReceived !== previousBunch.audio.total_packets_in) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
 
   return { percentPacketsLost, packetsReceived, packetsLost };
 };
 
 const extractVideoPacketReceived = (bunch, previousBunch, referenceReport) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_RECEIVED) || !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST)) {
-    return { percent_packets_lost: previousBunch.video.percent_packets_lost_received, packetsReceived: previousBunch.video.total_packets_received, packetsLost: previousBunch.video.total_packets_lost_received };
+    return { percent_packets_lost: previousBunch.video.percent_packets_lost_in, packetsReceived: previousBunch.video.total_packets_in, packetsLost: previousBunch.video.total_packets_lost_in };
   }
 
-  const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.video.total_packets_received : 0);
-  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.video.total_packets_lost_received : 0);
-  const deltaPacketsLost = packetsLost - previousBunch.video.total_packets_lost_received;
-  const deltaPacketsReceived = packetsReceived - previousBunch.video.total_packets_received;
-  const percentPacketsLost = (packetsReceived !== previousBunch.video.total_packets_received) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
+  const packetsReceived = Number(bunch[PROPERTY.PACKETS_RECEIVED]) || 0 - (referenceReport ? referenceReport.video.total_packets_in : 0);
+  const packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport.video.total_packets_lost_in : 0);
+  const deltaPacketsLost = packetsLost - previousBunch.video.total_packets_lost_in;
+  const deltaPacketsReceived = packetsReceived - previousBunch.video.total_packets_in;
+  const percentPacketsLost = (packetsReceived !== previousBunch.video.total_packets_in) ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived) : 0.0;
 
   return { percentPacketsLost, packetsReceived, packetsLost };
 };
@@ -200,8 +200,8 @@ const extractNackAndPliCountSent = (bunch, referenceReport) => {
   }
 
   return {
-    pliCount: (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport.video.total_pli_sent : 0),
-    nackCount: (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport.video.total_nack_sent : 0),
+    pliCount: (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport.video.total_pli_out : 0),
+    nackCount: (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport.video.total_nack_out : 0),
   };
 };
 
@@ -211,8 +211,8 @@ const extractNackAndPliCountReceived = (bunch, referenceReport) => {
   }
 
   return {
-    pliCount: (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport.video.total_pli_received : 0),
-    nackCount: (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport.video.total_nack_received : 0),
+    pliCount: (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport.video.total_pli_in : 0),
+    nackCount: (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport.video.total_nack_in : 0),
   };
 };
 
@@ -230,12 +230,12 @@ const extractVideoCodec = (bunch) => ({
 });
 
 const extractBytesSentReceived = (bunch, previousBunch, referenceReport) => {
-  const totalKBytesReceived = (bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024 - (referenceReport ? referenceReport.data.total_KBytes_received : 0);
-  const totalKBytesSent = (bunch[PROPERTY.BYTES_SENT] || 0) / 1024 - (referenceReport ? referenceReport.data.total_KBytes_sent : 0);
+  const totalKBytesReceived = (bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024 - (referenceReport ? referenceReport.data.total_KBytes_in : 0);
+  const totalKBytesSent = (bunch[PROPERTY.BYTES_SENT] || 0) / 1024 - (referenceReport ? referenceReport.data.total_KBytes_out : 0);
 
   const timestamp = bunch[PROPERTY.TIMESTAMP] || Date.now();
-  const KBytesReceived = totalKBytesReceived - previousBunch.data.total_KBytes_received;
-  const KBytesSent = totalKBytesSent - previousBunch.data.total_KBytes_sent;
+  const KBytesReceived = totalKBytesReceived - previousBunch.data.total_KBytes_in;
+  const KBytesSent = totalKBytesSent - previousBunch.data.total_KBytes_out;
 
   const referenceTimestamp = referenceReport ? referenceReport.timestamp : null;
   let previousTimestamp = previousBunch.timestamp;
@@ -294,17 +294,17 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         return [
           { type: STAT_TYPE.NETWORK, value: { local_candidate_id: localCandidateId } },
           { type: STAT_TYPE.NETWORK, value: { remote_candidate_id: remoteCandidateId } },
-          { type: STAT_TYPE.DATA, value: { total_KBytes_received: valueSentReceived.total_KBytes_received } },
-          { type: STAT_TYPE.DATA, value: { total_KBytes_sent: valueSentReceived.total_KBytes_sent } },
-          { type: STAT_TYPE.DATA, value: { delta_KBytes_received: valueSentReceived.delta_KBytes_received } },
-          { type: STAT_TYPE.DATA, value: { delta_KBytes_sent: valueSentReceived.delta_KBytes_sent } },
-          { type: STAT_TYPE.DATA, value: { delta_kbs_received: valueSentReceived.kbs_speed_received } },
-          { type: STAT_TYPE.DATA, value: { delta_kbs_sent: valueSentReceived.kbs_speed_sent } },
-          { type: STAT_TYPE.DATA, value: { delta_kbs_incoming_bandwidth: bandwidth.kbs_incoming_bandwidth } },
-          { type: STAT_TYPE.DATA, value: { delta_kbs_outgoing_bandwidth: bandwidth.kbs_outgoing_bandwidth } },
-          { type: STAT_TYPE.DATA, value: { delta_rtt_connectivity_ms: rttConnectivity.rtt } },
-          { type: STAT_TYPE.DATA, value: { total_rtt_connectivity_ms: rttConnectivity.totalRTT } },
-          { type: STAT_TYPE.DATA, value: { total_rtt_connectivity_measure: rttConnectivity.totalRTTMeasurements } },
+          { type: STAT_TYPE.DATA, value: { total_KBytes_in: valueSentReceived.total_KBytes_received } },
+          { type: STAT_TYPE.DATA, value: { total_KBytes_out: valueSentReceived.total_KBytes_sent } },
+          { type: STAT_TYPE.DATA, value: { delta_KBytes_in: valueSentReceived.delta_KBytes_received } },
+          { type: STAT_TYPE.DATA, value: { delta_KBytes_out: valueSentReceived.delta_KBytes_sent } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_in: valueSentReceived.kbs_speed_received } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_out: valueSentReceived.kbs_speed_sent } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_bandwidth_in: bandwidth.kbs_incoming_bandwidth } },
+          { type: STAT_TYPE.DATA, value: { delta_kbs_bandwidth_out: bandwidth.kbs_outgoing_bandwidth } },
+          { type: STAT_TYPE.DATA, value: { delta_rtt_connectivity_ms_out: rttConnectivity.rtt } },
+          { type: STAT_TYPE.DATA, value: { total_rtt_connectivity_ms_out: rttConnectivity.totalRTT } },
+          { type: STAT_TYPE.DATA, value: { total_rtt_connectivity_measure_out: rttConnectivity.totalRTTMeasurements } },
         ];
       }
       break;
@@ -330,29 +330,29 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         // Packets stats
         const data = extractAudioPacketReceived(bunch, previousBunch, referenceReport);
-        const audioPacketReceivedDelta = data.packetsReceived - previousBunch.audio.total_packets_received;
-        const audioPacketLostDelta = data.packetsLost - previousBunch.audio.total_packets_lost_received;
+        const audioPacketReceivedDelta = data.packetsReceived - previousBunch.audio.total_packets_in;
+        const audioPacketLostDelta = data.packetsLost - previousBunch.audio.total_packets_lost_in;
 
         // Jitter stats
         const jitter = extractLastJitter(bunch, previousBunch);
 
         // Bytes stats
-        const audioTotalKBytesReceived = ((bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024) - (referenceReport ? referenceReport.audio.total_KBytes_received : 0);
-        const audioKBytesReceived = audioTotalKBytesReceived - previousBunch.audio.total_KBytes_received;
+        const audioTotalKBytesReceived = ((bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024) - (referenceReport ? referenceReport.audio.total_KBytes_in : 0);
+        const audioKBytesReceived = audioTotalKBytesReceived - previousBunch.audio.total_KBytes_in;
 
         // Codec stats
         const audioInputCodecId = bunch[PROPERTY.CODEC_ID] || "";
 
         return [
-          { type: STAT_TYPE.AUDIO, value: { input_codec_id: audioInputCodecId } },
-          { type: STAT_TYPE.AUDIO, value: { percent_packets_lost_received: data.percentPacketsLost } },
-          { type: STAT_TYPE.AUDIO, value: { total_packets_received: data.packetsReceived } },
-          { type: STAT_TYPE.AUDIO, value: { total_packets_lost_received: data.packetsLost } },
-          { type: STAT_TYPE.AUDIO, value: { delta_packets_received: audioPacketReceivedDelta } },
-          { type: STAT_TYPE.AUDIO, value: { delta_packets_lost_received: audioPacketLostDelta } },
-          { type: STAT_TYPE.AUDIO, value: { delta_jitter_ms: jitter } },
-          { type: STAT_TYPE.AUDIO, value: { total_KBytes_received: audioTotalKBytesReceived } },
-          { type: STAT_TYPE.AUDIO, value: { delta_KBytes_received: audioKBytesReceived } },
+          { type: STAT_TYPE.AUDIO, value: { codec_id: audioInputCodecId } },
+          { type: STAT_TYPE.AUDIO, value: { percent_packets_lost_in: data.percentPacketsLost } },
+          { type: STAT_TYPE.AUDIO, value: { total_packets_in: data.packetsReceived } },
+          { type: STAT_TYPE.AUDIO, value: { total_packets_lost_in: data.packetsLost } },
+          { type: STAT_TYPE.AUDIO, value: { delta_packets_in: audioPacketReceivedDelta } },
+          { type: STAT_TYPE.AUDIO, value: { delta_packets_lost_in: audioPacketLostDelta } },
+          { type: STAT_TYPE.AUDIO, value: { delta_jitter_ms_in: jitter } },
+          { type: STAT_TYPE.AUDIO, value: { total_KBytes_in: audioTotalKBytesReceived } },
+          { type: STAT_TYPE.AUDIO, value: { delta_KBytes_in: audioKBytesReceived } },
         ];
       }
 
@@ -362,15 +362,15 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
         // Packets stats
         const packetsData = extractVideoPacketReceived(bunch, previousBunch, referenceReport);
-        const videoPacketReceivedDelta = packetsData.packetsReceived - previousBunch.video.total_packets_received;
-        const videoPacketLostDelta = packetsData.packetsLost - previousBunch.video.total_packets_lost_received;
+        const videoPacketReceivedDelta = packetsData.packetsReceived - previousBunch.video.total_packets_in;
+        const videoPacketLostDelta = packetsData.packetsLost - previousBunch.video.total_packets_lost_in;
 
         // Jitter stats
         const jitter = extractLastJitter(bunch, previousBunch);
 
         // Bytes stats
-        const videoTotalKBytesReceived = ((bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024) - (referenceReport ? referenceReport.video.total_KBytes_received : 0);
-        const videoKBytesReceived = videoTotalKBytesReceived - previousBunch.video.total_KBytes_received;
+        const videoTotalKBytesReceived = ((bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024) - (referenceReport ? referenceReport.video.total_KBytes_in : 0);
+        const videoKBytesReceived = videoTotalKBytesReceived - previousBunch.video.total_KBytes_in;
 
         // Codec stats
         const decoderImplementation = bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
@@ -381,47 +381,47 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
         // Nack & Pli stats
         const nackPliData = extractNackAndPliCountSent(bunch, referenceReport);
-        const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_sent;
-        const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_sent;
+        const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_out;
+        const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_out;
 
         return [
-          { type: STAT_TYPE.VIDEO, value: { input_codec_id: videoInputCodecId } },
-          { type: STAT_TYPE.VIDEO, value: { percent_packets_lost_received: packetsData.percentPacketsLost } },
-          { type: STAT_TYPE.VIDEO, value: { total_packets_received: packetsData.packetsReceived } },
-          { type: STAT_TYPE.VIDEO, value: { total_packets_lost_received: packetsData.packetsLost } },
-          { type: STAT_TYPE.VIDEO, value: { delta_packets_received: videoPacketReceivedDelta } },
-          { type: STAT_TYPE.VIDEO, value: { delta_packets_lost_received: videoPacketLostDelta } },
-          { type: STAT_TYPE.VIDEO, value: { delta_jitter_ms: jitter } },
-          { type: STAT_TYPE.VIDEO, value: { total_KBytes_received: videoTotalKBytesReceived } },
-          { type: STAT_TYPE.VIDEO, value: { delta_KBytes_received: videoKBytesReceived } },
-          { type: STAT_TYPE.VIDEO, value: { decoder: decoderImplementation } },
-          { type: STAT_TYPE.VIDEO, value: { delta_ms_decode_frame: data.delta_ms_decode_frame } },
-          { type: STAT_TYPE.VIDEO, value: { total_frames_decoded: data.frames_decoded } },
-          { type: STAT_TYPE.VIDEO, value: { total_time_decoded: data.total_decode_time } },
-          { type: STAT_TYPE.VIDEO, value: { total_nack_sent: nackPliData.nackCount } },
-          { type: STAT_TYPE.VIDEO, value: { delta_nack_sent: nackDelta } },
-          { type: STAT_TYPE.VIDEO, value: { total_pli_sent: nackPliData.pliCount } },
-          { type: STAT_TYPE.VIDEO, value: { delta_pli_sent: pliDelta } },
-          { type: STAT_TYPE.VIDEO, value: { input_size: inputVideo } },
+          { type: STAT_TYPE.VIDEO, value: { codec_id_in: videoInputCodecId } },
+          { type: STAT_TYPE.VIDEO, value: { percent_packets_lost_in: packetsData.percentPacketsLost } },
+          { type: STAT_TYPE.VIDEO, value: { total_packets_in: packetsData.packetsReceived } },
+          { type: STAT_TYPE.VIDEO, value: { total_packets_lost_in: packetsData.packetsLost } },
+          { type: STAT_TYPE.VIDEO, value: { delta_packets_in: videoPacketReceivedDelta } },
+          { type: STAT_TYPE.VIDEO, value: { delta_packets_lost_in: videoPacketLostDelta } },
+          { type: STAT_TYPE.VIDEO, value: { delta_jitter_ms_in: jitter } },
+          { type: STAT_TYPE.VIDEO, value: { total_KBytes_in: videoTotalKBytesReceived } },
+          { type: STAT_TYPE.VIDEO, value: { delta_KBytes_in: videoKBytesReceived } },
+          { type: STAT_TYPE.VIDEO, value: { decoder_in: decoderImplementation } },
+          { type: STAT_TYPE.VIDEO, value: { delta_ms_decode_frame_in: data.delta_ms_decode_frame } },
+          { type: STAT_TYPE.VIDEO, value: { total_frames_decoded_in: data.frames_decoded } },
+          { type: STAT_TYPE.VIDEO, value: { total_time_decoded_in: data.total_decode_time } },
+          { type: STAT_TYPE.VIDEO, value: { total_nack_out: nackPliData.nackCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_nack_out: nackDelta } },
+          { type: STAT_TYPE.VIDEO, value: { total_pli_out: nackPliData.pliCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_pli_out: pliDelta } },
+          { type: STAT_TYPE.VIDEO, value: { size_in: inputVideo } },
         ];
       }
       break;
     case TYPE.OUTBOUND_RTP:
       debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`, bunch);
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
-        const audioTotalKBytesSent = ((bunch[PROPERTY.BYTES_SENT] || 0) / 1024) - (referenceReport ? referenceReport.audio.total_KBytes_sent : 0);
-        const audioKBytesSent = audioTotalKBytesSent - previousBunch.audio.total_KBytes_sent;
+        const audioTotalKBytesSent = ((bunch[PROPERTY.BYTES_SENT] || 0) / 1024) - (referenceReport ? referenceReport.audio.total_KBytes_out : 0);
+        const audioKBytesSent = audioTotalKBytesSent - previousBunch.audio.total_KBytes_out;
         const audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
         return [
-          { type: STAT_TYPE.AUDIO, value: { output_codec_id: audioOutputCodecId } },
-          { type: STAT_TYPE.AUDIO, value: { total_KBytes_sent: audioTotalKBytesSent } },
-          { type: STAT_TYPE.AUDIO, value: { delta_KBytes_sent: audioKBytesSent } },
+          { type: STAT_TYPE.AUDIO, value: { codec_id_out: audioOutputCodecId } },
+          { type: STAT_TYPE.AUDIO, value: { total_KBytes_in: audioTotalKBytesSent } },
+          { type: STAT_TYPE.AUDIO, value: { delta_KBytes_in: audioKBytesSent } },
         ];
       }
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
-        const videoTotalKBytesSent = ((bunch[PROPERTY.BYTES_SENT] || 0) / 1024) - (referenceReport ? referenceReport.video.total_KBytes_sent : 0);
-        const videoKBytesSent = videoTotalKBytesSent - previousBunch.video.total_KBytes_sent;
+        const videoTotalKBytesSent = ((bunch[PROPERTY.BYTES_SENT] || 0) / 1024) - (referenceReport ? referenceReport.video.total_KBytes_out : 0);
+        const videoKBytesSent = videoTotalKBytesSent - previousBunch.video.total_KBytes_out;
         const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         const videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
@@ -432,27 +432,27 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const outputVideo = extractVideoSize(bunch);
 
         // limitations
-        const limitation = extractQualityLimitation(bunch);
+        const limitationOut = extractQualityLimitation(bunch);
 
         // Nack & Pli stats
         const nackPliData = extractNackAndPliCountReceived(bunch, referenceReport);
-        const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_received;
-        const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_received;
+        const nackDelta = nackPliData.nackCount - previousBunch.video.total_nack_in;
+        const pliDelta = nackPliData.pliCount - previousBunch.video.total_pli_in;
 
         return [
-          { type: STAT_TYPE.VIDEO, value: { output_codec_id: videoOutputCodecId } },
-          { type: STAT_TYPE.VIDEO, value: { total_KBytes_sent: videoTotalKBytesSent } },
-          { type: STAT_TYPE.VIDEO, value: { delta_KBytes_sent: videoKBytesSent } },
-          { type: STAT_TYPE.VIDEO, value: { encoder: encoderImplementation } },
-          { type: STAT_TYPE.VIDEO, value: { delta_ms_encode_frame: data.delta_ms_encode_frame } },
-          { type: STAT_TYPE.VIDEO, value: { total_frames_encoded: data.frames_encoded } },
-          { type: STAT_TYPE.VIDEO, value: { total_time_encoded: data.total_encode_time } },
-          { type: STAT_TYPE.VIDEO, value: { total_nack_received: nackPliData.nackCount } },
-          { type: STAT_TYPE.VIDEO, value: { delta_nack_received: nackDelta } },
-          { type: STAT_TYPE.VIDEO, value: { total_pli_received: nackPliData.pliCount } },
-          { type: STAT_TYPE.VIDEO, value: { delta_pli_received: pliDelta } },
-          { type: STAT_TYPE.VIDEO, value: { output_size: outputVideo } },
-          { type: STAT_TYPE.VIDEO, value: { limitation } },
+          { type: STAT_TYPE.VIDEO, value: { codec_id_out: videoOutputCodecId } },
+          { type: STAT_TYPE.VIDEO, value: { total_KBytes_out: videoTotalKBytesSent } },
+          { type: STAT_TYPE.VIDEO, value: { delta_KBytes_out: videoKBytesSent } },
+          { type: STAT_TYPE.VIDEO, value: { encoder_out: encoderImplementation } },
+          { type: STAT_TYPE.VIDEO, value: { delta_ms_encode_frame_out: data.delta_ms_encode_frame } },
+          { type: STAT_TYPE.VIDEO, value: { total_frames_encoded_out: data.frames_encoded } },
+          { type: STAT_TYPE.VIDEO, value: { total_time_encoded_out: data.total_encode_time } },
+          { type: STAT_TYPE.VIDEO, value: { total_nack_in: nackPliData.nackCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_nack_in: nackDelta } },
+          { type: STAT_TYPE.VIDEO, value: { total_pli_in: nackPliData.pliCount } },
+          { type: STAT_TYPE.VIDEO, value: { delta_pli_in: pliDelta } },
+          { type: STAT_TYPE.VIDEO, value: { size_out: outputVideo } },
+          { type: STAT_TYPE.VIDEO, value: { limitation_out: limitationOut } },
         ];
       }
       break;
@@ -460,7 +460,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`, bunch);
       if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
         const outputLevel = extractAudioLevel(bunch);
-        return [{ type: STAT_TYPE.AUDIO, value: { output_level: outputLevel } }];
+        return [{ type: STAT_TYPE.AUDIO, value: { level_out: outputLevel } }];
       }
       break;
     case TYPE.TRACK:
@@ -470,28 +470,28 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
       if (bunch[PROPERTY.REMOTE_SOURCE] === true) {
         const inputLevel = extractAudioLevel(bunch);
-        return [{ type: STAT_TYPE.AUDIO, value: { input_level: inputLevel } }];
+        return [{ type: STAT_TYPE.AUDIO, value: { level_out: inputLevel } }];
       }
       break;
     case TYPE.CODEC:
-      if (bunch[PROPERTY.ID] === previousBunch.audio.input_codec_id || bunch[PROPERTY.ID] === previousBunch.audio.output_codec_id) {
+      if (bunch[PROPERTY.ID] === previousBunch.audio.codec_id_in || bunch[PROPERTY.ID] === previousBunch.audio.codec_id_out) {
         debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`, bunch);
         const codec = extractAudioCodec(bunch);
 
-        if (bunch[PROPERTY.ID] === previousBunch.audio.input_codec_id) {
-          return [{ type: STAT_TYPE.AUDIO, value: { input_codec: codec } }];
+        if (bunch[PROPERTY.ID] === previousBunch.audio.codec_id_in) {
+          return [{ type: STAT_TYPE.AUDIO, value: { codec_in: codec } }];
         }
-        return [{ type: STAT_TYPE.AUDIO, value: { output_codec: codec } }];
+        return [{ type: STAT_TYPE.AUDIO, value: { codec_out: codec } }];
       }
 
-      if (bunch[PROPERTY.ID] === previousBunch.video.input_codec_id || bunch[PROPERTY.ID] === previousBunch.video.output_codec_id) {
+      if (bunch[PROPERTY.ID] === previousBunch.video.codec_id_in || bunch[PROPERTY.ID] === previousBunch.video.codec_id_out) {
         debug(moduleName, `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`, bunch);
         const codec = extractVideoCodec(bunch);
 
-        if (bunch[PROPERTY.ID] === previousBunch.video.input_codec_id) {
-          return [{ type: STAT_TYPE.VIDEO, value: { input_codec: codec } }];
+        if (bunch[PROPERTY.ID] === previousBunch.video.codec_id_in) {
+          return [{ type: STAT_TYPE.VIDEO, value: { codec_in: codec } }];
         }
-        return [{ type: STAT_TYPE.VIDEO, value: { output_codec: codec } }];
+        return [{ type: STAT_TYPE.VIDEO, value: { codec_out: codec } }];
       }
       break;
     case TYPE.REMOTE_INBOUND_RTP:
@@ -501,9 +501,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const data = extractRTTBasedOnRTCP(bunch, VALUE.AUDIO, referenceReport, previousBunch);
 
         return [
-          { type: STAT_TYPE.AUDIO, value: { delta_rtt_ms: data.rtt } },
-          { type: STAT_TYPE.AUDIO, value: { total_rtt_ms: data.totalRTT } },
-          { type: STAT_TYPE.AUDIO, value: { total_rtt_measure: data.totalRTTMeasurements } },
+          { type: STAT_TYPE.AUDIO, value: { delta_rtt_ms_out: data.rtt } },
+          { type: STAT_TYPE.AUDIO, value: { total_rtt_ms_out: data.totalRTT } },
+          { type: STAT_TYPE.AUDIO, value: { total_rtt_measure_out: data.totalRTTMeasurements } },
         ];
       }
 
@@ -512,9 +512,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const data = extractRTTBasedOnRTCP(bunch, VALUE.VIDEO, referenceReport, previousBunch);
 
         return [
-          { type: STAT_TYPE.VIDEO, value: { delta_rtt_ms: data.rtt } },
-          { type: STAT_TYPE.VIDEO, value: { total_rtt_ms: data.totalRTT } },
-          { type: STAT_TYPE.VIDEO, value: { total_rtt_measure: data.totalRTTMeasurements } },
+          { type: STAT_TYPE.VIDEO, value: { delta_rtt_ms_out: data.rtt } },
+          { type: STAT_TYPE.VIDEO, value: { total_rtt_ms_out: data.totalRTT } },
+          { type: STAT_TYPE.VIDEO, value: { total_rtt_measure_out: data.totalRTTMeasurements } },
         ];
       }
       break;
@@ -529,13 +529,13 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 export const computeEModelMOS = (report, kind = "audio", previousReport, beforeLastReport) => {
   const rttValues = [];
   const jitterValues = [];
-  const packetsLoss = report[kind].percent_packets_lost_received;
-  const currentRtt = report[kind].delta_rtt_ms;
-  const lastRtt = (previousReport && previousReport[kind].delta_rtt_ms) || null;
-  const beforeLastRtt = (beforeLastReport && beforeLastReport[kind].delta_rtt_ms) || null;
-  const currentJitter = report[kind].delta_jitter_ms;
-  const lastJitter = (previousReport && previousReport[kind].delta_jitter_ms) || null;
-  const beforeLastJitter = (beforeLastReport && beforeLastReport[kind].delta_jitter_ms) || null;
+  const packetsLoss = report[kind].percent_packets_lost_in;
+  const currentRtt = report[kind].delta_rtt_ms_out;
+  const lastRtt = (previousReport && previousReport[kind].delta_rtt_ms_out) || null;
+  const beforeLastRtt = (beforeLastReport && beforeLastReport[kind].delta_rtt_ms_out) || null;
+  const currentJitter = report[kind].delta_jitter_ms_in;
+  const lastJitter = (previousReport && previousReport[kind].delta_jitter_ms_in) || null;
+  const beforeLastJitter = (beforeLastReport && beforeLastReport[kind].delta_jitter_ms_in) || null;
 
   // Put RTT values when exist
   if (currentRtt) {
@@ -579,13 +579,13 @@ export const computeEModelMOS = (report, kind = "audio", previousReport, beforeL
 export const computeMOS = (report, kind = "audio", previousReport, beforeLastReport) => {
   const rttValues = [];
   const jitterValues = [];
-  const packetsLoss = report[kind].percent_packets_lost_received;
-  const currentRtt = report[kind].delta_rtt_ms;
-  const lastRtt = (previousReport && previousReport[kind].delta_rtt_ms) || null;
-  const beforeLastRtt = (beforeLastReport && beforeLastReport[kind].delta_rtt_ms) || null;
-  const currentJitter = report[kind].delta_jitter_ms;
-  const lastJitter = (previousReport && previousReport[kind].delta_jitter_ms) || null;
-  const beforeLastJitter = (beforeLastReport && beforeLastReport[kind].delta_jitter_ms) || null;
+  const packetsLoss = report[kind].percent_packets_lost_in;
+  const currentRtt = report[kind].delta_rtt_ms_out;
+  const lastRtt = (previousReport && previousReport[kind].delta_rtt_ms_out) || null;
+  const beforeLastRtt = (beforeLastReport && beforeLastReport[kind].delta_rtt_ms_out) || null;
+  const currentJitter = report[kind].delta_jitter_ms_in;
+  const lastJitter = (previousReport && previousReport[kind].delta_jitter_ms_in) || null;
+  const beforeLastJitter = (beforeLastReport && beforeLastReport[kind].delta_jitter_ms_in) || null;
 
   // Put RTT values when exist
   if (currentRtt) {

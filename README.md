@@ -95,7 +95,6 @@ Once a probe has been created, call the function `start()` to collect the statis
 A final **ticket** that summarizes all the reports received for a probe can be received by listening to the event `onticket`. Don't forget to put the parameter `ticket` to **true** in the configuration of the WebRTCMetrics Object.
 
 ```javascript
-...
 const probe = metrics.createProbe(existingPeerConnection, {
   pname: 'PeerConnection_1',  // Optional. Name of the peer connection
   cid: 'call007984',          // Optional. Call Id
@@ -167,100 +166,100 @@ Each **report** collected from the event `onreport` contains the following stati
 
 ### Audio properties
 
-| Name | Value | Description |
-|:----:|:-----:|:------------|
-| **delta_KBytes_received** | Number | Number of kilobytes (KB) received since the last report |
-| **delta_KBytes_sent** | Number | Number of kilobytes (KB) sent since last report |
-| **delta_jitter_ms** | Number | Jitter (in ms) |
-| **delta_packets_lost_received** | Number | Number of packets lost (not received) since last report |
-| **delta_packets_received** | Number | Number of packets received since the last report |
-| **delta_rtt_ms** | Number | Round Trip-Time (in ms) |
-| **input_codec** | JSON | Description of the audio input codec and parameters used |
-| **input_codec_id** | String | ID of the audio input codec used |
-| **input_level** | Number | Level of the input sound. Detect presence of incoming sound |
-| **mos_emodel** | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
-| **mos** | Number | Audio quality indicator based on 'effective latency' |
-| **output_codec** | JSON | Description of the audio output codec and parameters used |
-| **output_codec_id** | String | ID of the audio output codec used |
-| **output_level** | Number | Level of the output sound. Detect presence of outgoing sound |
-| **percent_packets_lost_received** | Number | Percent of audio packet lost (not received) since the last report |
-| **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call |
-| **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call |
-| **total_packets_lost_received** | Number | Number of packets lost (not received) since the beginning of the call |
-| **total_packets_received** | Number | Number of packets received since the beginning of the call |
-| **total_rtt_measure** | Number | Number of RTT measurements done |
-| **total_rtt_ms** | Number | Total Round Trip Time since the beginning of the call |
+| Name                        | Value | Description |
+|:----------------------------|:-----:|:------------|
+| **delta_KBytes_in**         | Number | Number of kilobytes (KB) received since the last report |
+| **delta_KBytes_out**        | Number | Number of kilobytes (KB) sent since last report |
+| **delta_jitter_ms_in**      | Number | Jitter (in ms) |
+| **delta_packets_lost_in**   | Number | Number of packets lost (not received) since last report |
+| **delta_packets_in**        | Number | Number of packets received since the last report |
+| **delta_rtt_ms_out**        | Number | Round Trip-Time (in ms) |
+| **codec_in**                | JSON | Description of the audio input codec and parameters used |
+| **codec_id_in**             | String | ID of the audio input codec used |
+| **codec_out**               | JSON | Description of the audio output codec and parameters used |
+| **codec_id_out**            | String | ID of the audio output codec used |
+| **level_in**                | Number | Level of the input sound. Detect presence of incoming sound |
+| **level_out**               | Number | Level of the output sound. Detect presence of outgoing sound |
+| **percent_packets_lost_in** | Number | Percent of audio packet lost (not received) since the last report |
+| **total_KBytes_in**         | Number | Number of kilobytes (KB) received since the beginning of the call |
+| **total_KBytes_out**        | Number | Number of kilobytes (KB) sent since the beginning of the call |
+| **total_packets_lost_in**   | Number | Number of packets lost (not received) since the beginning of the call |
+| **total_packets_in**        | Number | Number of packets received since the beginning of the call |
+| **total_rtt_measure_out**   | Number | Number of RTT measurements done |
+| **total_rtt_ms_out**        | Number | Total Round Trip Time since the beginning of the call |
+| **mos_emodel_in**           | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
+| **mos_in**                  | Number | Audio quality indicator based on 'effective latency' |
 
 ### Video properties
 
-| Name | Value | Description |
-|:----:|:-----:|:------------|
-| **decoder** | String | Description of the video decoder used |
-| **delta_KBytes_received** | Number | Number of kilobytes (KB) received since the last report |
-| **delta_KBytes_sent** | Number | Number of kilobytes (KB) sent since last report |
-| **delta_jitter_ms** | Number | Jitter (in ms) |
-| **delta_ms_decode_frame** | Number | Time needed to decode a frame |
-| **delta_ms_encode_frame** | Number | Time needed to encode a frame |
-| **delta_nack_received** | Number | Nack received since the last report|
-| **delta_nack_sent** | Number | Nack sent since the last report|
-| **delta_packets_lost_received** | Number | Number of packets lost (not received) since last report |
-| **delta_packets_received** | Number | Number of packets received since the last report |
-| **delta_pli_received** | Number | Pli received since the last report|
-| **delta_pli_sent** | Number | Pli sent since the last report|
-| **delta_rtt_ms** | Number | Round Trip-Time (in ms) |
-| **encoder** | String | Description of the video encoder used |
-| **input_codec** | JSON | Description of the video input codec and parameters used |
-| **input_codec_id** | String | ID of the video input codec used |
-| **input_size** | Number | Size of the input video (from remote peer) + framerate |
-| **output_codec** | JSON | Description of the video output codec and parameters used |
-| **output_codec_id** | String | ID of the video output codec used |
-| **output_size** | Number | Size of the output video (own video) + framerate |
-| **limitation** | Object| Object containing the reason and the durations spent in each state |
-| **percent_packets_lost_received** | Number | Percent of audio packet lost (not received) since the last report |
-| **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call |
-| **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call |
-| **total_frames_decoded** | Number | Total of frames decoded |
-| **total_frames_encoded** | Number | Total of frames encoded |
-| **total_nack_received** | Number | Total nack received since the beginning of the call |
-| **total_nack_sent** | Number | Total nack sent since the beginning of the call |
-| **total_packets_lost_received** | Number | Number of packets lost (not received) since the beginning of the call |
-| **total_packets_received** | Number | Number of packets received since the beginning of the call |
-| **total_pli_received** | Number | Total pli received since the beginning of the call |
-| **total_pli_sent** | Number | Total pli sent since the beginning of the call |
-| **total_rtt_measure** | Number | Number of RTT measurements done |
-| **total_rtt_ms** | Number | Total Round Trip Time since the beginning of the call |
-| **total_time_decoded** | Number | Total time used for decoding all frames |
-| **total_time_encoded** | Number | Total time used for encoding all frames |
+| Name                          | Value | Description |
+|:------------------------------|:-----:|:------------|
+| **decoder_in**                | String | Description of the video decoder used |
+| **delta_KBytes_in**           | Number | Number of kilobytes (KB) received since the last report |
+| **delta_KBytes_out**          | Number | Number of kilobytes (KB) sent since last report |
+| **delta_jitter_ms_in**        | Number | Jitter (in ms) |
+| **delta_ms_decode_frame_in**  | Number | Time needed to decode a frame |
+| **delta_ms_encode_frame_out** | Number | Time needed to encode a frame |
+| **delta_nack_in**             | Number | Nack received since the last report|
+| **delta_nack_out**            | Number | Nack sent since the last report|
+| **delta_packets_lost_in**     | Number | Number of packets lost (not received) since last report |
+| **delta_packets_in**          | Number | Number of packets received since the last report |
+| **delta_pli_in**              | Number | Pli received since the last report|
+| **delta_pli_out**             | Number | Pli sent since the last report|
+| **delta_rtt_ms_out**          | Number | Round Trip-Time (in ms) |
+| **encoder_out**               | String | Description of the video encoder used |
+| **codec_in**                  | JSON | Description of the video input codec and parameters used |
+| **codec_id_in**               | String | ID of the video input codec used |
+| **size_in**                   | Number | Size of the input video (from remote peer) + framerate |
+| **codec_out**                 | JSON | Description of the video output codec and parameters used |
+| **codec_id_out**              | String | ID of the video output codec used |
+| **size_out**                  | Number | Size of the output video (own video) + framerate |
+| **limitation_out**            | Object| Object containing the reason and the durations spent in each state |
+| **percent_packets_lost_in**   | Number | Percent of audio packet lost (not received) since the last report |
+| **total_KBytes_in**           | Number | Number of kilobytes (KB) received since the beginning of the call |
+| **total_KBytes_out**          | Number | Number of kilobytes (KB) sent since the beginning of the call |
+| **total_frames_decoded_in**   | Number | Total of frames decoded |
+| **total_frames_encoded_in**   | Number | Total of frames encoded |
+| **total_nack_in**             | Number | Total nack received since the beginning of the call |
+| **total_nack_out**            | Number | Total nack sent since the beginning of the call |
+| **total_packets_lost_in**     | Number | Number of packets lost (not received) since the beginning of the call |
+| **total_packets_in**          | Number | Number of packets received since the beginning of the call |
+| **total_pli_in**              | Number | Total pli received since the beginning of the call |
+| **total_pli_out**             | Number | Total pli sent since the beginning of the call |
+| **total_rtt_measure_out**     | Number | Number of RTT measurements done |
+| **total_rtt_ms_out**          | Number | Total Round Trip Time since the beginning of the call |
+| **total_time_decoded_in**     | Number | Total time used for decoding all frames |
+| **total_time_encoded_out**    | Number | Total time used for encoding all frames |
 
 ### Network properties
 
-| Name | Value | Description |
-|:----:|:-----:|:------------|
-| **infrastructure** | Number | Infrastructure level (0: Eth, 3: Wifi, 5: 4G, 10: 3G) |
-| **local_candidate_id** | String | ID of the local candidate used |
-| **local_candidate_protocol** | String | Protocol used (udp, tcp) |
-| **local_candidate_type** | String | Type of candidate used (host, relay, srflx) |
-| **remote_candidate_id** | String | ID of the remote candidate used |
-| **remote_candidate_protocol** | String | Protocol used (udp, tcp) |
-| **remote_candidate_type** | String | Type of candidate used (host, relay, srflx) |
+| Name | Value | Description                                                             |
+|:----:|:-----:|:------------------------------------------------------------------------|
+| **infrastructure** | Number | Infrastructure level (0: Eth, 3: Wifi, 5: 4G, 10: 3G).<br/>(Deprecated) |
+| **local_candidate_id** | String | ID of the local candidate used                                          |
+| **local_candidate_protocol** | String | Protocol used (udp, tcp)                                                |
+| **local_candidate_type** | String | Type of candidate used (host, relay, srflx)                             |
+| **remote_candidate_id** | String | ID of the remote candidate used                                         |
+| **remote_candidate_protocol** | String | Protocol used (udp, tcp)                                                |
+| **remote_candidate_type** | String | Type of candidate used (host, relay, srflx)                             |
 
 ### Data properties
 
 These stats are collected from the candidate-pair stats.
 
-| Name | Value | Description |
-|:----:|:-----:|:------------|
-| **delta_KBytes_received** | Number | Number of kilobytes (KB) received since the last report (audio+video) |
-| **delta_KBytes_sent** | Number | Number of kilobytes (KB) sent since last report (audio+video) |
-| **delta_kbs_incoming_bandwidth** | Number | Available incoming bitrate in kb/s (audio+video) |
-| **delta_kbs_outgoing_bandwidth** | Number | Available outgoing bitrate in kb/s for (audio+video) |
-| **delta_kbs_received** | Number | Number of kbit received per second since the last report (audio+video) |
-| **delta_kbs_sent** | Number | Number of kbit sent per second since the last report (audio+video) |
-| **delta_rtt_connectivity_ms** | Number | Round Trip-Time (in ms) computed from STUN connectivity checks  |
-| **total_KBytes_received** | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video) |
-| **total_KBytes_sent** | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video) |
-| **total_rtt_connectivity_measure** | Number | Number of RTT measurements done (from STUN connectivity checks) |
-| **total_rtt_connectivity_ms** | Number | Total Round Trip Time since the beginning of the call (from STUN connectivity checks) |
+| Name                                   | Value | Description |
+|:---------------------------------------|:-----:|:------------|
+| **delta_KBytes_in**                    | Number | Number of kilobytes (KB) received since the last report (audio+video) |
+| **delta_KBytes_out**                   | Number | Number of kilobytes (KB) sent since last report (audio+video) |
+| **delta_kbs_bandwidth_in**             | Number | Available incoming bitrate in kb/s (audio+video) |
+| **delta_kbs_bandwidth_out**            | Number | Available outgoing bitrate in kb/s for (audio+video) |
+| **delta_kbs_in**                       | Number | Number of kbit received per second since the last report (audio+video) |
+| **delta_kbs_out**                      | Number | Number of kbit sent per second since the last report (audio+video) |
+| **delta_rtt_connectivity_ms_out**      | Number | Round Trip-Time (in ms) computed from STUN connectivity checks  |
+| **total_KBytes_in**                    | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video) |
+| **total_KBytes_out**                   | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video) |
+| **total_rtt_connectivity_measure_out** | Number | Number of RTT measurements done (from STUN connectivity checks) |
+| **total_rtt_connectivity_ms_out**      | Number | Total Round Trip Time since the beginning of the call (from STUN connectivity checks) |
 
 ### Experimental
 

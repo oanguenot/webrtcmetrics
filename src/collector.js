@@ -52,8 +52,8 @@ export default class Collector {
       });
     });
     report.timestamp = timestamp;
-    report.audio.mos_emodel = computeEModelMOS(report, "audio", previousReport, beforeLastReport);
-    report.audio.mos = computeMOS(report, "audio", previousReport, beforeLastReport);
+    report.audio.mos_emodel_in = computeEModelMOS(report, "audio", previousReport, beforeLastReport);
+    report.audio.mos_in = computeMOS(report, "audio", previousReport, beforeLastReport);
     return report;
   }
 

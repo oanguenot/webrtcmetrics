@@ -92,12 +92,12 @@ export default class ProbesEngine {
 
       // Compute total measure time
       globalReport.delta_time_to_measure_probes_ms = sumValuesOfReports(globalReport.probes, "experimental", "time_to_measure_ms");
-      globalReport.delta_KBytes_received = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_received");
-      globalReport.delta_KBytes_sent = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_sent");
-      globalReport.delta_kbs_received = sumValuesOfReports(globalReport.probes, "data", "delta_kbs_received");
-      globalReport.delta_kbs_sent = sumValuesOfReports(globalReport.probes, "data", "delta_kbs_sent");
-      globalReport.total_time_decoded = sumValuesOfReports(globalReport.probes, "video", "total_time_decoded");
-      globalReport.total_time_encoded = sumValuesOfReports(globalReport.probes, "video", "total_time_encoded");
+      globalReport.delta_KBytes_in = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_in");
+      globalReport.delta_KBytes_out = sumValuesOfReports(globalReport.probes, "data", "delta_KBytes_out");
+      globalReport.delta_kbs_in = sumValuesOfReports(globalReport.probes, "data", "delta_kbs_in");
+      globalReport.delta_kbs_out = sumValuesOfReports(globalReport.probes, "data", "delta_kbs_out");
+      globalReport.total_time_decoded_in = sumValuesOfReports(globalReport.probes, "video", "total_time_decoded_in");
+      globalReport.total_time_encoded_out = sumValuesOfReports(globalReport.probes, "video", "total_time_encoded_out");
       return globalReport;
     };
 
