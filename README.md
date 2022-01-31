@@ -166,29 +166,30 @@ Each **report** collected from the event `onreport` contains the following stati
 
 ### Audio properties
 
-| Name                        | Value | Description |
-|:----------------------------|:-----:|:------------|
-| **delta_KBytes_in**         | Number | Number of kilobytes (KB) received since the last report |
-| **delta_KBytes_out**        | Number | Number of kilobytes (KB) sent since last report |
-| **delta_jitter_ms_in**      | Number | Jitter (in ms) |
-| **delta_packets_lost_in**   | Number | Number of packets lost (not received) since last report |
-| **delta_packets_in**        | Number | Number of packets received since the last report |
-| **delta_rtt_ms_out**        | Number | Round Trip-Time (in ms) |
-| **codec_in**                | JSON | Description of the audio input codec and parameters used |
-| **codec_id_in**             | String | ID of the audio input codec used |
-| **codec_out**               | JSON | Description of the audio output codec and parameters used |
-| **codec_id_out**            | String | ID of the audio output codec used |
-| **level_in**                | Number | Level of the input sound. Detect presence of incoming sound |
-| **level_out**               | Number | Level of the output sound. Detect presence of outgoing sound |
-| **percent_packets_lost_in** | Number | Percent of audio packet lost (not received) since the last report |
-| **total_KBytes_in**         | Number | Number of kilobytes (KB) received since the beginning of the call |
-| **total_KBytes_out**        | Number | Number of kilobytes (KB) sent since the beginning of the call |
-| **total_packets_lost_in**   | Number | Number of packets lost (not received) since the beginning of the call |
-| **total_packets_in**        | Number | Number of packets received since the beginning of the call |
-| **total_rtt_measure_out**   | Number | Number of RTT measurements done |
-| **total_rtt_ms_out**        | Number | Total Round Trip Time since the beginning of the call |
+| Name                        | Value | Description                                                                                                                                                                                                                                                                |
+|:----------------------------|:-----:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **delta_KBytes_in**         | Number | Number of kilobytes (KB) received since the last report                                                                                                                                                                                                                    |
+| **delta_KBytes_out**        | Number | Number of kilobytes (KB) sent since last report                                                                                                                                                                                                                            |
+| **delta_jitter_ms_in**      | Number | Incoming Jitter (in ms)                                                                                                                                                                                                                                                    |
+| **delta_jitter_ms_out**     | Number | Outgoing Jitter (in ms)                                                                                                                                                                                                                                                    |
+| **delta_packets_lost_in**   | Number | Number of packets lost (not received) since last report                                                                                                                                                                                                                    |
+| **delta_packets_in**        | Number | Number of packets received since the last report                                                                                                                                                                                                                           |
+| **delta_rtt_ms_out**        | Number | Round Trip-Time (in ms)                                                                                                                                                                                                                                                    |
+| **codec_in**                | JSON | Description of the audio input codec and parameters used                                                                                                                                                                                                                   |
+| **codec_id_in**             | String | ID of the audio input codec used                                                                                                                                                                                                                                           |
+| **codec_out**               | JSON | Description of the audio output codec and parameters used                                                                                                                                                                                                                  |
+| **codec_id_out**            | String | ID of the audio output codec used                                                                                                                                                                                                                                          |
+| **level_in**                | Number | Level of the input sound. Detect presence of incoming sound                                                                                                                                                                                                                |
+| **level_out**               | Number | Level of the output sound. Detect presence of outgoing sound                                                                                                                                                                                                               |
+| **percent_packets_lost_in** | Number | Percent of audio packet lost (not received) since the last report                                                                                                                                                                                                          |
+| **total_KBytes_in**         | Number | Number of kilobytes (KB) received since the beginning of the call                                                                                                                                                                                                          |
+| **total_KBytes_out**        | Number | Number of kilobytes (KB) sent since the beginning of the call                                                                                                                                                                                                              |
+| **total_packets_lost_in**   | Number | Number of packets lost (not received) since the beginning of the call                                                                                                                                                                                                      |
+| **total_packets_in**        | Number | Number of packets received since the beginning of the call                                                                                                                                                                                                                 |
+| **total_rtt_measure_out**   | Number | Number of RTT measurements done                                                                                                                                                                                                                                            |
+| **total_rtt_ms_out**        | Number | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
 | **mos_emodel_in**           | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
-| **mos_in**                  | Number | Audio quality indicator based on 'effective latency' |
+| **mos_in**                  | Number | Audio quality indicator based on 'effective latency'                                                                                                                                                                                                                       |
 
 ### Video properties
 
@@ -197,7 +198,8 @@ Each **report** collected from the event `onreport` contains the following stati
 | **decoder_in**                | String | Description of the video decoder used |
 | **delta_KBytes_in**           | Number | Number of kilobytes (KB) received since the last report |
 | **delta_KBytes_out**          | Number | Number of kilobytes (KB) sent since last report |
-| **delta_jitter_ms_in**        | Number | Jitter (in ms) |
+| **delta_jitter_ms_in**      | Number | Incoming Jitter (in ms) |
+| **delta_jitter_ms_out**     | Number | Outgoing Jitter (in ms) |
 | **delta_ms_decode_frame_in**  | Number | Time needed to decode a frame |
 | **delta_ms_encode_frame_out** | Number | Time needed to encode a frame |
 | **delta_nack_in**             | Number | Nack received since the last report|

@@ -119,16 +119,32 @@ export default class Exporter {
       },
       jitter: {
         audio: {
-          avg: averageValuesOfReports(this._reports, "audio", "delta_jitter_ms_in"),
-          min: minValueOfReports(this._reports, "audio", "delta_jitter_ms_in"),
-          max: maxValueOfReports(this._reports, "audio", "delta_jitter_ms_in"),
-          volatility: volatilityValuesOfReports(this._reports, "audio", "delta_jitter_ms_in"),
+          in: {
+            avg: averageValuesOfReports(this._reports, "audio", "delta_jitter_ms_in"),
+            min: minValueOfReports(this._reports, "audio", "delta_jitter_ms_in"),
+            max: maxValueOfReports(this._reports, "audio", "delta_jitter_ms_in"),
+            volatility: volatilityValuesOfReports(this._reports, "audio", "delta_jitter_ms_in"),
+          },
+          out: {
+            avg: averageValuesOfReports(this._reports, "audio", "delta_jitter_ms_out"),
+            min: minValueOfReports(this._reports, "audio", "delta_jitter_ms_out"),
+            max: maxValueOfReports(this._reports, "audio", "delta_jitter_ms_out"),
+            volatility: volatilityValuesOfReports(this._reports, "audio", "delta_jitter_ms_out"),
+          },
         },
         video: {
-          avg: averageValuesOfReports(this._reports, "video", "delta_jitter_ms_in"),
-          min: minValueOfReports(this._reports, "video", "delta_jitter_ms_in"),
-          max: maxValueOfReports(this._reports, "video", "delta_jitter_ms_in"),
-          volatility: volatilityValuesOfReports(this._reports, "video", "delta_jitter_ms_in"),
+          in: {
+            avg: averageValuesOfReports(this._reports, "video", "delta_jitter_ms_in"),
+            min: minValueOfReports(this._reports, "video", "delta_jitter_ms_in"),
+            max: maxValueOfReports(this._reports, "video", "delta_jitter_ms_in"),
+            volatility: volatilityValuesOfReports(this._reports, "video", "delta_jitter_ms_in"),
+          },
+          out: {
+            avg: averageValuesOfReports(this._reports, "video", "delta_jitter_ms_out"),
+            min: minValueOfReports(this._reports, "video", "delta_jitter_ms_out"),
+            max: maxValueOfReports(this._reports, "video", "delta_jitter_ms_out"),
+            volatility: volatilityValuesOfReports(this._reports, "video", "delta_jitter_ms_out"),
+          },
         },
         unit: {
           avg: "ms",

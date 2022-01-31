@@ -81,9 +81,9 @@ const extractRTTBasedOnSTUNConnectivityCheck = (bunch, kind, referenceReport, pr
   };
 };
 
-const extractLastJitter = (bunch, previousBunch) => {
+const extractLastJitter = (bunch, previousBunch, direction = "in") => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.JITTER)) {
-    return previousBunch.audio.delta_jitter_ms_in;
+    return previousBunch[`audio.delta_jitter_ms_${direction}`];
   }
   return Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
 };
@@ -500,10 +500,14 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Round Trip Time based on RTCP
         const data = extractRTTBasedOnRTCP(bunch, VALUE.AUDIO, referenceReport, previousBunch);
 
+        // Jitter (out)
+        const jitter = extractLastJitter(bunch, previousBunch, "out");
+
         return [
           { type: STAT_TYPE.AUDIO, value: { delta_rtt_ms_out: data.rtt } },
           { type: STAT_TYPE.AUDIO, value: { total_rtt_ms_out: data.totalRTT } },
           { type: STAT_TYPE.AUDIO, value: { total_rtt_measure_out: data.totalRTTMeasurements } },
+          { type: STAT_TYPE.AUDIO, value: { delta_jitter_ms_out: jitter } },
         ];
       }
 
@@ -511,10 +515,14 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Round Trip Time based on RTCP
         const data = extractRTTBasedOnRTCP(bunch, VALUE.VIDEO, referenceReport, previousBunch);
 
+        // Jitter (out)
+        const jitter = extractLastJitter(bunch, previousBunch, "out");
+
         return [
           { type: STAT_TYPE.VIDEO, value: { delta_rtt_ms_out: data.rtt } },
           { type: STAT_TYPE.VIDEO, value: { total_rtt_ms_out: data.totalRTT } },
           { type: STAT_TYPE.VIDEO, value: { total_rtt_measure_out: data.totalRTTMeasurements } },
+          { type: STAT_TYPE.VIDEO, value: { delta_jitter_ms_out: jitter } },
         ];
       }
       break;
