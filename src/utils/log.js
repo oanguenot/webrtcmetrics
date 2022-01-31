@@ -19,7 +19,7 @@ export const debug = (name, message, data) => {
 };
 
 export const trace = (name, message) => {
-  log.trace(format(getHeader(), name, message));
+  log.info(format(getHeader(), name, message));
 };
 
 export const info = (name, message) => {
