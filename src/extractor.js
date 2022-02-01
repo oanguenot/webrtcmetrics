@@ -563,16 +563,25 @@ export const computeEModelMOS = (report, kind = "audio", previousReport, beforeL
   const currentJitter = report[kind].delta_jitter_ms_in;
   const lastJitter = (previousReport && previousReport[kind].delta_jitter_ms_in) || null;
   const beforeLastJitter = (beforeLastReport && beforeLastReport[kind].delta_jitter_ms_in) || null;
+  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms_out;
+  const lastRTTConnectivity = (previousReport && previousReport.data.delta_rtt_connectivity_ms_out) || null;
+  const beforeLastRTTConnectivity = (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms_out) || null;
 
   // Put RTT values when exist
   if (currentRtt) {
     rttValues.push(currentRtt);
+  } else if (currentRTTConnectivity) {
+    rttValues.push(currentRTTConnectivity);
   }
-  if (previousReport && lastRtt) {
+  if (lastRtt) {
     rttValues.push(lastRtt);
+  } else if (lastRTTConnectivity) {
+    rttValues.push(lastRTTConnectivity);
   }
-  if (beforeLastReport && beforeLastRtt) {
+  if (beforeLastRtt) {
     rttValues.push(beforeLastRtt);
+  } else if (beforeLastRTTConnectivity) {
+    rttValues.push(beforeLastRTTConnectivity);
   }
 
   // Put Jitter values
