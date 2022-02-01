@@ -25,23 +25,42 @@ const computeScore = (r) => {
 };
 
 const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
-  // If RTT is not part of the stat - return previous value
+  let supportOfMeasure = false;
+  const previousRTT = previousBunch[kind].total_rtt_ms_out;
+  const previousNbMeasure = previousBunch[kind].total_rtt_measure_out;
+  const referenceRTT = referenceReport ? referenceReport[kind].total_rtt_ms_out : 0;
+  const referenceNbMeasure = referenceReport ? referenceReport[kind].total_rtt_measure_out : 0;
+
+  // If RTT is not part of the stat - return
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.ROUND_TRIP_TIME)) {
     return {
       rtt: null,
-      totalRTT: previousBunch[kind].total_rtt_ms_out,
-      totalRTTMeasurements: previousBunch[kind].total_rtt_measure_out,
+      totalRTT: previousRTT,
+      totalRTTMeasurements: previousNbMeasure,
     };
   }
 
+  // If no measure yet or no new measure - return
+  if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS)) {
+    supportOfMeasure = true;
+    if ((Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) === 0) ||
+        (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - referenceNbMeasure === previousNbMeasure)) {
+      return {
+        rtt: null,
+        totalRTT: previousRTT,
+        totalRTTMeasurements: previousNbMeasure,
+      };
+    }
+  }
+
   const currentRTT = Number(1000) * Number(bunch[PROPERTY.ROUND_TRIP_TIME]);
-  let currentTotalRTT = previousBunch[kind].total_rtt_ms_out + currentRTT;
-  let currentTotalMeasurements = previousBunch[kind].total_rtt_measure_out + 1;
+  let currentTotalRTT = previousRTT + currentRTT;
+  let currentTotalMeasurements = previousNbMeasure + 1;
 
   // If support of totalRoundTripTime
-  if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ROUND_TRIP_TIME)) {
-    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - (referenceReport ? referenceReport[kind].total_rtt_ms_out : 0));
-    currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - (referenceReport ? referenceReport[kind].total_rtt_measure_out : 0));
+  if (supportOfMeasure) {
+    currentTotalRTT = (Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) - referenceRTT);
+    currentTotalMeasurements = (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - referenceNbMeasure);
   }
 
   return {
