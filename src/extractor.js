@@ -164,6 +164,14 @@ const extractVideoPacketReceived = (bunch, previousBunch, referenceReport) => {
   return { percentPacketsLost, packetsReceived, packetsLost };
 };
 
+const extractRelayProtocolUsed = (bunch) => {
+  const candidateType = bunch[PROPERTY.CANDIDATE_TYPE];
+  if (candidateType !== "relay") {
+    return "";
+  }
+  return bunch[PROPERTY.RELAY_PROTOCOL] || "";
+};
+
 const extractInfrastructureValue = (bunch) => {
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NETWORK_TYPE)) {
     // Assuming Wifi when not provided (firefox/Safari at this time)
@@ -333,6 +341,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           { type: STAT_TYPE.NETWORK, value: { infrastructure: extractInfrastructureValue(bunch) } },
           { type: STAT_TYPE.NETWORK, value: { local_candidate_type: bunch[PROPERTY.CANDIDATE_TYPE] || "" } },
           { type: STAT_TYPE.NETWORK, value: { local_candidate_protocol: bunch[PROPERTY.PROTOCOL] || "" } },
+          { type: STAT_TYPE.NETWORK, value: { local_candidate_relay_protocol: extractRelayProtocolUsed(bunch) } },
         ];
       }
       break;

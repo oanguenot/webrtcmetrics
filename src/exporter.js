@@ -47,6 +47,29 @@ const averageRTTConnectivity = (reports, kind) => {
   return Number(totalRTT / totalMeasurements);
 };
 
+const getPath = (reports) => {
+ const localCandidateType = lastOfReports(reports, "network", "local_candidate_type");
+
+ if (localCandidateType !== "relay") {
+   const localCandidateProtocol = lastOfReports(reports, "network", "local_candidate_protocol");
+   return `direct/${localCandidateProtocol}`;
+ }
+
+ const localCandidateRelayProtocol = lastOfReports(reports, "network", "local_candidate_relay_protocol");
+ return `turn/${localCandidateRelayProtocol}`;
+};
+
+const getRemotePath = (reports) => {
+  const localCandidateType = lastOfReports(reports, "network", "remote_candidate_type");
+  const localCandidateProtocol = lastOfReports(reports, "network", "remote_candidate_protocol");
+
+  if (localCandidateType !== "relay") {
+    return `direct/${localCandidateProtocol}`;
+  }
+
+  return `turn/${localCandidateProtocol}`;
+};
+
 export default class Exporter {
   constructor(cfg) {
     this._start = null;
@@ -253,6 +276,10 @@ export default class Exporter {
           max: "KBytes",
           volatility: "percent",
         },
+      },
+      network: {
+        localConnection: getPath(this._reports),
+        remoteConnection: getRemotePath(this._reports),
       },
     };
   }

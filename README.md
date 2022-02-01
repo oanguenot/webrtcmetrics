@@ -240,6 +240,7 @@ Each **report** collected from the event `onreport` contains the following stati
 | **infrastructure** | Number | Infrastructure level (0: Eth, 3: Wifi, 5: 4G, 10: 3G).<br/>(Deprecated) |
 | **local_candidate_id** | String | ID of the local candidate used                                          |
 | **local_candidate_protocol** | String | Protocol used (udp, tcp)                                                |
+| **local_candidate_relay_protocol** | String | Protocol used when relayed with TURN (udp, tcp, tls)    |
 | **local_candidate_type** | String | Type of candidate used (host, relay, srflx)                             |
 | **remote_candidate_id** | String | ID of the remote candidate used                                         |
 | **remote_candidate_protocol** | String | Protocol used (udp, tcp)                                                |
