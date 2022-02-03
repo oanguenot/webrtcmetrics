@@ -190,48 +190,50 @@ Each **report** collected from the event `onreport` contains the following stati
 | **total_rtt_ms_out**        | Number | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
 | **mos_emodel_in**           | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
 | **mos_in**                  | Number | Audio quality indicator based on 'effective latency'                                                                                                                                                                                                                       |
+| **remote_timestamp**        | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out**                                                                                                                                                                                          |
 
 ### Video properties
 
-| Name                          | Value | Description |
-|:------------------------------|:-----:|:------------|
-| **decoder_in**                | String | Description of the video decoder used |
-| **delta_KBytes_in**           | Number | Number of kilobytes (KB) received since the last report |
-| **delta_KBytes_out**          | Number | Number of kilobytes (KB) sent since last report |
-| **delta_jitter_ms_in**      | Number | Incoming Jitter (in ms) |
-| **delta_jitter_ms_out**     | Number | Outgoing Jitter (in ms) |
-| **delta_ms_decode_frame_in**  | Number | Time needed to decode a frame |
-| **delta_ms_encode_frame_out** | Number | Time needed to encode a frame |
-| **delta_nack_in**             | Number | Nack received since the last report|
-| **delta_nack_out**            | Number | Nack sent since the last report|
-| **delta_packets_lost_in**     | Number | Number of packets lost (not received) since last report |
-| **delta_packets_in**          | Number | Number of packets received since the last report |
-| **delta_pli_in**              | Number | Pli received since the last report|
-| **delta_pli_out**             | Number | Pli sent since the last report|
-| **delta_rtt_ms_out**          | Number | Round Trip-Time (in ms) |
-| **encoder_out**               | String | Description of the video encoder used |
-| **codec_in**                  | JSON | Description of the video input codec and parameters used |
-| **codec_id_in**               | String | ID of the video input codec used |
-| **size_in**                   | Number | Size of the input video (from remote peer) + framerate |
-| **codec_out**                 | JSON | Description of the video output codec and parameters used |
-| **codec_id_out**              | String | ID of the video output codec used |
-| **size_out**                  | Number | Size of the output video (own video) + framerate |
-| **limitation_out**            | Object| Object containing the reason and the durations spent in each state |
-| **percent_packets_lost_in**   | Number | Percent of audio packet lost (not received) since the last report |
-| **total_KBytes_in**           | Number | Number of kilobytes (KB) received since the beginning of the call |
-| **total_KBytes_out**          | Number | Number of kilobytes (KB) sent since the beginning of the call |
-| **total_frames_decoded_in**   | Number | Total of frames decoded |
-| **total_frames_encoded_in**   | Number | Total of frames encoded |
-| **total_nack_in**             | Number | Total nack received since the beginning of the call |
-| **total_nack_out**            | Number | Total nack sent since the beginning of the call |
-| **total_packets_lost_in**     | Number | Number of packets lost (not received) since the beginning of the call |
-| **total_packets_in**          | Number | Number of packets received since the beginning of the call |
-| **total_pli_in**              | Number | Total pli received since the beginning of the call |
-| **total_pli_out**             | Number | Total pli sent since the beginning of the call |
-| **total_rtt_measure_out**     | Number | Number of RTT measurements done |
-| **total_rtt_ms_out**          | Number | Total Round Trip Time since the beginning of the call |
-| **total_time_decoded_in**     | Number | Total time used for decoding all frames |
-| **total_time_encoded_out**    | Number | Total time used for encoding all frames |
+| Name                           | Value | Description |
+|:-------------------------------|:-----:|:------------|
+| **decoder_in**                 | String | Description of the video decoder used |
+| **delta_KBytes_in**            | Number | Number of kilobytes (KB) received since the last report |
+| **delta_KBytes_out**           | Number | Number of kilobytes (KB) sent since last report |
+| **delta_jitter_ms_in**         | Number | Incoming Jitter (in ms) |
+| **delta_jitter_ms_out**        | Number | Outgoing Jitter (in ms) |
+| **delta_ms_decode_frame_in**   | Number | Time needed to decode a frame |
+| **delta_ms_encode_frame_out**  | Number | Time needed to encode a frame |
+| **delta_nack_in**              | Number | Nack received since the last report|
+| **delta_nack_out**             | Number | Nack sent since the last report|
+| **delta_packets_lost_in**      | Number | Number of packets lost (not received) since last report |
+| **delta_packets_in**           | Number | Number of packets received since the last report |
+| **delta_pli_in**               | Number | Pli received since the last report|
+| **delta_pli_out**              | Number | Pli sent since the last report|
+| **delta_rtt_ms_out**           | Number | Round Trip-Time (in ms) |
+| **encoder_out**                | String | Description of the video encoder used |
+| **codec_in**                   | JSON | Description of the video input codec and parameters used |
+| **codec_id_in**                | String | ID of the video input codec used |
+| **size_in**                    | Number | Size of the input video (from remote peer) + framerate |
+| **codec_out**                  | JSON | Description of the video output codec and parameters used |
+| **codec_id_out**               | String | ID of the video output codec used |
+| **size_out**                   | Number | Size of the output video (own video) + framerate |
+| **limitation_out**             | Object| Object containing the reason and the durations spent in each state |
+| **percent_packets_lost_in**    | Number | Percent of audio packet lost (not received) since the last report |
+| **total_KBytes_in**            | Number | Number of kilobytes (KB) received since the beginning of the call |
+| **total_KBytes_out**           | Number | Number of kilobytes (KB) sent since the beginning of the call |
+| **total_frames_decoded_in**    | Number | Total of frames decoded |
+| **total_frames_encoded_in**    | Number | Total of frames encoded |
+| **total_nack_in**              | Number | Total nack received since the beginning of the call |
+| **total_nack_out**             | Number | Total nack sent since the beginning of the call |
+| **total_packets_lost_in**      | Number | Number of packets lost (not received) since the beginning of the call |
+| **total_packets_in**           | Number | Number of packets received since the beginning of the call |
+| **total_pli_in**               | Number | Total pli received since the beginning of the call |
+| **total_pli_out**              | Number | Total pli sent since the beginning of the call |
+| **total_rtt_measure_out**      | Number | Number of RTT measurements done |
+| **total_rtt_ms_out**           | Number | Total Round Trip Time since the beginning of the call |
+| **total_time_decoded_in**      | Number | Total time used for decoding all frames |
+| **total_time_encoded_out**     | Number | Total time used for encoding all frames |
+| **remote_timestamp**           | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
 
 ### Network properties
 

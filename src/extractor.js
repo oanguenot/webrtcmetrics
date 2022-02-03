@@ -536,6 +536,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           { type: STAT_TYPE.AUDIO, value: { total_rtt_ms_out: data.totalRTT } },
           { type: STAT_TYPE.AUDIO, value: { total_rtt_measure_out: data.totalRTTMeasurements } },
           { type: STAT_TYPE.AUDIO, value: { delta_jitter_ms_out: jitter } },
+          { type: STAT_TYPE.AUDIO, value: { remote_timestamp: bunch[PROPERTY.TIMESTAMP] } },
         ];
       }
 
@@ -551,6 +552,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           { type: STAT_TYPE.VIDEO, value: { total_rtt_ms_out: data.totalRTT } },
           { type: STAT_TYPE.VIDEO, value: { total_rtt_measure_out: data.totalRTTMeasurements } },
           { type: STAT_TYPE.VIDEO, value: { delta_jitter_ms_out: jitter } },
+          { type: STAT_TYPE.VIDEO, value: { remote_timestamp: bunch[PROPERTY.TIMESTAMP] } },
         ];
       }
       break;
