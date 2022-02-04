@@ -31,13 +31,19 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   const referenceRTT = referenceReport ? referenceReport[kind].total_rtt_ms_out : 0;
   const referenceNbMeasure = referenceReport ? referenceReport[kind].total_rtt_measure_out : 0;
 
+  const returnedValuesByDefault = {
+    rtt: null,
+    totalRTT: previousRTT,
+    totalRTTMeasurements: previousNbMeasure,
+  };
+
+  if (bunch[PROPERTY.TIMESTAMP] === previousBunch[kind].remote_timestamp) {
+    return returnedValuesByDefault;
+  }
+
   // If RTT is not part of the stat - return
   if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.ROUND_TRIP_TIME)) {
-    return {
-      rtt: null,
-      totalRTT: previousRTT,
-      totalRTTMeasurements: previousNbMeasure,
-    };
+    return returnedValuesByDefault;
   }
 
   // If no measure yet or no new measure - return
@@ -45,11 +51,7 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
     supportOfMeasure = true;
     if ((Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) === 0) ||
         (Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) - referenceNbMeasure === previousNbMeasure)) {
-      return {
-        rtt: null,
-        totalRTT: previousRTT,
-        totalRTTMeasurements: previousNbMeasure,
-      };
+      return returnedValuesByDefault;
     }
   }
 
@@ -100,10 +102,15 @@ const extractRTTBasedOnSTUNConnectivityCheck = (bunch, kind, referenceReport, pr
   };
 };
 
-const extractLastJitter = (bunch, previousBunch, direction = "in") => {
-  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.JITTER)) {
-    return previousBunch[`audio.delta_jitter_ms_${direction}`];
+const extractLastJitter = (bunch, kind, previousBunch) => {
+  if (bunch[PROPERTY.TIMESTAMP] === previousBunch[kind].remote_timestamp) {
+    return null;
   }
+
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.JITTER)) {
+    return null;
+  }
+
   return Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
 };
 
@@ -362,7 +369,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const audioPacketLostDelta = data.packetsLost - previousBunch.audio.total_packets_lost_in;
 
         // Jitter stats
-        const jitter = extractLastJitter(bunch, previousBunch);
+        const jitter = extractLastJitter(bunch, VALUE.AUDIO, previousBunch);
 
         // Bytes stats
         const audioTotalKBytesReceived = ((bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024) - (referenceReport ? referenceReport.audio.total_KBytes_in : 0);
@@ -394,7 +401,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const videoPacketLostDelta = packetsData.packetsLost - previousBunch.video.total_packets_lost_in;
 
         // Jitter stats
-        const jitter = extractLastJitter(bunch, previousBunch);
+        const jitter = extractLastJitter(bunch, VALUE.VIDEO, previousBunch);
 
         // Bytes stats
         const videoTotalKBytesReceived = ((bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024) - (referenceReport ? referenceReport.video.total_KBytes_in : 0);
@@ -529,7 +536,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const data = extractRTTBasedOnRTCP(bunch, VALUE.AUDIO, referenceReport, previousBunch);
 
         // Jitter (out)
-        const jitter = extractLastJitter(bunch, previousBunch, "out");
+        const jitter = extractLastJitter(bunch, VALUE.AUDIO, previousBunch);
 
         return [
           { type: STAT_TYPE.AUDIO, value: { delta_rtt_ms_out: data.rtt } },
@@ -545,7 +552,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const data = extractRTTBasedOnRTCP(bunch, VALUE.VIDEO, referenceReport, previousBunch);
 
         // Jitter (out)
-        const jitter = extractLastJitter(bunch, previousBunch, "out");
+        const jitter = extractLastJitter(bunch, VALUE.VIDEO, previousBunch);
 
         return [
           { type: STAT_TYPE.VIDEO, value: { delta_rtt_ms_out: data.rtt } },
