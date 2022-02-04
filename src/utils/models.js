@@ -3,7 +3,7 @@ import ShortUniqueId from "short-unique-id";
 const shortUUID = new ShortUniqueId();
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("3.2.0");
+export const getVersion = () => ("4.0.0");
 
 export const COLLECTOR_STATE = {
   IDLE: "idle",
@@ -67,6 +67,7 @@ export const getDefaultMetric = (previousStats) => {
       delta_KBytes_out: 0,
       mos_in: 0,
       mos_emodel_in: 0,
+      remote_timestamp: null,
     },
     video: {
       codec_id_in: "",
@@ -106,6 +107,7 @@ export const getDefaultMetric = (previousStats) => {
       total_nack_in: 0,
       total_pli_in: 0,
       limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
+      remote_timestamp: null,
     },
     network: {
       infrastructure: 3,
