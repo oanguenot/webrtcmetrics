@@ -338,3 +338,18 @@ metrics.startAllProbes();
 // Stop all probes
 metrics.stopAllProbes();
 ```
+
+### Setting the logs level
+
+Logs level can be set in two different ways:
+
+- When initializing the library and by using the `verbose` flag from the configuration object.
+
+- By using the method `setupLogLevel`
+
+```javascript
+import WebRTCMetrics from "webrtcmetrics";
+
+const metrics = new WebRTCMetrics();
+metrics.setupLogLevel('SILENT');
+```
