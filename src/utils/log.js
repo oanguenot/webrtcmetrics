@@ -12,13 +12,13 @@ export const setVerboseLog = (shouldHaveVerboseLog) => {
 
 export const setLogLevel = (logLevel) => {
   const levels = [...Object.keys(log.levels)];
-  if(levels.includes(logLevel)){
+  if (levels.includes(logLevel)) {
     log.info(format(getHeader(), "log         ", `update log level to ${logLevel.toLowerCase()}`));
     log.setLevel(logLevel);
-  }else{
-    log.warn(format(getHeader(), "log","Incorrect log level please choose one of "), levels);
+  } else {
+    log.warn(format(getHeader(), "log         ", "Incorrect log level please choose one of "), levels);
   }
-}
+};
 
 export const debug = (name, message, data) => {
   if (data) {

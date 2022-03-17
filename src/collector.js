@@ -1,15 +1,8 @@
 import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
-import {
-  COLLECTOR_STATE,
-  getDefaultMetric,
-} from "./utils/models";
+import { COLLECTOR_STATE, getDefaultMetric, ICE_CONNECTION_STATE } from "./utils/models";
 import { createCollectorId, call } from "./utils/helper";
-import {
-  debug,
-  error,
-  info,
-} from "./utils/log";
+import { debug, error, info } from "./utils/log";
 
 export default class Collector {
   constructor(cfg, refProbeId) {
@@ -18,14 +11,14 @@ export default class Collector {
       onticket: null,
     };
 
-    this._intervalId = null;
     this._id = createCollectorId();
     this._moduleName = this._id;
     this._probeId = refProbeId;
-    this._startedTime = null;
+    this._customEvents = [];
     this._config = cfg;
     this._exporter = new Exporter(cfg);
     this._state = COLLECTOR_STATE.IDLE;
+    this.registerToPCEvents();
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
@@ -52,8 +45,18 @@ export default class Collector {
       });
     });
     report.timestamp = timestamp;
-    report.audio.mos_emodel_in = computeEModelMOS(report, "audio", previousReport, beforeLastReport);
-    report.audio.mos_in = computeMOS(report, "audio", previousReport, beforeLastReport);
+    report.audio.mos_emodel_in = computeEModelMOS(
+      report,
+      "audio",
+      previousReport,
+      beforeLastReport,
+    );
+    report.audio.mos_in = computeMOS(
+      report,
+      "audio",
+      previousReport,
+      beforeLastReport,
+    );
     return report;
   }
 
@@ -70,7 +73,10 @@ export default class Collector {
           referenceReport.experimental.time_to_measure_ms = postTime - preTime;
           referenceReport.experimental.time_to_wait_ms = waitTime;
           this._exporter.saveReferenceReport(referenceReport);
-          debug(this._moduleName, `got reference report for probe ${this._probeId}`);
+          debug(
+            this._moduleName,
+            `got reference report for probe ${this._probeId}`,
+          );
           resolve();
         } catch (err) {
           reject(err);
@@ -82,18 +88,31 @@ export default class Collector {
   async collectStats() {
     try {
       if (this._state !== COLLECTOR_STATE.RUNNING || !this._config.pc) {
-        debug(this._moduleName, `report discarded (too late) for probe ${this._probeId}`);
+        debug(
+          this._moduleName,
+          `report discarded (too late) for probe ${this._probeId}`,
+        );
         return null;
       }
 
       // Take into account last report in case no report have been generated (eg: candidate-pair)
       const preTime = Date.now();
       const reports = await this._config.pc.getStats();
-      const report = this.analyze(reports, this._exporter.getLastReport(), this._exporter.getBeforeLastReport(), this._exporter.getReferenceReport());
+      const report = this.analyze(
+        reports,
+        this._exporter.getLastReport(),
+        this._exporter.getBeforeLastReport(),
+        this._exporter.getReferenceReport(),
+      );
       const postTime = Date.now();
       report.experimental.time_to_measure_ms = postTime - preTime;
       this._exporter.addReport(report);
-      debug(this._moduleName, `got report for probe ${this._probeId}#${this._exporter.getReportsNumber() + 1}`);
+      debug(
+        this._moduleName,
+        `got report for probe ${this._probeId}#${
+          this._exporter.getReportsNumber() + 1
+        }`,
+      );
       this.fireOnReport(report);
       return report;
     } catch (err) {
@@ -134,10 +153,16 @@ export default class Collector {
 
   registerCallback(name, callback, context) {
     if (name in this._callbacks) {
-      this._callbacks[name] = { callback, context };
+      this._callbacks[name] = {
+        callback,
+        context,
+      };
       debug(this._moduleName, `registered callback '${name}'`);
     } else {
-      error(this._moduleName, `can't register callback for '${name}' - not found`);
+      error(
+        this._moduleName,
+        `can't register callback for '${name}' - not found`,
+      );
     }
   }
 
@@ -147,19 +172,30 @@ export default class Collector {
       delete this._callbacks[name];
       debug(this._moduleName, `unregistered callback '${name}'`);
     } else {
-      error(this._moduleName, `can't unregister callback for '${name}' - not found`);
+      error(
+        this._moduleName,
+        `can't unregister callback for '${name}' - not found`,
+      );
     }
   }
 
   fireOnReport(report) {
     if (this._callbacks.onreport) {
-      call(this._callbacks.onreport.callback, this._callbacks.onreport.context, report);
+      call(
+        this._callbacks.onreport.callback,
+        this._callbacks.onreport.context,
+        report,
+      );
     }
   }
 
   fireOnTicket(ticket) {
     if (this._callbacks.onticket) {
-      call(this._callbacks.onticket.callback, this._callbacks.onticket.context, ticket);
+      call(
+        this._callbacks.onticket.callback,
+        this._callbacks.onticket.context,
+        ticket,
+      );
     }
   }
 
@@ -175,5 +211,32 @@ export default class Collector {
   set state(newState) {
     this._state = newState;
     debug(this._moduleName, `state changed to ${newState}`);
+  }
+
+  addCustomEvent(created, category, event) {
+    this._exporter.addCustomEvent({
+      created,
+      category,
+      event,
+    });
+  }
+
+  registerToPCEvents() {
+    if (this._config.pc) {
+      this._config.pc.oniceconnectionstatechange = () => {
+        const value = this._config.pc.iceConnectionState;
+        if (value === ICE_CONNECTION_STATE.CONNECTED || ICE_CONNECTION_STATE.COMPLETED) {
+          this.addCustomEvent(new Date().toJSON(), "call", "connected");
+        } else if (value === ICE_CONNECTION_STATE.DISCONNECTED || value === ICE_CONNECTION_STATE.FAILED) {
+          this.addCustomEvent(new Date().toJSON(), "call", value);
+        } else if (value === ICE_CONNECTION_STATE.CLOSED) {
+          this.addCustomEvent(new Date().toJSON(), "call", "ended");
+        }
+      };
+      this._config.pc.onicegatheringstatechange = () => {
+        const value = this._config.pc.iceGatheringState;
+        this.addCustomEvent(new Date().toJSON(), "call", value);
+      };
+    }
   }
 }

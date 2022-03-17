@@ -17,6 +17,22 @@ export const ENGINE_STATE = {
   ENDED: "ended",
 };
 
+export const ICE_CONNECTION_STATE = {
+  NEW: "new",
+  CHECKING: "checking",
+  CONNECTED: "connected",
+  COMPLETED: "completed",
+  DISCONNECTED: "disconnected",
+  FAILED: "failed",
+  CLOSED: "closed",
+};
+
+export const ICE_GATHERING_STATE = {
+  NEW: "new",
+  GATHERING: "gathering",
+  COMPLETE: "complete",
+};
+
 export const getDefaultGlobalMetric = () => {
   const defaultMetrics = {
     delta_time_to_measure_probes_ms: 0, // Total time to measure all probes
