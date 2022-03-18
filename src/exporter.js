@@ -115,8 +115,9 @@ export default class Exporter {
 
   stop() {
     trace(moduleName, "stop() - stop exporter...");
-    this._end = new Date().toJSON();
-    return this.ticket;
+    const date = new Date();
+    this._end = date.toJSON();
+    return date;
   }
 
   saveReferenceReport(report) {
@@ -175,6 +176,8 @@ export default class Exporter {
 
     return {
       version: VERSION_EXPORTER,
+      started: this._start,
+      ended: this._end,
       ua: {
         agent: navigator.userAgent,
         pname: this._cfg.pname,
@@ -182,8 +185,6 @@ export default class Exporter {
       },
       call: {
         call_id: this._cfg.cid,
-        start_time: this._start,
-        end_time: this._end,
         events: this._events,
       },
       details: {

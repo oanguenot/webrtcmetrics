@@ -140,11 +140,11 @@ export default class Collector {
 
   async stop(forced) {
     debug(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
-    const ticket = this._exporter.stop();
-
+    this._stoppedTime = this._exporter.stop();
     this.state = COLLECTOR_STATE.IDLE;
 
     if (this._config.ticket) {
+      const { ticket } = this._exporter;
       this.fireOnTicket(ticket);
     }
     this._exporter.reset();
@@ -213,30 +213,52 @@ export default class Collector {
     debug(this._moduleName, `state changed to ${newState}`);
   }
 
-  addCustomEvent(created, category, event) {
+  addCustomEvent(at, category, name, description) {
     this._exporter.addCustomEvent({
-      created,
+      at: typeof at === "object" ? at.toJSON() : at,
       category,
-      event,
+      name,
+      description,
     });
   }
 
   registerToPCEvents() {
-    if (this._config.pc) {
-      this._config.pc.oniceconnectionstatechange = () => {
-        const value = this._config.pc.iceConnectionState;
+    const { pc } = this._config;
+    if (pc) {
+      pc.oniceconnectionstatechange = () => {
+        const value = pc.iceConnectionState;
         if (value === ICE_CONNECTION_STATE.CONNECTED || ICE_CONNECTION_STATE.COMPLETED) {
-          this.addCustomEvent(new Date().toJSON(), "call", "connected");
+          this.addCustomEvent(new Date().toJSON(), "call", value, "ICE connection state");
         } else if (value === ICE_CONNECTION_STATE.DISCONNECTED || value === ICE_CONNECTION_STATE.FAILED) {
-          this.addCustomEvent(new Date().toJSON(), "call", value);
+          this.addCustomEvent(new Date().toJSON(), "call", value, "ICE connection state");
         } else if (value === ICE_CONNECTION_STATE.CLOSED) {
-          this.addCustomEvent(new Date().toJSON(), "call", "ended");
+          this.addCustomEvent(new Date().toJSON(), "call", "ended", "ICE connection state");
         }
       };
-      this._config.pc.onicegatheringstatechange = () => {
-        const value = this._config.pc.iceGatheringState;
-        this.addCustomEvent(new Date().toJSON(), "call", value);
+      pc.onicegatheringstatechange = () => {
+        const value = pc.iceGatheringState;
+        this.addCustomEvent(new Date().toJSON(), "call", value, "ICE gathering state");
       };
+      pc.ontrack = (e) => {
+        this.addCustomEvent(new Date().toJSON(), "call", `${e.track.kind}track`, "MediaStreamTrack received");
+      };
+      pc.onnegotiationneeded = () => {
+        this.addCustomEvent(new Date().toJSON(), "call", "negotiation", "Media changed");
+      };
+
+      const receivers = pc.getReceivers();
+      if (receivers && receivers.length > 0) {
+        const receiver = receivers[0];
+        const { transport } = receiver;
+        if (transport) {
+          const { iceTransport } = transport;
+          if (iceTransport) {
+            iceTransport.onselectedcandidatepairchange = () => {
+              this.addCustomEvent(new Date().toJSON(), "call", "transport", "Candidates Pair changed");
+            };
+          }
+        }
+      }
     }
   }
 }

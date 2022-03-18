@@ -79,6 +79,17 @@ export default class Probe {
   }
 
   /**
+   * Add a custom event for that probe
+   * @param {String} name The name of the event
+   * @param {String} category The category of the event. Could be any strings
+   * @param {String} description A description. Could be empty
+   * @param {Date} at Optional. The date of the event
+   */
+  addCustomEvent(name, category, description, at = new Date().toJSON()) {
+    this._collector.addCustomEvent(at, category, name, description);
+  }
+
+  /**
    * Return true if the probe is running
    */
   get isRunning() {
