@@ -1,5 +1,5 @@
 import "regenerator-runtime/runtime.js";
-import {info, setLogLevel, setVerboseLog} from "./utils/log";
+import { info, setLogLevel, setVerboseLog } from "./utils/log";
 import { getGlobalConfig } from "./utils/config";
 import ProbesEngine from "./engine";
 
@@ -15,9 +15,9 @@ export default class WebRTCMetrics {
 
   /**
    * Change log level manually
-   * @param level - can be one of [TRACE, DEBUG, INFO, WARN, ERROR, SILENT]
+   * @param {string} level - The level of logs. Can be one of 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'SILENT'
    */
-  setupLogLevel(level){
+  setupLogLevel(level) {
     setLogLevel(level);
   }
 

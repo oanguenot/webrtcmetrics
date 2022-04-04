@@ -291,7 +291,9 @@ The ticket generated contains the following information:
 | Name | Value | Description |
 |:----:|:-----:|:------------|
 | **ua** | Object | Contains the `ua`, the `pname` and the `user_id` |
-| **call** | Object | Contains the `call_id` and the `start_time` and `end_time` |
+| **started** | Date | Start date of the ticket |
+| **ended** | Date | End date of the ticket |
+| **call** | Object | Contains the `call_id` and the `events` related to the call |
 | **details** | Object | Contains the list of reports as well as the reference report |
 | **jitter** | Object | `min`, `max`, `avg` and `volatility` values for audio and video |
 | **rtt** | Object | `min`, `max`, `avg` and `volatility` values for audio and video and connectivity (STUN) |
@@ -338,6 +340,25 @@ metrics.startAllProbes();
 // Stop all probes
 metrics.stopAllProbes();
 ```
+
+### Events && custom events
+
+Each probe records some WebRTC events related to the `RTCPeerConnection`. These events are collected and available in the **ticket** report. 
+
+Additionally to these events, **custom events** can be recorded too.
+
+```javascript
+import WebRTCMetrics from "webrtcmetrics";
+
+const metrics = new WebRTCMetrics();
+
+const probe = metrics.createProbe(firstPeerConnection);
+
+// At any time
+probe.addCustomEvent('an event', 'a category', 'a description of the event');
+```
+
+These events will be added to the existing ones.‡
 
 ### Setting the logs level
 
