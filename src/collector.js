@@ -1,12 +1,15 @@
 import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
 import {
-  COLLECTOR_STATE,
-  defaultAudioMetric,
-  defaultVideoMetric,
+  COLLECTOR_STATE, DIRECTION,
+  defaultAudioMetricIn,
+  defaultAudioMetricOut,
+  defaultVideoMetricIn,
+  defaultVideoMetricOut,
   getDefaultMetric,
   ICE_CONNECTION_STATE,
   VALUE,
+  TYPE,
 } from "./utils/models";
 import { createCollectorId, call } from "./utils/helper";
 import { debug, error, info } from "./utils/log";
@@ -29,6 +32,20 @@ export default class Collector {
   }
 
   analyze(stats, previousReport, beforeLastReport, referenceReport) {
+    const getDefaultSSRCMetric = (kind, reportType) => {
+      if (kind === VALUE.AUDIO) {
+        if (reportType === TYPE.INBOUND_RTP) {
+          return { ...defaultAudioMetricIn };
+        }
+        return { ...defaultAudioMetricOut };
+      }
+
+      if (reportType === TYPE.INBOUND_RTP) {
+        return { ...defaultVideoMetricIn };
+      }
+      return { ...defaultVideoMetricOut };
+    };
+
     const report = getDefaultMetric(previousReport);
 
     report.pname = this._config.pname;
@@ -49,10 +66,7 @@ export default class Collector {
               (ssrcData) => ssrcData.ssrc === data.ssrc,
             );
             if (!ssrcReport) {
-              ssrcReport =
-                data.type === VALUE.AUDIO
-                  ? { ...defaultAudioMetric }
-                  : { ...defaultVideoMetric };
+              ssrcReport = getDefaultSSRCMetric(data.type, stat.type);
               ssrcReport.ssrc = data.ssrc;
               report[data.type].push(ssrcReport);
             }
@@ -68,7 +82,7 @@ export default class Collector {
       });
     });
     report.timestamp = timestamp;
-    report[VALUE.AUDIO].forEach((ssrcReport) => {
+    report[VALUE.AUDIO].filter((ssrc) => (ssrc.direction === DIRECTION.INBOUND)).forEach((ssrcReport) => {
       ssrcReport.mos_emodel_in = computeEModelMOS(
         report,
         VALUE.AUDIO,

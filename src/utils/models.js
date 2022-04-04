@@ -5,6 +5,11 @@ const shortUUID = new ShortUniqueId();
 export const getLibName = () => ("WebRTCMetrics");
 export const getVersion = () => ("4.0.1");
 
+export const DIRECTION = {
+  INBOUND: "inbound",
+  OUTBOUND: "outbound",
+};
+
 export const COLLECTOR_STATE = {
   IDLE: "idle",
   RUNNING: "running",
@@ -53,18 +58,11 @@ export const getDefaultGlobalMetric = () => {
   return metrics;
 };
 
-export const defaultAudioMetric = {
+export const defaultAudioMetricIn = {
   level_in: 0,
-  level_out: 0,
   codec_id_in: "",
-  codec_id_out: "",
   codec_in: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
-  codec_out: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
   delta_jitter_ms_in: 0,
-  delta_jitter_ms_out: 0,
-  delta_rtt_ms_out: null,
-  total_rtt_ms_out: 0,
-  total_rtt_measure_out: 0,
   percent_packets_lost_in: 0,
   delta_packets_in: 0,
   delta_packets_lost_in: 0,
@@ -72,26 +70,33 @@ export const defaultAudioMetric = {
   total_packets_lost_in: 0,
   total_KBytes_in: 0,
   delta_KBytes_in: 0,
-  total_KBytes_out: 0,
-  delta_KBytes_out: 0,
   mos_in: 0,
   mos_emodel_in: 0,
-  remote_timestamp: null,
   ssrc: "",
+  direction: DIRECTION.INBOUND,
 };
 
-export const defaultVideoMetric = {
-  codec_id_in: "",
+export const defaultAudioMetricOut = {
+  level_out: 0,
   codec_id_out: "",
-  size_in: { width: null, height: null, framerate: null },
-  size_out: { width: null, height: null, framerate: null },
-  codec_in: { mime_type: null, clock_rate: null },
-  codec_out: { mime_type: null, clock_rate: null },
-  delta_jitter_ms_in: 0,
+  codec_out: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
   delta_jitter_ms_out: 0,
   delta_rtt_ms_out: null,
   total_rtt_ms_out: 0,
   total_rtt_measure_out: 0,
+  total_KBytes_out: 0,
+  delta_KBytes_out: 0,
+  remote_timestamp: null,
+  ssrc: "",
+  direction: DIRECTION.OUTBOUND,
+};
+
+export const defaultVideoMetricIn = {
+  codec_id_in: "",
+  size_in: { width: null, height: null, framerate: null },
+  codec_in: { mime_type: null, clock_rate: null },
+  delta_jitter_ms_in: 0,
+  delta_rtt_ms_out: null,
   percent_packets_lost_in: 0,
   delta_packets_in: 0,
   delta_packets_lost_in: 0,
@@ -99,13 +104,7 @@ export const defaultVideoMetric = {
   total_packets_lost_in: 0,
   total_KBytes_in: 0,
   delta_KBytes_in: 0,
-  total_KBytes_out: 0,
-  delta_KBytes_out: 0,
   decoder_in: null,
-  encoder_out: null,
-  delta_ms_encode_frame_out: 0,
-  total_time_encoded_out: 0,
-  total_frames_encoded_out: 0,
   delta_ms_decode_frame_in: 0,
   total_frames_decoded_in: 0,
   total_time_decoded_in: 0,
@@ -113,6 +112,24 @@ export const defaultVideoMetric = {
   delta_pli_out: 0,
   total_nack_out: 0,
   total_pli_out: 0,
+  ssrc: "",
+  direction: DIRECTION.INBOUND,
+};
+
+export const defaultVideoMetricOut = {
+  codec_id_out: "",
+  size_out: { width: null, height: null, framerate: null },
+  codec_out: { mime_type: null, clock_rate: null },
+  delta_jitter_ms_out: 0,
+  delta_rtt_ms_out: null,
+  total_rtt_ms_out: 0,
+  total_rtt_measure_out: 0,
+  total_KBytes_out: 0,
+  delta_KBytes_out: 0,
+  encoder_out: null,
+  delta_ms_encode_frame_out: 0,
+  total_time_encoded_out: 0,
+  total_frames_encoded_out: 0,
   delta_nack_in: 0,
   delta_pli_in: 0,
   total_nack_in: 0,
@@ -120,6 +137,7 @@ export const defaultVideoMetric = {
   limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
   remote_timestamp: null,
   ssrc: "",
+  direction: DIRECTION.OUTBOUND,
 };
 
 export const getDefaultMetric = (previousStats) => {
