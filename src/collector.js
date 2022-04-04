@@ -1,6 +1,13 @@
 import Exporter from "./exporter";
 import { computeMOS, computeEModelMOS, extract } from "./extractor";
-import { COLLECTOR_STATE, getDefaultMetric, ICE_CONNECTION_STATE } from "./utils/models";
+import {
+  COLLECTOR_STATE,
+  defaultAudioMetric,
+  defaultVideoMetric,
+  getDefaultMetric,
+  ICE_CONNECTION_STATE,
+  VALUE,
+} from "./utils/models";
 import { createCollectorId, call } from "./utils/helper";
 import { debug, error, info } from "./utils/log";
 
@@ -14,7 +21,6 @@ export default class Collector {
     this._id = createCollectorId();
     this._moduleName = this._id;
     this._probeId = refProbeId;
-    this._customEvents = [];
     this._config = cfg;
     this._exporter = new Exporter(cfg);
     this._state = COLLECTOR_STATE.IDLE;
@@ -38,25 +44,46 @@ export default class Collector {
       const values = extract(stat, report, report.pname, referenceReport);
       values.forEach((data) => {
         if (data.value && data.type) {
-          Object.keys(data.value).forEach((key) => {
-            report[data.type][key] = data.value[key];
-          });
+          if (data.ssrc) {
+            let ssrcReport = report[data.type].find(
+              (ssrcData) => ssrcData.ssrc === data.ssrc,
+            );
+            if (!ssrcReport) {
+              ssrcReport =
+                data.type === VALUE.AUDIO
+                  ? { ...defaultAudioMetric }
+                  : { ...defaultVideoMetric };
+              ssrcReport.ssrc = data.ssrc;
+              report[data.type].push(ssrcReport);
+            }
+            Object.keys(data.value).forEach((key) => {
+              ssrcReport[key] = data.value[key];
+            });
+          } else {
+            Object.keys(data.value).forEach((key) => {
+              report[data.type][key] = data.value[key];
+            });
+          }
         }
       });
     });
     report.timestamp = timestamp;
-    report.audio.mos_emodel_in = computeEModelMOS(
-      report,
-      "audio",
-      previousReport,
-      beforeLastReport,
-    );
-    report.audio.mos_in = computeMOS(
-      report,
-      "audio",
-      previousReport,
-      beforeLastReport,
-    );
+    report[VALUE.AUDIO].forEach((ssrcReport) => {
+      ssrcReport.mos_emodel_in = computeEModelMOS(
+        report,
+        VALUE.AUDIO,
+        previousReport,
+        beforeLastReport,
+        ssrcReport.ssrc,
+      );
+      ssrcReport.mos_in = computeMOS(
+        report,
+        VALUE.AUDIO,
+        previousReport,
+        beforeLastReport,
+        ssrcReport.ssrc,
+      );
+    });
     return report;
   }
 
@@ -227,23 +254,59 @@ export default class Collector {
     if (pc) {
       pc.oniceconnectionstatechange = () => {
         const value = pc.iceConnectionState;
-        if (value === ICE_CONNECTION_STATE.CONNECTED || ICE_CONNECTION_STATE.COMPLETED) {
-          this.addCustomEvent(new Date().toJSON(), "call", value, "ICE connection state");
-        } else if (value === ICE_CONNECTION_STATE.DISCONNECTED || value === ICE_CONNECTION_STATE.FAILED) {
-          this.addCustomEvent(new Date().toJSON(), "call", value, "ICE connection state");
+        if (
+          value === ICE_CONNECTION_STATE.CONNECTED ||
+          ICE_CONNECTION_STATE.COMPLETED
+        ) {
+          this.addCustomEvent(
+            new Date().toJSON(),
+            "call",
+            value,
+            "ICE connection state",
+          );
+        } else if (
+          value === ICE_CONNECTION_STATE.DISCONNECTED ||
+          value === ICE_CONNECTION_STATE.FAILED
+        ) {
+          this.addCustomEvent(
+            new Date().toJSON(),
+            "call",
+            value,
+            "ICE connection state",
+          );
         } else if (value === ICE_CONNECTION_STATE.CLOSED) {
-          this.addCustomEvent(new Date().toJSON(), "call", "ended", "ICE connection state");
+          this.addCustomEvent(
+            new Date().toJSON(),
+            "call",
+            "ended",
+            "ICE connection state",
+          );
         }
       };
       pc.onicegatheringstatechange = () => {
         const value = pc.iceGatheringState;
-        this.addCustomEvent(new Date().toJSON(), "call", value, "ICE gathering state");
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "call",
+          value,
+          "ICE gathering state",
+        );
       };
       pc.ontrack = (e) => {
-        this.addCustomEvent(new Date().toJSON(), "call", `${e.track.kind}track`, "MediaStreamTrack received");
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "call",
+          `${e.track.kind}track`,
+          "MediaStreamTrack received",
+        );
       };
       pc.onnegotiationneeded = () => {
-        this.addCustomEvent(new Date().toJSON(), "call", "negotiation", "Media changed");
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "call",
+          "negotiation",
+          "Media changed",
+        );
       };
 
       const receivers = pc.getReceivers();
@@ -254,7 +317,12 @@ export default class Collector {
           const { iceTransport } = transport;
           if (iceTransport) {
             iceTransport.onselectedcandidatepairchange = () => {
-              this.addCustomEvent(new Date().toJSON(), "call", "transport", "Candidates Pair changed");
+              this.addCustomEvent(
+                new Date().toJSON(),
+                "call",
+                "transport",
+                "Candidates Pair changed",
+              );
             };
           }
         }

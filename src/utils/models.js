@@ -53,6 +53,75 @@ export const getDefaultGlobalMetric = () => {
   return metrics;
 };
 
+export const defaultAudioMetric = {
+  level_in: 0,
+  level_out: 0,
+  codec_id_in: "",
+  codec_id_out: "",
+  codec_in: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
+  codec_out: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
+  delta_jitter_ms_in: 0,
+  delta_jitter_ms_out: 0,
+  delta_rtt_ms_out: null,
+  total_rtt_ms_out: 0,
+  total_rtt_measure_out: 0,
+  percent_packets_lost_in: 0,
+  delta_packets_in: 0,
+  delta_packets_lost_in: 0,
+  total_packets_in: 0,
+  total_packets_lost_in: 0,
+  total_KBytes_in: 0,
+  delta_KBytes_in: 0,
+  total_KBytes_out: 0,
+  delta_KBytes_out: 0,
+  mos_in: 0,
+  mos_emodel_in: 0,
+  remote_timestamp: null,
+  ssrc: "",
+};
+
+export const defaultVideoMetric = {
+  codec_id_in: "",
+  codec_id_out: "",
+  size_in: { width: null, height: null, framerate: null },
+  size_out: { width: null, height: null, framerate: null },
+  codec_in: { mime_type: null, clock_rate: null },
+  codec_out: { mime_type: null, clock_rate: null },
+  delta_jitter_ms_in: 0,
+  delta_jitter_ms_out: 0,
+  delta_rtt_ms_out: null,
+  total_rtt_ms_out: 0,
+  total_rtt_measure_out: 0,
+  percent_packets_lost_in: 0,
+  delta_packets_in: 0,
+  delta_packets_lost_in: 0,
+  total_packets_in: 0,
+  total_packets_lost_in: 0,
+  total_KBytes_in: 0,
+  delta_KBytes_in: 0,
+  total_KBytes_out: 0,
+  delta_KBytes_out: 0,
+  decoder_in: null,
+  encoder_out: null,
+  delta_ms_encode_frame_out: 0,
+  total_time_encoded_out: 0,
+  total_frames_encoded_out: 0,
+  delta_ms_decode_frame_in: 0,
+  total_frames_decoded_in: 0,
+  total_time_decoded_in: 0,
+  delta_nack_out: 0,
+  delta_pli_out: 0,
+  total_nack_out: 0,
+  total_pli_out: 0,
+  delta_nack_in: 0,
+  delta_pli_in: 0,
+  total_nack_in: 0,
+  total_pli_in: 0,
+  limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
+  remote_timestamp: null,
+  ssrc: "",
+};
+
 export const getDefaultMetric = (previousStats) => {
   const defaultMetrics = {
     pname: "",
@@ -60,71 +129,8 @@ export const getDefaultMetric = (previousStats) => {
     user_id: "",
     timestamp: null,
     count: 0,
-    audio: {
-      level_in: 0,
-      level_out: 0,
-      codec_id_in: "",
-      codec_id_out: "",
-      codec_in: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
-      codec_out: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
-      delta_jitter_ms_in: 0,
-      delta_jitter_ms_out: 0,
-      delta_rtt_ms_out: null,
-      total_rtt_ms_out: 0,
-      total_rtt_measure_out: 0,
-      percent_packets_lost_in: 0,
-      delta_packets_in: 0,
-      delta_packets_lost_in: 0,
-      total_packets_in: 0,
-      total_packets_lost_in: 0,
-      total_KBytes_in: 0,
-      delta_KBytes_in: 0,
-      total_KBytes_out: 0,
-      delta_KBytes_out: 0,
-      mos_in: 0,
-      mos_emodel_in: 0,
-      remote_timestamp: null,
-    },
-    video: {
-      codec_id_in: "",
-      codec_id_out: "",
-      size_in: { width: null, height: null, framerate: null },
-      size_out: { width: null, height: null, framerate: null },
-      codec_in: { mime_type: null, clock_rate: null },
-      codec_out: { mime_type: null, clock_rate: null },
-      delta_jitter_ms_in: 0,
-      delta_jitter_ms_out: 0,
-      delta_rtt_ms_out: null,
-      total_rtt_ms_out: 0,
-      total_rtt_measure_out: 0,
-      percent_packets_lost_in: 0,
-      delta_packets_in: 0,
-      delta_packets_lost_in: 0,
-      total_packets_in: 0,
-      total_packets_lost_in: 0,
-      total_KBytes_in: 0,
-      delta_KBytes_in: 0,
-      total_KBytes_out: 0,
-      delta_KBytes_out: 0,
-      decoder_in: null,
-      encoder_out: null,
-      delta_ms_encode_frame_out: 0,
-      total_time_encoded_out: 0,
-      total_frames_encoded_out: 0,
-      delta_ms_decode_frame_in: 0,
-      total_frames_decoded_in: 0,
-      total_time_decoded_in: 0,
-      delta_nack_out: 0,
-      delta_pli_out: 0,
-      total_nack_out: 0,
-      total_pli_out: 0,
-      delta_nack_in: 0,
-      delta_pli_in: 0,
-      total_nack_in: 0,
-      total_pli_in: 0,
-      limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
-      remote_timestamp: null,
-    },
+    audio: [],
+    video: [],
     network: {
       infrastructure: 3,
       local_candidate_id: "",
@@ -153,27 +159,32 @@ export const getDefaultMetric = (previousStats) => {
     },
   };
 
-  let metrics = {
-    ...defaultMetrics,
-    audio: { ...defaultMetrics.audio },
-    video: { ...defaultMetrics.video },
-    data: { ...defaultMetrics.data },
-    network: { ...defaultMetrics.network },
-    experimental: { ...defaultMetrics.experimental },
-  };
-
   if (previousStats) {
-    metrics = {
+    const metrics = {
       ...previousStats,
-      audio: { ...previousStats.audio },
-      video: { ...previousStats.video },
+      audio: [],
+      video: [],
       data: { ...previousStats.data },
       network: { ...previousStats.network },
       experimental: { ...previousStats.experimental },
     };
+    previousStats.audio.forEach((audio) => {
+      metrics.audio.push({ ...audio });
+    });
+    previousStats.video.forEach((video) => {
+      metrics.video.push({ ...video });
+    });
+    return metrics;
   }
 
-  return (metrics);
+  return {
+    ...defaultMetrics,
+    audio: [],
+    video: [],
+    data: { ...defaultMetrics.data },
+    network: { ...defaultMetrics.network },
+    experimental: { ...defaultMetrics.experimental },
+  };
 };
 
 export const defaultConfig = {
@@ -238,6 +249,7 @@ export const PROPERTY = {
   REMOTE_SOURCE: "remoteSource",
   RESPONSES_RECEIVED: "responsesReceived",
   SDP_FMTP_LINE: "sdpFmtpLine",
+  SSRC: "ssrc",
   SELECTED: "selected",
   STATE: "state",
   TIMESTAMP: "timestamp",
