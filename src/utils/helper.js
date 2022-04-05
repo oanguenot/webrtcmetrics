@@ -2,12 +2,19 @@ import ShortUniqueId from "short-unique-id";
 
 const shortUUID = new ShortUniqueId();
 
-const getValues = (reports, key, subKey, avoidZeroValue = false) => {
+const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc) => {
   let arr = reports.map((report) => {
     if (!subKey) {
       return report[key];
     }
-    return report[key][subKey];
+    if (!ssrc) {
+      return report[key][subKey];
+    }
+    const data = report[key].find((ssrcStream) => (ssrcStream.ssrc === ssrc));
+    if (data) {
+      return data[subKey];
+    }
+    return null;
   });
 
   // Avoid null value
@@ -39,8 +46,8 @@ export const call = (fct, context, value) => {
   }
 };
 
-export const volatilityValuesOfReports = (reports, key, subKey) => {
-  const values = getValues(reports, key, subKey, true);
+export const volatilityValuesOfReports = (reports, key, subKey, ssrc) => {
+  const values = getValues(reports, key, subKey, true, ssrc);
   if (values.length === 0) {
     return 0;
   }
@@ -55,8 +62,8 @@ export const volatilityValuesOfReports = (reports, key, subKey) => {
   return volatility;
 };
 
-export const averageValuesOfReports = (reports, key, subKey, avoidZeroValue = false) => {
-  const values = getValues(reports, key, subKey, avoidZeroValue);
+export const averageValuesOfReports = (reports, key, subKey, avoidZeroValue = false, ssrc) => {
+  const values = getValues(reports, key, subKey, avoidZeroValue, ssrc);
   return values.reduce((p, c) => p + c, 0) / values.length;
 };
 
@@ -65,16 +72,16 @@ export const sumValuesOfReports = (reports, key, subKey) => {
   return values.reduce((p, c) => p + c, 0);
 };
 
-export const minValueOfReports = (reports, key, subKey) => {
-  const values = getValues(reports, key, subKey, true);
+export const minValueOfReports = (reports, key, subKey, ssrc) => {
+  const values = getValues(reports, key, subKey, true, ssrc);
   if (values.length === 0) {
     return 0;
   }
   return Math.min(...values);
 };
 
-export const maxValueOfReports = (reports, key, subKey) => {
-  const values = getValues(reports, key, subKey);
+export const maxValueOfReports = (reports, key, subKey, ssrc) => {
+  const values = getValues(reports, key, subKey, false, ssrc);
   return Math.max(...values);
 };
 
@@ -88,3 +95,5 @@ export const lastOfReports = (reports, key, subKey) => {
   }
   return lastReport[key][subKey];
 };
+
+export const getLastReport = (reports) => (reports.slice().pop());
