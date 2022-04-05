@@ -85,7 +85,7 @@ export const maxValueOfReports = (reports, key, subKey, ssrc) => {
   return Math.max(...values);
 };
 
-export const lastOfReports = (reports, key, subKey) => {
+export const lastOfReports = (reports, key, subKey, ssrc) => {
   const lastReport = reports.slice().pop();
   if (!lastReport) {
     return null;
@@ -93,7 +93,15 @@ export const lastOfReports = (reports, key, subKey) => {
   if (!subKey) {
     return lastReport[key];
   }
-  return lastReport[key][subKey];
+  if (!ssrc) {
+    return lastReport[key][subKey];
+  }
+  const ssrcData = lastReport[key].find((ssrcStream) => (ssrcStream.ssrc === ssrc));
+
+  if (ssrcData) {
+    return ssrcData[subKey];
+  }
+  return null;
 };
 
 export const getLastReport = (reports) => (reports.slice().pop());

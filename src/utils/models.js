@@ -261,6 +261,7 @@ export const PROPERTY = {
   NOMINATED: "nominated",
   PACKETS_LOST: "packetsLost",
   PACKETS_RECEIVED: "packetsReceived",
+  PACKETS_SENT: "packetsSent",
   PROTOCOL: "protocol",
   PORT: "port",
   REMOTE_CANDIDATE_ID: "remoteCandidateId",

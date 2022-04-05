@@ -232,6 +232,22 @@ const extractEncodeTime = (bunch, previousBunch) => {
   };
 };
 
+const extractAudioVideoPacketSent = (
+  bunch,
+  kind,
+  previousBunch,
+  referenceReport,
+) => {
+  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_SENT)) {
+    return {
+      packetsSent: previousBunch[kind].total_packets_out,
+    };
+  }
+
+  const packetsSent = Number(bunch[PROPERTY.PACKETS_SENT]) || 0 - (referenceReport ? referenceReport[kind].total_packets_out : 0);
+  return { packetsSent };
+};
+
 const extractAudioVideoPacketReceived = (
   bunch,
   kind,
@@ -843,6 +859,10 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             audioTotalKBytesSent - previousSSRCBunch[VALUE.AUDIO].total_KBytes_out;
         const audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
+        // packets
+        const packetsSent = extractAudioVideoPacketSent(bunch, VALUE.AUDIO, previousSSRCBunch, referenceSSRCBunch);
+        const packetsSentDelta = packetsSent - previousSSRCBunch[VALUE.AUDIO].total_packets_out;
+
         return [
           {
             ssrc,
@@ -858,6 +878,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { delta_KBytes_out: audioKBytesSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_packets_out: packetsSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_packets_out: packetsSentDelta },
           },
         ];
       }
@@ -889,6 +919,10 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             nackPliData.nackCount - previousSSRCBunch[VALUE.VIDEO].total_nack_in;
         const pliDelta =
             nackPliData.pliCount - previousSSRCBunch[VALUE.VIDEO].total_pli_in;
+
+        // packets
+        const packetsSent = extractAudioVideoPacketSent(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
+        const packetsSentDelta = packetsSent - previousSSRCBunch[VALUE.VIDEO].total_packets_out;
 
         return [
           {
@@ -955,6 +989,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { limitation_out: limitationOut },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_packets_out: packetsSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_packets_out: packetsSentDelta },
           },
         ];
       }

@@ -287,9 +287,34 @@ export default class Exporter {
             volatility: "percent",
           },
         };
+        const packetsLost = lastOfReports(
+          this._reports,
+          VALUE.AUDIO,
+          "total_packets_lost_in",
+          ssrc,
+        );
+        const packetsReceived = lastOfReports(
+          this._reports,
+          VALUE.AUDIO,
+          "total_packets_in",
+          ssrc,
+        );
+        const loss = {
+          lost: packetsLost,
+          avg: Math.round(
+            ((packetsLost /
+              (packetsLost + packetsReceived)) *
+              100 || 0) * 100,
+          ) / 100,
+          _unit: {
+            avg: "percent",
+            lost: "number",
+          },
+        };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].mos = mos;
         ssrcExporter[ssrc].bitrate = bitrate;
+        ssrcExporter[ssrc].loss = loss;
       } else {
         const jitter = {
           avg: averageValuesOfReports(
@@ -374,9 +399,34 @@ export default class Exporter {
             volatility: "percent",
           },
         };
+        const packetsLost = lastOfReports(
+          this._reports,
+          VALUE.AUDIO,
+          "total_packets_lost_out",
+          ssrc,
+        );
+        const packetsReceived = lastOfReports(
+          this._reports,
+          VALUE.AUDIO,
+          "total_packets_out",
+          ssrc,
+        );
+        const loss = {
+          lost: packetsLost,
+          avg: Math.round(
+            ((packetsLost /
+              (packetsLost + packetsReceived)) *
+              100 || 0) * 100,
+          ) / 100,
+          _unit: {
+            avg: "percent",
+            lost: "number",
+          },
+        };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].rtt = rtt;
         ssrcExporter[ssrc].bitrate = bitrate;
+        ssrcExporter[ssrc].loss = loss;
       }
     });
     lastReport[VALUE.VIDEO].forEach((ssrcVideo) => {
@@ -452,8 +502,33 @@ export default class Exporter {
             volatility: "percent",
           },
         };
+        const packetsLost = lastOfReports(
+          this._reports,
+          VALUE.VIDEO,
+          "total_packets_lost_in",
+          ssrc,
+        );
+        const packetsReceived = lastOfReports(
+          this._reports,
+          VALUE.VIDEO,
+          "total_packets_in",
+          ssrc,
+        );
+        const loss = {
+          lost: packetsLost,
+          avg: Math.round(
+            ((packetsLost /
+              (packetsLost + packetsReceived)) *
+              100 || 0) * 100,
+          ) / 100,
+          _unit: {
+            avg: "percent",
+            lost: "number",
+          },
+        };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].bitrate = bitrate;
+        ssrcExporter[ssrc].loss = loss;
       } else {
         const jitter = {
           avg: averageValuesOfReports(
@@ -538,9 +613,34 @@ export default class Exporter {
             volatility: "percent",
           },
         };
+        const packetsLost = lastOfReports(
+          this._reports,
+          VALUE.VIDEO,
+          "total_packets_lost_out",
+          ssrc,
+        );
+        const packetsReceived = lastOfReports(
+          this._reports,
+          VALUE.VIDEO,
+          "total_packets_out",
+          ssrc,
+        );
+        const loss = {
+          lost: packetsLost,
+          avg: Math.round(
+            ((packetsLost /
+              (packetsLost + packetsReceived)) *
+              100 || 0) * 100,
+          ) / 100,
+          _unit: {
+            avg: "percent",
+            lost: "number",
+          },
+        };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].rtt = rtt;
         ssrcExporter[ssrc].bitrate = bitrate;
+        ssrcExporter[ssrc].loss = loss;
       }
     });
 
