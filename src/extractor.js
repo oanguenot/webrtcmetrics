@@ -248,6 +248,30 @@ const extractAudioVideoPacketSent = (
   return packetsSent;
 };
 
+const extractAudioVideoPacketLost = (
+    bunch,
+    kind,
+    previousBunch,
+    referenceReport,
+) => {
+  let packetsLost = previousBunch[kind].total_packets_lost_out;
+  let deltaPacketsLost = 0;
+  let fractionLost = 0;
+  if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST)) {
+    packetsLost = Number(bunch[PROPERTY.PACKETS_LOST]) || 0 - (referenceReport ? referenceReport[kind].total_packets_lost_out : 0);
+    deltaPacketsLost = packetsLost - previousBunch[kind].total_packets_lost_out;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRACTION_LOST)) {
+    fractionLost = Number(bunch[PROPERTY.FRACTION_LOST]);
+  }
+  return {
+    packetsLost,
+    deltaPacketsLost,
+    fractionLost,
+  };
+};
+
 const extractAudioVideoPacketReceived = (
   bunch,
   kind,
@@ -1087,6 +1111,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Jitter (out)
         const jitter = extractLastJitter(bunch, VALUE.AUDIO, previousSSRCBunch);
 
+        // Packets lost
+        const packets = extractAudioVideoPacketLost(bunch, VALUE.AUDIO, previousSSRCBunch, referenceSSRCBunch);
+
         return [
           {
             ssrc,
@@ -1112,6 +1139,21 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { remote_timestamp: bunch[PROPERTY.TIMESTAMP] },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_packets_lost_out: packets.packetsLost },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_packets_lost_out: packets.deltaPacketsLost },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { percent_packets_lost_out: packets.fractionLost },
           },
         ];
       }
@@ -1128,6 +1170,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Jitter (out)
         const jitter = extractLastJitter(bunch, VALUE.VIDEO, previousSSRCBunch);
 
+        // Packets lost
+        const packets = extractAudioVideoPacketLost(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
+
         return [
           {
             ssrc,
@@ -1153,6 +1198,21 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { remote_timestamp: bunch[PROPERTY.TIMESTAMP] },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_packets_lost_out: packets.packetsLost },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_packets_lost_out: packets.deltaPacketsLost },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { percent_packets_lost_out: packets.fractionLost },
           },
         ];
       }
