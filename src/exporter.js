@@ -224,7 +224,39 @@ export default class Exporter {
             volatility: "percent",
           },
         };
-
+        const bitrate = {
+          avg: (averageValuesOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_in",
+            false,
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          min: (minValueOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_in",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          max: (maxValueOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_in",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          volatility: volatilityValuesOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_in",
+            ssrc,
+          ),
+          _unit: {
+            avg: "kbs",
+            min: "kbs",
+            max: "kbs",
+            volatility: "percent",
+          },
+        };
         const mos = {
           emodel: {
             avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_emodel_in", false, ssrc),
@@ -257,6 +289,7 @@ export default class Exporter {
         };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].mos = mos;
+        ssrcExporter[ssrc].bitrate = bitrate;
       } else {
         const jitter = {
           avg: averageValuesOfReports(
@@ -291,6 +324,39 @@ export default class Exporter {
             volatility: "percent",
           },
         };
+        const bitrate = {
+          avg: (averageValuesOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_out",
+            false,
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          min: (minValueOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_out",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          max: (maxValueOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_out",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          volatility: volatilityValuesOfReports(
+            this._reports,
+            VALUE.AUDIO,
+            "delta_KBytes_out",
+            ssrc,
+          ),
+          _unit: {
+            avg: "kbs",
+            min: "kbs",
+            max: "kbs",
+            volatility: "percent",
+          },
+        };
         const rtt = {
           avg: averageRTT(this._reports, VALUE.AUDIO, ssrc),
           min: minValueOfReports(this._reports, VALUE.AUDIO, "delta_rtt_ms_out", ssrc),
@@ -310,6 +376,7 @@ export default class Exporter {
         };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].rtt = rtt;
+        ssrcExporter[ssrc].bitrate = bitrate;
       }
     });
     lastReport[VALUE.VIDEO].forEach((ssrcVideo) => {
@@ -352,7 +419,41 @@ export default class Exporter {
             volatility: "percent",
           },
         };
+        const bitrate = {
+          avg: (averageValuesOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_in",
+            false,
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          min: (minValueOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_in",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          max: (maxValueOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_in",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          volatility: volatilityValuesOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_in",
+            ssrc,
+          ),
+          _unit: {
+            avg: "kbs",
+            min: "kbs",
+            max: "kbs",
+            volatility: "percent",
+          },
+        };
         ssrcExporter[ssrc].jitter = jitter;
+        ssrcExporter[ssrc].bitrate = bitrate;
       } else {
         const jitter = {
           avg: averageValuesOfReports(
@@ -387,6 +488,39 @@ export default class Exporter {
             volatility: "percent",
           },
         };
+        const bitrate = {
+          avg: (averageValuesOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_out",
+            false,
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          min: (minValueOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_out",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          max: (maxValueOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_out",
+            ssrc,
+          ) / this._cfg.refreshEvery) * 1000 * 8,
+          volatility: volatilityValuesOfReports(
+            this._reports,
+            VALUE.VIDEO,
+            "delta_KBytes_out",
+            ssrc,
+          ),
+          _unit: {
+            avg: "kbs",
+            min: "kbs",
+            max: "kbs",
+            volatility: "percent",
+          },
+        };
         const rtt = {
           avg: averageRTT(this._reports, VALUE.VIDEO, ssrc),
           min: minValueOfReports(this._reports, VALUE.VIDEO, "delta_rtt_ms_out", ssrc),
@@ -406,11 +540,15 @@ export default class Exporter {
         };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].rtt = rtt;
+        ssrcExporter[ssrc].bitrate = bitrate;
       }
     });
 
     return {
       version: VERSION_EXPORTER,
+      configuration: {
+        frequency: this._cfg.refreshEvery,
+      },
       started: this._start,
       ended: this._end,
       ua: {
