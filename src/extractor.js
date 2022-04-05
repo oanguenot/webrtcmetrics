@@ -245,7 +245,7 @@ const extractAudioVideoPacketSent = (
   }
 
   const packetsSent = Number(bunch[PROPERTY.PACKETS_SENT]) || 0 - (referenceReport ? referenceReport[kind].total_packets_out : 0);
-  return { packetsSent };
+  return packetsSent;
 };
 
 const extractAudioVideoPacketReceived = (
