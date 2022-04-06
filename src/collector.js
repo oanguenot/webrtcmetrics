@@ -1,5 +1,11 @@
 import Exporter from "./exporter";
-import { computeMOS, computeEModelMOS, extract } from "./extractor";
+import { extract } from "./extractor";
+import {
+  computeMOS,
+  computeEModelMOS,
+  computeMOSForOutgoing,
+  computeEModelMOSForOutgoing,
+} from "./utils/score";
 import {
   COLLECTOR_STATE, DIRECTION,
   defaultAudioMetricIn,
@@ -82,21 +88,38 @@ export default class Collector {
       });
     });
     report.timestamp = timestamp;
-    report[VALUE.AUDIO].filter((ssrc) => (ssrc.direction === DIRECTION.INBOUND)).forEach((ssrcReport) => {
-      ssrcReport.mos_emodel_in = computeEModelMOS(
-        report,
-        VALUE.AUDIO,
-        previousReport,
-        beforeLastReport,
-        ssrcReport.ssrc,
-      );
-      ssrcReport.mos_in = computeMOS(
-        report,
-        VALUE.AUDIO,
-        previousReport,
-        beforeLastReport,
-        ssrcReport.ssrc,
-      );
+    report[VALUE.AUDIO].forEach((ssrcReport) => {
+      if (ssrcReport.direction === DIRECTION.INBOUND) {
+        ssrcReport.mos_emodel_in = computeEModelMOS(
+          report,
+          VALUE.AUDIO,
+          previousReport,
+          beforeLastReport,
+          ssrcReport.ssrc,
+        );
+        ssrcReport.mos_in = computeMOS(
+          report,
+          VALUE.AUDIO,
+          previousReport,
+          beforeLastReport,
+          ssrcReport.ssrc,
+        );
+      } else {
+        ssrcReport.mos_emodel_out = computeEModelMOSForOutgoing(
+          report,
+          VALUE.AUDIO,
+          previousReport,
+          beforeLastReport,
+          ssrcReport.ssrc,
+        );
+        ssrcReport.mos_out = computeMOSForOutgoing(
+          report,
+          VALUE.AUDIO,
+          previousReport,
+          beforeLastReport,
+          ssrcReport.ssrc,
+        );
+      }
     });
     return report;
   }

@@ -1,4 +1,12 @@
 import ShortUniqueId from "short-unique-id";
+import {
+  defaultAudioMetricIn,
+  defaultAudioMetricOut,
+  defaultVideoMetricIn,
+  defaultVideoMetricOut,
+  DIRECTION,
+  VALUE,
+} from "./models";
 
 const shortUUID = new ShortUniqueId();
 
@@ -105,3 +113,13 @@ export const lastOfReports = (reports, key, subKey, ssrc) => {
 };
 
 export const getLastReport = (reports) => (reports.slice().pop());
+
+export const getSSRCDataFromBunch = (ssrc, bunch, direction) => {
+  if (!bunch) {
+    return null;
+  }
+  const ssrcBunch = {};
+  ssrcBunch[VALUE.AUDIO] = bunch[VALUE.AUDIO].find((b) => b.ssrc === ssrc) || (direction === DIRECTION.INBOUND ? { ...defaultAudioMetricIn } : { ...defaultAudioMetricOut });
+  ssrcBunch[VALUE.VIDEO] = bunch[VALUE.VIDEO].find((b) => b.ssrc === ssrc) || (direction === DIRECTION.INBOUND ? { ...defaultVideoMetricIn } : { ...defaultVideoMetricOut });
+  return ssrcBunch;
+};

@@ -92,6 +92,8 @@ export const defaultAudioMetricOut = {
   total_KBytes_out: 0,
   delta_KBytes_out: 0,
   remote_timestamp: null,
+  mos_out: 0,
+  mos_emodel_out: 0,
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };
