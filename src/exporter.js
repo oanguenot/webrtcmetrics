@@ -423,10 +423,41 @@ export default class Exporter {
             lost: "number",
           },
         };
+        const mos = {
+          emodel: {
+            avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_emodel_out", false, ssrc),
+            min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_emodel_out", ssrc),
+            max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_emodel_out", ssrc),
+            volatility: volatilityValuesOfReports(
+              this._reports,
+              VALUE.AUDIO,
+              "mos_emodel_out",
+              ssrc,
+            ),
+          },
+          effective: {
+            avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_out", false, ssrc),
+            min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
+            max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
+            volatility: volatilityValuesOfReports(
+              this._reports,
+              VALUE.AUDIO,
+              "mos_out",
+              ssrc,
+            ),
+          },
+          _unit: {
+            avg: "number (1-5)",
+            min: "number (1-5)",
+            max: "number (1-5)",
+            volatility: "percent",
+          },
+        };
         ssrcExporter[ssrc].jitter = jitter;
         ssrcExporter[ssrc].rtt = rtt;
         ssrcExporter[ssrc].bitrate = bitrate;
         ssrcExporter[ssrc].loss = loss;
+        ssrcExporter[ssrc].mos = mos;
       }
     });
     lastReport[VALUE.VIDEO].forEach((ssrcVideo) => {
