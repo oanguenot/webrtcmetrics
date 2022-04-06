@@ -5,6 +5,7 @@ import {
   INFRASTRUCTURE_LABEL,
   TYPE,
   VALUE,
+  DIRECTION,
   defaultAudioMetricIn,
   defaultAudioMetricOut,
   defaultVideoMetricIn,
@@ -17,13 +18,13 @@ import { debug } from "./utils/log";
 
 const moduleName = "extractor   ";
 
-const getSSRCDataFromBunch = (ssrc, bunch, reportType) => {
+const getSSRCDataFromBunch = (ssrc, bunch, direction) => {
   if (!bunch) {
     return null;
   }
   const ssrcBunch = {};
-  ssrcBunch[VALUE.AUDIO] = bunch[VALUE.AUDIO].find((b) => b.ssrc === ssrc) || (reportType === TYPE.INBOUND_RTP ? { ...defaultAudioMetricIn } : { ...defaultAudioMetricOut });
-  ssrcBunch[VALUE.VIDEO] = bunch[VALUE.VIDEO].find((b) => b.ssrc === ssrc) || (reportType === TYPE.INBOUND_RTP ? { ...defaultVideoMetricIn } : { ...defaultVideoMetricOut });
+  ssrcBunch[VALUE.AUDIO] = bunch[VALUE.AUDIO].find((b) => b.ssrc === ssrc) || (direction === DIRECTION.INBOUND ? { ...defaultAudioMetricIn } : { ...defaultAudioMetricOut });
+  ssrcBunch[VALUE.VIDEO] = bunch[VALUE.VIDEO].find((b) => b.ssrc === ssrc) || (direction === DIRECTION.INBOUND ? { ...defaultVideoMetricIn } : { ...defaultVideoMetricOut });
   return ssrcBunch;
 };
 
@@ -636,8 +637,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
-      const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, bunch.type);
-      const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, bunch.type);
+      const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.INBOUND);
+      const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, DIRECTION.INBOUND);
 
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         // Packets stats
@@ -872,8 +873,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
 
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
-      const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, bunch.type);
-      const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, bunch.type);
+      const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
+      const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, DIRECTION.OUTBOUND);
 
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const audioTotalKBytesSent =
@@ -1097,8 +1098,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       );
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
-      const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, bunch.type);
-      const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, bunch.type);
+      const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
+      const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, DIRECTION.OUTBOUND);
       if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
         // Round Trip Time based on RTCP
         const data = extractRTTBasedOnRTCP(
@@ -1233,9 +1234,9 @@ export const computeEModelMOS = (
   beforeLastReport,
   ssrc,
 ) => {
-  const currentSSRCReport = getSSRCDataFromBunch(ssrc, report, TYPE.INBOUND_RTP);
-  const previousSSRCReport = getSSRCDataFromBunch(ssrc, previousReport, TYPE.INBOUND_RTP);
-  const beforeLastSSRCReport = getSSRCDataFromBunch(ssrc, beforeLastReport, TYPE.INBOUND_RTP);
+  const currentSSRCReport = getSSRCDataFromBunch(ssrc, report, DIRECTION.INBOUND);
+  const previousSSRCReport = getSSRCDataFromBunch(ssrc, previousReport, DIRECTION.INBOUND);
+  const beforeLastSSRCReport = getSSRCDataFromBunch(ssrc, beforeLastReport, DIRECTION.INBOUND);
   const rttValues = [];
   const jitterValues = [];
   const packetsLoss = currentSSRCReport[kind].percent_packets_lost_in;
@@ -1311,9 +1312,9 @@ export const computeMOS = (
   beforeLastReport,
   ssrc,
 ) => {
-  const currentSSRCReport = getSSRCDataFromBunch(ssrc, report, TYPE.INBOUND_RTP);
-  const previousSSRCReport = getSSRCDataFromBunch(ssrc, previousReport, TYPE.INBOUND_RTP);
-  const beforeLastSSRCReport = getSSRCDataFromBunch(ssrc, beforeLastReport, TYPE.INBOUND_RTP);
+  const currentSSRCReport = getSSRCDataFromBunch(ssrc, report, DIRECTION.INBOUND);
+  const previousSSRCReport = getSSRCDataFromBunch(ssrc, previousReport, DIRECTION.INBOUND);
+  const beforeLastSSRCReport = getSSRCDataFromBunch(ssrc, beforeLastReport, DIRECTION.INBOUND);
   const rttValues = [];
   const jitterValues = [];
   const packetsLoss = currentSSRCReport[kind].percent_packets_lost_in;
