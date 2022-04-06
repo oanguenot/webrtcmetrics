@@ -46,14 +46,14 @@ const averageRTTConnectivity = (reports, kind) => {
   if (!lastReport) {
     return 0;
   }
-  const totalRTT = lastReport[kind].total_rtt_connectivity_ms_out;
-  const totalMeasurements = lastReport[kind].total_rtt_connectivity_measure_out;
+  const totalRTT = lastReport[kind].total_rtt_connectivity_ms;
+  const totalMeasurements = lastReport[kind].total_rtt_connectivity_measure;
 
   if (!totalMeasurements || !totalRTT) {
     return averageValuesOfReports(
       reports,
       kind,
-      "delta_rtt_connectivity_ms_out",
+      "delta_rtt_connectivity_ms",
     );
   }
 
@@ -672,17 +672,17 @@ export default class Exporter {
           min: minValueOfReports(
             this._reports,
             "data",
-            "delta_rtt_connectivity_ms_out",
+            "delta_rtt_connectivity_ms",
           ),
           max: maxValueOfReports(
             this._reports,
             "data",
-            "delta_rtt_connectivity_ms_out",
+            "delta_rtt_connectivity_ms",
           ),
           volatility: volatilityValuesOfReports(
             this._reports,
             "data",
-            "delta_rtt_connectivity_ms_out",
+            "delta_rtt_connectivity_ms",
           ),
           _unit: {
             avg: "ms",

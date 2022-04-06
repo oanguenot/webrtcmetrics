@@ -252,19 +252,19 @@ Each **report** collected from the event `onreport` contains the following stati
 
 These stats are collected from the candidate-pair stats.
 
-| Name                                   | Value | Description |
-|:---------------------------------------|:-----:|:------------|
-| **delta_KBytes_in**                    | Number | Number of kilobytes (KB) received since the last report (audio+video) |
-| **delta_KBytes_out**                   | Number | Number of kilobytes (KB) sent since last report (audio+video) |
-| **delta_kbs_bandwidth_in**             | Number | Available incoming bitrate in kb/s (audio+video) |
-| **delta_kbs_bandwidth_out**            | Number | Available outgoing bitrate in kb/s for (audio+video) |
-| **delta_kbs_in**                       | Number | Number of kbit received per second since the last report (audio+video) |
-| **delta_kbs_out**                      | Number | Number of kbit sent per second since the last report (audio+video) |
-| **delta_rtt_connectivity_ms_out**      | Number | Round Trip-Time (in ms) computed from STUN connectivity checks  |
-| **total_KBytes_in**                    | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video) |
-| **total_KBytes_out**                   | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video) |
-| **total_rtt_connectivity_measure_out** | Number | Number of RTT measurements done (from STUN connectivity checks) |
-| **total_rtt_connectivity_ms_out**      | Number | Total Round Trip Time since the beginning of the call (from STUN connectivity checks) |
+| Name                               | Value  | Description                                                                           |
+|:-----------------------------------|:------:|:--------------------------------------------------------------------------------------|
+| **delta_KBytes_in**                | Number | Number of kilobytes (KB) received since the last report (audio+video)                 |
+| **delta_KBytes_out**               | Number | Number of kilobytes (KB) sent since last report (audio+video)                         |
+| **delta_kbs_bandwidth_in**         | Number | Available incoming bitrate in kb/s (audio+video)                                      |
+| **delta_kbs_bandwidth_out**        | Number | Available outgoing bitrate in kb/s for (audio+video)                                  |
+| **delta_kbs_in**                   | Number | Number of kbit received per second since the last report (audio+video)                |
+| **delta_kbs_out**                  | Number | Number of kbit sent per second since the last report (audio+video)                    |
+| **delta_rtt_connectivity_ms**      | Number | Round Trip-Time (in ms) computed from STUN connectivity checks                        |
+| **total_KBytes_in**                | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video)       |
+| **total_KBytes_out**               | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video)           |
+| **total_rtt_connectivity_measure** | Number | Number of RTT measurements done (from STUN connectivity checks)                       |
+| **total_rtt_connectivity_ms**      | Number | Total Round Trip Time since the beginning of the call (from STUN connectivity checks) |
 
 ### Experimental
 

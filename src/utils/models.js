@@ -180,9 +180,9 @@ export const getDefaultMetric = (previousStats) => {
       delta_kbs_out: 0,
       delta_kbs_bandwidth_in: 0,
       delta_kbs_bandwidth_out: 0,
-      delta_rtt_connectivity_ms_out: null,
-      total_rtt_connectivity_ms_out: 0,
-      total_rtt_connectivity_measure_out: 0,
+      delta_rtt_connectivity_ms: null,
+      total_rtt_connectivity_ms: 0,
+      total_rtt_connectivity_measure: 0,
     },
     experimental: {
       time_to_measure_ms: 0,

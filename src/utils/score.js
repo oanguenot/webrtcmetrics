@@ -32,12 +32,12 @@ export const computeEModelMOS = (
   const beforeLastJitter =
     (beforeLastSSRCReport && beforeLastSSRCReport[kind].delta_jitter_ms_in) ||
     null;
-  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms_out;
+  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms;
   const lastRTTConnectivity =
-    (previousReport && previousReport.data.delta_rtt_connectivity_ms_out) ||
+    (previousReport && previousReport.data.delta_rtt_connectivity_ms) ||
     null;
   const beforeLastRTTConnectivity =
-    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms_out) ||
+    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms) ||
     null;
 
   if (currentRTTConnectivity) {
@@ -103,12 +103,12 @@ export const computeEModelMOSForOutgoing = (
   const beforeLastJitter =
     (beforeLastSSRCReport && beforeLastSSRCReport[kind].delta_jitter_ms_out) ||
     null;
-  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms_out;
+  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms;
   const lastRTTConnectivity =
-    (previousReport && previousReport.data.delta_rtt_connectivity_ms_out) ||
+    (previousReport && previousReport.data.delta_rtt_connectivity_ms) ||
     null;
   const beforeLastRTTConnectivity =
-    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms_out) ||
+    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms) ||
     null;
 
   // Put RTT values when exist
@@ -175,12 +175,12 @@ export const computeMOS = (
   const beforeLastJitter =
     (beforeLastSSRCReport && beforeLastSSRCReport[kind].delta_jitter_ms_in) ||
     null;
-  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms_out;
+  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms;
   const lastRTTConnectivity =
-    (previousReport && previousReport.data.delta_rtt_connectivity_ms_out) ||
+    (previousReport && previousReport.data.delta_rtt_connectivity_ms) ||
     null;
   const beforeLastRTTConnectivity =
-    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms_out) ||
+    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms) ||
     null;
 
   // Put RTT values when exist
@@ -250,12 +250,12 @@ export const computeMOSForOutgoing = (
   const beforeLastJitter =
     (beforeLastSSRCReport && beforeLastSSRCReport[kind].delta_jitter_ms_out) ||
     null;
-  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms_out;
+  const currentRTTConnectivity = report.data.delta_rtt_connectivity_ms;
   const lastRTTConnectivity =
-    (previousReport && previousReport.data.delta_rtt_connectivity_ms_out) ||
+    (previousReport && previousReport.data.delta_rtt_connectivity_ms) ||
     null;
   const beforeLastRTTConnectivity =
-    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms_out) ||
+    (beforeLastReport && beforeLastReport.data.delta_rtt_connectivity_ms) ||
     null;
 
   // Put RTT values when exist

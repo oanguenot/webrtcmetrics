@@ -94,18 +94,18 @@ const extractRTTBasedOnSTUNConnectivityCheck = (
   ) {
     return {
       rtt: null,
-      totalRTT: previousBunch[kind].total_rtt_connectivity_ms_out,
+      totalRTT: previousBunch[kind].total_rtt_connectivity_ms,
       totalRTTMeasurements:
-        previousBunch[kind].total_rtt_connectivity_measure_out,
+        previousBunch[kind].total_rtt_connectivity_measure,
     };
   }
 
   const currentRTT =
     Number(1000) * Number(bunch[PROPERTY.CURRENT_ROUND_TRIP_TIME]);
   let currentTotalRTT =
-    previousBunch[kind].total_rtt_connectivity_ms_out + currentRTT;
+    previousBunch[kind].total_rtt_connectivity_ms + currentRTT;
   let currentTotalMeasurements =
-    previousBunch[kind].total_rtt_connectivity_measure_out + 1;
+    previousBunch[kind].total_rtt_connectivity_measure + 1;
 
   // If support of totalRoundTripTime
   if (
@@ -114,7 +114,7 @@ const extractRTTBasedOnSTUNConnectivityCheck = (
     currentTotalRTT =
       Number(1000) * Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME]) -
       (referenceReport
-        ? referenceReport[kind].total_rtt_connectivity_ms_out
+        ? referenceReport[kind].total_rtt_connectivity_ms
         : 0);
   }
   // If support of responsesReceived
@@ -124,7 +124,7 @@ const extractRTTBasedOnSTUNConnectivityCheck = (
     currentTotalMeasurements =
       Number(bunch[PROPERTY.RESPONSES_RECEIVED]) -
       (referenceReport
-        ? referenceReport[kind].total_rtt_connectivity_measure_out
+        ? referenceReport[kind].total_rtt_connectivity_measure
         : 0);
   }
 
@@ -542,16 +542,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           },
           {
             type: STAT_TYPE.DATA,
-            value: { delta_rtt_connectivity_ms_out: rttConnectivity.rtt },
+            value: { delta_rtt_connectivity_ms: rttConnectivity.rtt },
           },
           {
             type: STAT_TYPE.DATA,
-            value: { total_rtt_connectivity_ms_out: rttConnectivity.totalRTT },
+            value: { total_rtt_connectivity_ms: rttConnectivity.totalRTT },
           },
           {
             type: STAT_TYPE.DATA,
             value: {
-              total_rtt_connectivity_measure_out:
+              total_rtt_connectivity_measure:
                 rttConnectivity.totalRTTMeasurements,
             },
           },
