@@ -170,6 +170,8 @@ Each **report** collected from the event `onreport` contains the following stati
 |:----------------------------|:-----:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **delta_KBytes_in**         | Number | Number of kilobytes (KB) received since the last report                                                                                                                                                                                                                    |
 | **delta_KBytes_out**        | Number | Number of kilobytes (KB) sent since last report                                                                                                                                                                                                                            |
+| **delta_kbs_in**               | Number | Number of kbits received per second since the last report                         |
+| **delta_kbs_out**              | Number | Number of kbits sent per second since the last report                             |
 | **delta_jitter_ms_in**      | Number | Incoming Jitter (in ms)                                                                                                                                                                                                                                                    |
 | **delta_jitter_ms_out**     | Number | Outgoing Jitter (in ms)                                                                                                                                                                                                                                                    |
 | **delta_packets_lost_in**   | Number | Number of packets lost (not received) since last report                                                                                                                                                                                                                    |
@@ -199,6 +201,8 @@ Each **report** collected from the event `onreport` contains the following stati
 | **decoder_in**                 | String | Description of the video decoder used                                             |
 | **delta_KBytes_in**            | Number | Number of kilobytes (KB) received since the last report                           |
 | **delta_KBytes_out**           | Number | Number of kilobytes (KB) sent since last report                                   |
+| **delta_kbs_in**               | Number | Number of kbits received per second since the last report                         |
+| **delta_kbs_out**              | Number | Number of kbits sent per second since the last report                             |
 | **delta_jitter_ms_in**         | Number | Incoming Jitter (in ms). Could be null when no value collected.                   |
 | **delta_jitter_ms_out**        | Number | Outgoing Jitter (in ms). Could be null when no value collected.                   |
 | **delta_ms_decode_frame_in**   | Number | Time needed to decode a frame                                                     |
@@ -258,8 +262,8 @@ These stats are collected from the candidate-pair stats.
 | **delta_KBytes_out**               | Number | Number of kilobytes (KB) sent since last report (audio+video)                         |
 | **delta_kbs_bandwidth_in**         | Number | Available incoming bitrate in kb/s (audio+video)                                      |
 | **delta_kbs_bandwidth_out**        | Number | Available outgoing bitrate in kb/s for (audio+video)                                  |
-| **delta_kbs_in**                   | Number | Number of kbit received per second since the last report (audio+video)                |
-| **delta_kbs_out**                  | Number | Number of kbit sent per second since the last report (audio+video)                    |
+| **delta_kbs_in**                   | Number | Number of kbits received per second since the last report (audio+video)                |
+| **delta_kbs_out**                  | Number | Number of kbits sent per second since the last report (audio+video)                    |
 | **delta_rtt_connectivity_ms**      | Number | Round Trip-Time (in ms) computed from STUN connectivity checks                        |
 | **total_KBytes_in**                | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video)       |
 | **total_KBytes_out**               | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video)           |
