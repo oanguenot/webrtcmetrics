@@ -168,7 +168,7 @@ export const computeMOS = (
   const beforeLastSSRCReport = getSSRCDataFromBunch(ssrc, beforeLastReport, DIRECTION.INBOUND);
   const rttValues = [];
   const jitterValues = [];
-  const packetsLoss = currentSSRCReport[kind].percent_packets_lost_in;
+  const packetsLoss = currentSSRCReport[kind].percent_packets_lost_in / 100;
   const currentJitter = currentSSRCReport[kind].delta_jitter_ms_in;
   const lastJitter =
     (previousSSRCReport && previousSSRCReport[kind].delta_jitter_ms_in) || null;
@@ -237,7 +237,7 @@ export const computeMOSForOutgoing = (
   const beforeLastSSRCReport = getSSRCDataFromBunch(ssrc, beforeLastReport, DIRECTION.OUTBOUND);
   const rttValues = [];
   const jitterValues = [];
-  const packetsLoss = currentSSRCReport[kind].percent_packets_lost_out;
+  const packetsLoss = currentSSRCReport[kind].percent_packets_lost_out / 100;
   const currentRtt = currentSSRCReport[kind].delta_rtt_ms_out;
   const lastRtt =
     (previousSSRCReport && previousSSRCReport[kind].delta_rtt_ms_out) || null;
