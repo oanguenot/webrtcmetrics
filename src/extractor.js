@@ -255,12 +255,14 @@ const extractAudioVideoPacketReceived = (
 ) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_RECEIVED) ||
-    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST)
+    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_LOST) ||
+    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.BYTES_RECEIVED)
   ) {
     return {
       percent_packets_lost: previousBunch[kind].percent_packets_lost_in,
       packetsReceived: previousBunch[kind].total_packets_in,
       packetsLost: previousBunch[kind].total_packets_lost_in,
+      bytesReceived: previousBunch[kind].total_KBytes_in,
     };
   }
 
@@ -278,8 +280,29 @@ const extractAudioVideoPacketReceived = (
     packetsReceived !== previousBunch[kind].total_packets_in
       ? (deltaPacketsLost * 100) / (deltaPacketsLost + deltaPacketsReceived)
       : 0.0;
+  const KBytesReceived = (Number(bunch[PROPERTY.BYTES_RECEIVED]) / 1024) - (referenceReport ? referenceReport[kind].total_KBytes_in : 0);
+  const deltaKBytesReceived = KBytesReceived - previousBunch[kind].total_KBytes_in;
+  const timestamp = bunch[PROPERTY.TIMESTAMP] || Date.now();
+  const referenceTimestamp = referenceReport ? referenceReport.timestamp : null;
+  let previousTimestamp = previousBunch.timestamp;
+  if (!previousTimestamp && referenceTimestamp) {
+    previousTimestamp = referenceTimestamp;
+  }
+  const deltaMs = previousTimestamp ? timestamp - previousTimestamp : 0;
+  const kbsReceived = deltaMs > 0 ? ((deltaKBytesReceived * 0.008 * 1024) / deltaMs) * 1000 : 0; // kbs = kilo bits per second
 
-  return { percentPacketsLost, packetsReceived, packetsLost };
+  console.log(">>>", bunch, KBytesReceived, deltaKBytesReceived, timestamp, previousTimestamp, referenceTimestamp);
+
+  return {
+    percentPacketsLost,
+    packetsReceived,
+    deltaPacketsReceived,
+    packetsLost,
+    deltaPacketsLost,
+    KBytesReceived,
+    deltaKBytesReceived,
+    kbsReceived,
+  };
 };
 
 const extractRelayProtocolUsed = (bunch) => {
@@ -612,35 +635,25 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.INBOUND);
+      if (previousSSRCBunch) {
+        previousSSRCBunch.timestamp = previousBunch.timestamp;
+      }
       const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, DIRECTION.INBOUND);
+      if (referenceSSRCBunch) {
+        referenceSSRCBunch.timestamp = referenceReport.timestamp;
+      }
 
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
-        // Packets stats
+        // Packets stats and Bytes
         const data = extractAudioVideoPacketReceived(
             bunch,
             VALUE.AUDIO,
             previousSSRCBunch,
             referenceSSRCBunch,
         );
-        const audioPacketReceivedDelta =
-            data.packetsReceived -
-            previousSSRCBunch[VALUE.AUDIO].total_packets_in;
-        const audioPacketLostDelta =
-            data.packetsLost -
-            previousSSRCBunch[VALUE.AUDIO].total_packets_lost_in;
 
         // Jitter stats
         const jitter = extractLastJitter(bunch, VALUE.AUDIO, previousSSRCBunch);
-
-        // Bytes stats
-        const audioTotalKBytesReceived =
-            (bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024 -
-            (referenceSSRCBunch
-                ? referenceSSRCBunch[VALUE.AUDIO].total_KBytes_in
-                : 0);
-        const audioKBytesReceived =
-            audioTotalKBytesReceived -
-            previousSSRCBunch[VALUE.AUDIO].total_KBytes_in;
 
         // Codec stats
         const audioInputCodecId = bunch[PROPERTY.CODEC_ID] || "";
@@ -654,12 +667,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { percent_packets_lost_in: data.percentPacketsLost },
+            value: { total_packets_in: data.packetsReceived },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { total_packets_in: data.packetsReceived },
+            value: { delta_packets_in: data.deltaPacketsReceived },
           },
           {
             ssrc,
@@ -669,27 +682,32 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { delta_packets_in: audioPacketReceivedDelta },
+            value: { delta_packets_lost_in: data.deltaPacketsLost },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { delta_packets_lost_in: audioPacketLostDelta },
+            value: { percent_packets_lost_in: data.percentPacketsLost },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_KBytes_in: data.KBytesReceived },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_KBytes_in: data.deltaKBytesReceived },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_kbs_in: data.kbsReceived },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { delta_jitter_ms_in: jitter },
-          },
-          {
-            ssrc,
-            type: STAT_TYPE.AUDIO,
-            value: { total_KBytes_in: audioTotalKBytesReceived },
-          },
-          {
-            ssrc,
-            type: STAT_TYPE.AUDIO,
-            value: { delta_KBytes_in: audioKBytesReceived },
           },
         ];
       }
@@ -698,32 +716,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         // Decode time stats
         const data = extractDecodeTime(bunch, previousSSRCBunch);
 
-        // Packets stats
+        // Packets stats and Bytes
         const packetsData = extractAudioVideoPacketReceived(
             bunch,
             VALUE.VIDEO,
             previousSSRCBunch,
             referenceSSRCBunch,
         );
-        const videoPacketReceivedDelta =
-            packetsData.packetsReceived -
-            previousSSRCBunch[VALUE.VIDEO].total_packets_in;
-        const videoPacketLostDelta =
-            packetsData.packetsLost -
-            previousSSRCBunch[VALUE.VIDEO].total_packets_lost_in;
 
         // Jitter stats
         const jitter = extractLastJitter(bunch, VALUE.VIDEO, previousSSRCBunch);
-
-        // Bytes stats
-        const videoTotalKBytesReceived =
-            (bunch[PROPERTY.BYTES_RECEIVED] || 0) / 1024 -
-            (referenceSSRCBunch
-                ? referenceSSRCBunch[VALUE.VIDEO].total_KBytes_in
-                : 0);
-        const videoKBytesReceived =
-            videoTotalKBytesReceived -
-            previousSSRCBunch[VALUE.VIDEO].total_KBytes_in;
 
         // Codec stats
         const decoderImplementation =
@@ -752,12 +754,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { percent_packets_lost_in: packetsData.percentPacketsLost },
+            value: { total_packets_in: packetsData.packetsReceived },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { total_packets_in: packetsData.packetsReceived },
+            value: { delta_packets_in: packetsData.deltaPacketsReceived },
           },
           {
             ssrc,
@@ -767,27 +769,32 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_packets_in: videoPacketReceivedDelta },
+            value: { delta_packets_lost_in: packetsData.deltaPacketsLost },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_packets_lost_in: videoPacketLostDelta },
+            value: { percent_packets_lost_in: packetsData.percentPacketsLost },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_KBytes_in: packetsData.KBytesReceived },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_KBytes_in: packetsData.deltaKBytesReceived },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_kbs_in: packetsData.kbsReceived },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { delta_jitter_ms_in: jitter },
-          },
-          {
-            ssrc,
-            type: STAT_TYPE.VIDEO,
-            value: { total_KBytes_in: videoTotalKBytesReceived },
-          },
-          {
-            ssrc,
-            type: STAT_TYPE.VIDEO,
-            value: { delta_KBytes_in: videoKBytesReceived },
           },
           {
             ssrc,
