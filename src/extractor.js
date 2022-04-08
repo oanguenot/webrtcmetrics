@@ -213,14 +213,39 @@ const extractAudioVideoPacketSent = (
   previousBunch,
   referenceReport,
 ) => {
-  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_SENT)) {
+  if (
+    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_SENT) ||
+    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.BYTES_SENT)
+  ) {
     return {
       packetsSent: previousBunch[kind].total_packets_out,
+      packetsLost: previousBunch[kind].total_packets_lost_out,
+      bytesSent: previousBunch[kind].total_KBytes_out,
     };
   }
 
-  const packetsSent = Number(bunch[PROPERTY.PACKETS_SENT]) || 0 - (referenceReport ? referenceReport[kind].total_packets_out : 0);
-  return packetsSent;
+  const packetsSent =
+    Number(bunch[PROPERTY.PACKETS_SENT]) ||
+    0 - (referenceReport ? referenceReport[kind].total_packets_out : 0);
+  const deltaPacketsSent = packetsSent - previousBunch[kind].total_packets_out;
+  const KBytesSent = (Number(bunch[PROPERTY.BYTES_SENT]) / 1024) - (referenceReport ? referenceReport[kind].total_KBytes_out : 0);
+  const deltaKBytesSent = KBytesSent - previousBunch[kind].total_KBytes_out;
+  const timestamp = bunch[PROPERTY.TIMESTAMP] || Date.now();
+  const referenceTimestamp = referenceReport ? referenceReport.timestamp : null;
+  let previousTimestamp = previousBunch.timestamp;
+  if (!previousTimestamp && referenceTimestamp) {
+    previousTimestamp = referenceTimestamp;
+  }
+  const deltaMs = previousTimestamp ? timestamp - previousTimestamp : 0;
+  const kbsSent = deltaMs > 0 ? ((deltaKBytesSent * 0.008 * 1024) / deltaMs) * 1000 : 0; // kbs = kilo bits per second
+
+  return {
+    packetsSent,
+    deltaPacketsSent,
+    KBytesSent,
+    deltaKBytesSent,
+    kbsSent,
+  };
 };
 
 const extractAudioVideoPacketLost = (
@@ -290,8 +315,6 @@ const extractAudioVideoPacketReceived = (
   }
   const deltaMs = previousTimestamp ? timestamp - previousTimestamp : 0;
   const kbsReceived = deltaMs > 0 ? ((deltaKBytesReceived * 0.008 * 1024) / deltaMs) * 1000 : 0; // kbs = kilo bits per second
-
-  console.log(">>>", bunch, KBytesReceived, deltaKBytesReceived, timestamp, previousTimestamp, referenceTimestamp);
 
   return {
     percentPacketsLost,
@@ -855,19 +878,18 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
+      if (previousSSRCBunch) {
+        previousSSRCBunch.timestamp = previousBunch.timestamp;
+      }
       const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, DIRECTION.OUTBOUND);
-
+      if (referenceSSRCBunch) {
+        referenceSSRCBunch.timestamp = referenceReport.timestamp;
+      }
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
-        const audioTotalKBytesSent =
-            (bunch[PROPERTY.BYTES_SENT] || 0) / 1024 -
-            (referenceSSRCBunch ? referenceSSRCBunch[VALUE.AUDIO].total_KBytes_out : 0);
-        const audioKBytesSent =
-            audioTotalKBytesSent - previousSSRCBunch[VALUE.AUDIO].total_KBytes_out;
         const audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
-        // packets
-        const packetsSent = extractAudioVideoPacketSent(bunch, VALUE.AUDIO, previousSSRCBunch, referenceSSRCBunch);
-        const packetsSentDelta = packetsSent - previousSSRCBunch[VALUE.AUDIO].total_packets_out;
+        // packets and bytes
+        const data = extractAudioVideoPacketSent(bunch, VALUE.AUDIO, previousSSRCBunch, referenceSSRCBunch);
 
         return [
           {
@@ -878,33 +900,32 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { total_KBytes_out: audioTotalKBytesSent },
+            value: { total_packets_out: data.packetsSent },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { delta_KBytes_out: audioKBytesSent },
+            value: { delta_packets_out: data.deltaPacketsSent },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { total_packets_out: packetsSent },
+            value: { total_KBytes_out: data.KBytesSent },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { delta_packets_out: packetsSentDelta },
+            value: { delta_KBytes_out: data.deltaKBytesSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_kbs_out: data.kbsSent },
           },
         ];
       }
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
-        const videoTotalKBytesSent =
-            (bunch[PROPERTY.BYTES_SENT] || 0) / 1024 -
-            (referenceSSRCBunch ? referenceSSRCBunch[VALUE.VIDEO].total_KBytes_out : 0);
-        const videoKBytesSent =
-            videoTotalKBytesSent - previousSSRCBunch[VALUE.VIDEO].total_KBytes_out;
-        const encoderImplementation =
-            bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
+        const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         const videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
         // Encode time
@@ -926,9 +947,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const pliDelta =
             nackPliData.pliCount - previousSSRCBunch[VALUE.VIDEO].total_pli_in;
 
-        // packets
-        const packetsSent = extractAudioVideoPacketSent(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
-        const packetsSentDelta = packetsSent - previousSSRCBunch[VALUE.VIDEO].total_packets_out;
+        // packets and bytes
+        const dataSent = extractAudioVideoPacketSent(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
 
         return [
           {
@@ -939,12 +959,27 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { total_KBytes_out: videoTotalKBytesSent },
+            value: { total_packets_out: dataSent.packetsSent },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_KBytes_out: videoKBytesSent },
+            value: { delta_packets_out: dataSent.deltaPacketsSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_KBytes_out: dataSent.KBytesSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_KBytes_out: dataSent.deltaKBytesSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_kbs_out: dataSent.kbsSent },
           },
           {
             ssrc,
@@ -995,16 +1030,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { limitation_out: limitationOut },
-          },
-          {
-            ssrc,
-            type: STAT_TYPE.VIDEO,
-            value: { total_packets_out: packetsSent },
-          },
-          {
-            ssrc,
-            type: STAT_TYPE.VIDEO,
-            value: { delta_packets_out: packetsSentDelta },
           },
         ];
       }
