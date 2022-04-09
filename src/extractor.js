@@ -407,39 +407,51 @@ const extractQualityLimitation = (bunch) => {
   return { reason, durations, resolutionChanges };
 };
 
-const extractNackAndPliCountSent = (bunch, referenceReport) => {
+const extractNackAndPliCountSentWhenReceiving = (bunch, previousReport, referenceReport) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PLI) ||
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NACK)
   ) {
-    return { pliCount: 0, nackCount: 0 };
+    return {
+      pliCount: previousReport.total_pli_sent_in,
+      nackCount: previousReport.total_nack_sent_in,
+      deltaPliCount: 0,
+      deltaNackCount: 0,
+    };
   }
 
+  const pliCount = (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_pli_sent_in : 0);
+  const nackCount = (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_nack_sent_in : 0);
+
   return {
-    pliCount:
-      (bunch[PROPERTY.PLI] || 0) -
-      (referenceReport ? referenceReport[VALUE.VIDEO].total_pli_out : 0),
-    nackCount:
-      (bunch[PROPERTY.NACK] || 0) -
-      (referenceReport ? referenceReport[VALUE.VIDEO].total_nack_out : 0),
+    pliCount,
+    nackCount,
+    deltaPliCount: pliCount - previousReport[VALUE.VIDEO].total_pli_sent_in,
+    deltaNackCount: nackCount - previousReport[VALUE.VIDEO].total_nack_sent_in,
   };
 };
 
-const extractNackAndPliCountReceived = (bunch, referenceReport) => {
+const extractNackAndPliCountReceivedWhenSending = (bunch, previousReport, referenceReport) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PLI) ||
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.NACK)
   ) {
-    return { pliCount: 0, nackCount: 0 };
+    return {
+      pliCount: previousReport.total_pli_received_out,
+      nackCount: previousReport.total_nack_received_out,
+      deltaPliCount: 0,
+      deltaNackCount: 0,
+    };
   }
 
+  const pliCount = (bunch[PROPERTY.PLI] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_pli_received_out : 0);
+  const nackCount = (bunch[PROPERTY.NACK] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_nack_received_out : 0);
+
   return {
-    pliCount:
-      (bunch[PROPERTY.PLI] || 0) -
-      (referenceReport ? referenceReport[VALUE.VIDEO].total_pli_in : 0),
-    nackCount:
-      (bunch[PROPERTY.NACK] || 0) -
-      (referenceReport ? referenceReport[VALUE.VIDEO].total_nack_in : 0),
+    pliCount,
+    nackCount,
+    deltaPliCount: pliCount - previousReport[VALUE.VIDEO].total_pli_received_out,
+    deltaNackCount: nackCount - previousReport[VALUE.VIDEO].total_nack_received_out,
   };
 };
 
@@ -759,14 +771,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const inputVideo = extractVideoSize(bunch);
 
         // Nack & Pli stats
-        const nackPliData = extractNackAndPliCountSent(
-            bunch,
-            referenceSSRCBunch,
+        const nackPliData = extractNackAndPliCountSentWhenReceiving(
+          bunch,
+          previousSSRCBunch,
+          referenceSSRCBunch,
         );
-        const nackDelta =
-            nackPliData.nackCount - previousSSRCBunch[VALUE.VIDEO].total_nack_out;
-        const pliDelta =
-            nackPliData.pliCount - previousSSRCBunch[VALUE.VIDEO].total_pli_out;
 
         return [
           {
@@ -842,22 +851,22 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { total_nack_out: nackPliData.nackCount },
+            value: { total_nack_sent_in: nackPliData.nackCount },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_nack_out: nackDelta },
+            value: { delta_nack_sent_in: nackPliData.deltaNackCount },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { total_pli_out: nackPliData.pliCount },
+            value: { total_pli_sent_in: nackPliData.pliCount },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_pli_out: pliDelta },
+            value: { delta_pli_sent_in: nackPliData.deltaPliCount },
           },
           {
             ssrc,
@@ -938,14 +947,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
         const limitationOut = extractQualityLimitation(bunch);
 
         // Nack & Pli stats
-        const nackPliData = extractNackAndPliCountReceived(
-            bunch,
-            referenceSSRCBunch,
+        const nackPliData = extractNackAndPliCountReceivedWhenSending(
+          bunch,
+          previousSSRCBunch,
+          referenceSSRCBunch,
         );
-        const nackDelta =
-            nackPliData.nackCount - previousSSRCBunch[VALUE.VIDEO].total_nack_in;
-        const pliDelta =
-            nackPliData.pliCount - previousSSRCBunch[VALUE.VIDEO].total_pli_in;
 
         // packets and bytes
         const dataSent = extractAudioVideoPacketSent(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
@@ -1004,22 +1010,22 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { total_nack_in: nackPliData.nackCount },
+            value: { total_nack_received_out: nackPliData.nackCount },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_nack_in: nackDelta },
+            value: { delta_nack_received_out: nackPliData.deltaNackCount },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { total_pli_in: nackPliData.pliCount },
+            value: { total_pli_received_out: nackPliData.pliCount },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_pli_in: pliDelta },
+            value: { delta_pli_received_out: nackPliData.deltaPliCount },
           },
           {
             ssrc,
