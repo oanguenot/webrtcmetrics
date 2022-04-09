@@ -20,6 +20,16 @@ $ yarn add webrtcmetrics
 
 ## Usage
 
+### Breaking changes coming with version 5.0
+
+Version 5.0 comes with a support of multi streams within a single **RTCPeerConnection**. Reports and tickets generated contain statistics for each stream:
+
+- **For report**: Properties `audio` and `video` properties contain now the list streams. Each stream entry contains the statistics.
+
+- **For ticket**: There is a new property `ssrc` which contains the list of all streams captured during the call. Each stream has its own global statistics.
+
+See below for the detailed changes.
+
 ### Create a new instance
 
 A new instance of the WebRTCMetrics is created when calling the constructor. A JSON configuration can be set to define the main characteristics of the collect of the statistics.
@@ -54,7 +64,7 @@ _Note:_ The **configuration** parameter is optional.
 
 A **probe** collects the statistics associated to a `RTCPeerConnection`.
 
-To create a new probe, call the function `createProbe()`.
+To create a new probe, call the function `createProbe()` with a `RTCPeerConnection` instance to capture.
 
 ```javascript
 import WebRTCMetrics from "webrtcmetrics";
@@ -132,17 +142,23 @@ Reports can be obtained by registering to event `onreport`; this callback is cal
 
 If you don't want to capture the first curve of statistics but something much more linear, you can specify a delay before receiving the metrics. By default, the stats are captured immediately. But depending on your needs, use the parameter `startAfter` to delay the capture. 
 
-Stats can't be captured during a period only. In that case, set a value to the parameter `stopAfter` to stop receiving reports after that duration given in ms. If you want to capture as long as the call is running, set the value to `-1`. In that case, you will have to call manually the method `stop()`. 
+Stats can be captured during a defined period or time. To do that, set a value to the parameter `stopAfter` to stop receiving reports after that duration given in ms. If you want to capture statistics as long as the call is running, omit that parameter of set the value to `-1`. In that case, you will have to call manually the method `stop()` of the probe to stop the collector. 
 
-The first set of statistics collected is called the **reference report**. It is not be reported as the others (can't be received in the `onreport` event) but is used for computing statistics of the next one (for example delta_packets_received).
+The first set of statistics collected (first report) is called the **reference report**. It is not been reported as the others (can't be received in the `onreport` event) but is used for computing statistics of the next ones (for example delta_packets_received).
 
 _Note:_ The `report` and `ticket` parameters received from the events are JSON objects. See below for the content.
 
+### Dealing with multiple streams in a probe
+
+A `RTCPeerConnection` can transport more than one audio and video streams (`MediaStreamTrack`). Statistics will be collected per type of stream (audio or video) and per direction (inbound or outbound).
+
+Each report the statistics of all streams. Same for the ticket.
+
 ### Creating multiples probes
 
-When connecting to a conference server such as an **SFU**, you can receive multiple `RTCPeerConnection` objects. You can collect statistics from each by creating as many as probes as needed. One for each `RTCPeerConnection`.
+When connecting to a conference server such as an **SFU**, you can receive multiple `RTCPeerConnection` objects. You can collect statistics from each by creating as many probes as needed. One for each `RTCPeerConnection`.
 
-As the parameter **refreshEvery**, **startsAfter** and **stopAfter** are common to all probes created, the statistics of all probes are collected one after the other, as soon as possible in order to be able to compare. To avoid any mistake, each probe has its own `timestamp` when the stats have been collected.
+As the parameter **refreshEvery**, **startAfter** and **stopAfter** are common to all probes created, the statistics of all probes are collected one after the other, as soon as possible in order to be able to compare. To avoid any mistake, each probe has its own `timestamp` when the stats have been collected.
 
 ### Collecting stats from all probes
 
@@ -154,7 +170,7 @@ _Note:_ This method is equivalent to register to the event `onreport` on each pr
 
 Each **report** collected from the event `onreport` contains the following statistics.
 
-### Global part
+### Global statistics
 
 | Name | Value | Description |
 |:----:|:-----:|:------------|
@@ -164,35 +180,47 @@ Each **report** collected from the event `onreport` contains the following stati
 | **timestamp** | Number | Timestamp of the metric collected |
 | **count** | Number | Number of the report |
 
-### Audio properties
+### Audio statistics
+
+Audio statistics are gathered under the `audio` properties which is an array containing all the audio streams collected (inbound and outbound).
+
+Each **inbound audio stream** contains the following statistics:
 
 | Name                        | Value | Description                                                                                                                                                                                                                                                                |
 |:----------------------------|:-----:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **delta_KBytes_in**         | Number | Number of kilobytes (KB) received since the last report                                                                                                                                                                                                                    |
-| **delta_KBytes_out**        | Number | Number of kilobytes (KB) sent since last report                                                                                                                                                                                                                            |
 | **delta_kbs_in**               | Number | Number of kbits received per second since the last report                         |
-| **delta_kbs_out**              | Number | Number of kbits sent per second since the last report                             |
 | **delta_jitter_ms_in**      | Number | Incoming Jitter (in ms)                                                                                                                                                                                                                                                    |
-| **delta_jitter_ms_out**     | Number | Outgoing Jitter (in ms)                                                                                                                                                                                                                                                    |
 | **delta_packets_lost_in**   | Number | Number of packets lost (not received) since last report                                                                                                                                                                                                                    |
 | **delta_packets_in**        | Number | Number of packets received since the last report                                                                                                                                                                                                                           |
-| **delta_rtt_ms_out**        | Number | Round Trip-Time (in ms). Could be null when no value collected.                                                                                                                                                                                                            |
 | **codec_in**                | JSON | Description of the audio input codec and parameters used                                                                                                                                                                                                                   |
 | **codec_id_in**             | String | ID of the audio input codec used                                                                                                                                                                                                                                           |
-| **codec_out**               | JSON | Description of the audio output codec and parameters used                                                                                                                                                                                                                  |
-| **codec_id_out**            | String | ID of the audio output codec used                                                                                                                                                                                                                                          |
 | **level_in**                | Number | Level of the input sound. Detect presence of incoming sound                                                                                                                                                                                                                |
-| **level_out**               | Number | Level of the output sound. Detect presence of outgoing sound                                                                                                                                                                                                               |
 | **percent_packets_lost_in** | Number | Percent of audio packet lost (not received) since the last report                                                                                                                                                                                                          |
 | **total_KBytes_in**         | Number | Number of kilobytes (KB) received since the beginning of the call                                                                                                                                                                                                          |
-| **total_KBytes_out**        | Number | Number of kilobytes (KB) sent since the beginning of the call                                                                                                                                                                                                              |
 | **total_packets_lost_in**   | Number | Number of packets lost (not received) since the beginning of the call                                                                                                                                                                                                      |
 | **total_packets_in**        | Number | Number of packets received since the beginning of the call                                                                                                                                                                                                                 |
-| **total_rtt_measure_out**   | Number | Number of RTT measurements done                                                                                                                                                                                                                                            |
-| **total_rtt_ms_out**        | Number | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
 | **mos_emodel_in**           | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
 | **mos_in**                  | Number | Audio quality indicator based on 'effective latency'                                                                                                                                                                                                                       |
 | **remote_timestamp**        | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out**                                                                                                                                                                                          |
+
+Each **outbound audio stream** contains the following statistics
+
+| Name                      | Value | Description                                                                                                                                                                                                                                                                |
+|:--------------------------|:-----:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **delta_KBytes_out**      | Number | Number of kilobytes (KB) sent since last report                                                                                                                                                                                                                            |
+| **delta_kbs_out**         | Number | Number of kbits sent per second since the last report                             |
+| **delta_jitter_ms_out**   | Number | Outgoing Jitter (in ms)                                                                                                                                                                                                                                                    |
+| **delta_rtt_ms_out**      | Number | Round Trip-Time (in ms). Could be null when no value collected.                                                                                                                                                                                                            |
+| **codec_out**             | JSON | Description of the audio output codec and parameters used                                                                                                                                                                                                                  |
+| **codec_id_out**          | String | ID of the audio output codec used                                                                                                                                                                                                                                          |
+| **level_out**             | Number | Level of the output sound. Detect presence of outgoing sound                                                                                                                                                                                                               |
+| **total_KBytes_out**      | Number | Number of kilobytes (KB) sent since the beginning of the call                                                                                                                                                                                                              |
+| **total_rtt_measure_out** | Number | Number of RTT measurements done                                                                                                                                                                                                                                            |
+| **total_rtt_ms_out**      | Number | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
+| **mos_emodel_out**        | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
+| **mos_out**               | Number | Audio quality indicator based on 'effective latency'                                                                                                                                                                                                                       |
+| **remote_timestamp**      | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out**                                                                                                                                                                                          |
 
 ### Video properties
 

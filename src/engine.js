@@ -19,7 +19,7 @@ export default class ProbesEngine {
     };
     info(moduleName, `configured for probing every ${this._config.refreshEvery}ms`);
     info(moduleName, `configured for starting after ${this._config.startAfter}ms`);
-    info(moduleName, `${this._config.stopAfter !== -1 ? `configured for stopped after ${this._config.stopAfter}ms` : "configured for never stopped"}`);
+    info(moduleName, `${(!this._config.stopAfter || this._config.stopAfter !== -1) ? `configured for stopped after ${this._config.stopAfter}ms` : "configured for never stopped"}`);
     debug(moduleName, "engine initialized");
   }
 
@@ -70,7 +70,7 @@ export default class ProbesEngine {
         // don't collect if there is no running probes
         return false;
       }
-      if (this._config.stopAfter < 0) {
+      if (!this._config.stopAfter || this._config.stopAfter < 0) {
         // always collect if stopAfter has not been set
         return true;
       }
