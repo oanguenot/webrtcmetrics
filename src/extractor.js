@@ -354,14 +354,6 @@ const extractInfrastructureValue = (bunch) => {
   }
 };
 
-const extractAudioLevel = (bunch) => {
-  if (!Object.prototype.hasOwnProperty.call(bunch, PROPERTY.AUDIO_LEVEL)) {
-    return null;
-  }
-
-  return bunch[PROPERTY.AUDIO_LEVEL];
-};
-
 const extractVideoSize = (bunch) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_HEIGHT) ||
@@ -1041,35 +1033,27 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       }
       break;
     }
-    case TYPE.MEDIA_SOURCE:
+    case TYPE.MEDIA_SOURCE: {
       debug(
         moduleName,
         `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
         bunch,
       );
-      if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
-        const outputLevel = extractAudioLevel(bunch);
-        return [{ type: STAT_TYPE.AUDIO, value: { level_out: outputLevel } }];
-      }
       break;
-    case TYPE.TRACK:
+    }
+    case TYPE.TRACK: {
       debug(
         moduleName,
         `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
         bunch,
       );
-      // Note: All "track" stats have been made obsolete
-      // Safari: compute kind property that don't exist
-
-      if (bunch[PROPERTY.REMOTE_SOURCE] === true) {
-        const inputLevel = extractAudioLevel(bunch);
-        return [{ type: STAT_TYPE.AUDIO, value: { level_out: inputLevel } }];
-      }
       break;
+    }
     case TYPE.CODEC:
       const result = [];
       // Check for Audio codec
-      previousBunch[VALUE.AUDIO].forEach((ssrcAudioBunch) => {
+      Object.keys(previousBunch[VALUE.AUDIO]).forEach((ssrc) => {
+        const ssrcAudioBunch = previousBunch[VALUE.AUDIO][ssrc];
         if ((ssrcAudioBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcAudioBunch.codec_id_out === bunch[PROPERTY.ID])) {
           debug(
               moduleName,
@@ -1086,7 +1070,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       });
 
       // Check for Video codec
-      previousBunch[VALUE.VIDEO].forEach((ssrcVideoBunch) => {
+      Object.keys(previousBunch[VALUE.VIDEO]).forEach((ssrc) => {
+        const ssrcVideoBunch = previousBunch[VALUE.VIDEO][ssrc];
         if ((ssrcVideoBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcVideoBunch.codec_id_out === bunch[PROPERTY.ID])) {
           debug(
               moduleName,

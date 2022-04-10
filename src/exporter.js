@@ -23,7 +23,7 @@ const averageRTT = (reports, kind, ssrc) => {
     return 0;
   }
 
-  const ssrcData = lastReport[kind].find((ssrcStream) => (ssrcStream.ssrc === ssrc));
+  const ssrcData = lastReport[kind][ssrc];
   if (ssrcData) {
     const totalRTT = ssrcData.total_rtt_ms_out;
     const totalMeasurements = ssrcData.total_rtt_measure_out;
@@ -184,8 +184,8 @@ export default class Exporter {
     const ssrcExporter = {};
 
     const lastReport = getLastReport(this._reports);
-    lastReport[VALUE.AUDIO].forEach((ssrcAudio) => {
-      const { ssrc } = ssrcAudio;
+    Object.keys(lastReport[VALUE.AUDIO]).forEach((ssrc) => {
+      const ssrcAudio = lastReport[VALUE.AUDIO][ssrc];
       ssrcExporter[ssrcAudio.ssrc] = {
         type: VALUE.AUDIO,
         direction: ssrcAudio.direction,
@@ -529,8 +529,8 @@ export default class Exporter {
         ssrcExporter[ssrc].mos = mos;
       }
     });
-    lastReport[VALUE.VIDEO].forEach((ssrcVideo) => {
-      const { ssrc } = ssrcVideo;
+    Object.keys(lastReport[VALUE.VIDEO]).forEach((ssrc) => {
+      const ssrcVideo = lastReport[VALUE.VIDEO][ssrc];
       ssrcExporter[ssrc] = {
         type: VALUE.VIDEO,
         direction: ssrcVideo.direction,

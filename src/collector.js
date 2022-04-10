@@ -68,13 +68,11 @@ export default class Collector {
       values.forEach((data) => {
         if (data.value && data.type) {
           if (data.ssrc) {
-            let ssrcReport = report[data.type].find(
-              (ssrcData) => ssrcData.ssrc === data.ssrc,
-            );
+            let ssrcReport = report[data.type][data.ssrc];
             if (!ssrcReport) {
               ssrcReport = getDefaultSSRCMetric(data.type, stat.type);
               ssrcReport.ssrc = data.ssrc;
-              report[data.type].push(ssrcReport);
+              report[data.type][data.ssrc] = (ssrcReport);
             }
             Object.keys(data.value).forEach((key) => {
               ssrcReport[key] = data.value[key];
@@ -88,7 +86,8 @@ export default class Collector {
       });
     });
     report.timestamp = timestamp;
-    report[VALUE.AUDIO].forEach((ssrcReport) => {
+    Object.keys(report[VALUE.AUDIO]).forEach((key) => {
+      const ssrcReport = report[VALUE.AUDIO][key];
       if (ssrcReport.direction === DIRECTION.INBOUND) {
         ssrcReport.mos_emodel_in = computeEModelMOS(
           report,

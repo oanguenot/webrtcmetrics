@@ -162,8 +162,8 @@ export const getDefaultMetric = (previousStats) => {
     user_id: "",
     timestamp: null,
     count: 0,
-    audio: [],
-    video: [],
+    audio: {},
+    video: {},
     network: {
       infrastructure: 3,
       local_candidate_id: "",
@@ -195,25 +195,25 @@ export const getDefaultMetric = (previousStats) => {
   if (previousStats) {
     const metrics = {
       ...previousStats,
-      audio: [],
-      video: [],
+      audio: {},
+      video: {},
       data: { ...previousStats.data },
       network: { ...previousStats.network },
       experimental: { ...previousStats.experimental },
     };
-    previousStats.audio.forEach((audio) => {
-      metrics.audio.push({ ...audio });
+    Object.keys(previousStats.audio).forEach((ssrc) => {
+      metrics.audio[ssrc] = { ...previousStats.audio[ssrc] };
     });
-    previousStats.video.forEach((video) => {
-      metrics.video.push({ ...video });
+    Object.keys(previousStats.video).forEach((ssrc) => {
+      metrics.video[ssrc] = { ...previousStats.video[ssrc] };
     });
     return metrics;
   }
 
   return {
     ...defaultMetrics,
-    audio: [],
-    video: [],
+    audio: {},
+    video: {},
     data: { ...defaultMetrics.data },
     network: { ...defaultMetrics.network },
     experimental: { ...defaultMetrics.experimental },

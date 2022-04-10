@@ -18,7 +18,7 @@ const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc) => {
     if (!ssrc) {
       return report[key][subKey];
     }
-    const data = report[key].find((ssrcStream) => (ssrcStream.ssrc === ssrc));
+    const data = report[key][ssrc];
     if (data) {
       return data[subKey];
     }
@@ -104,7 +104,7 @@ export const lastOfReports = (reports, key, subKey, ssrc) => {
   if (!ssrc) {
     return lastReport[key][subKey];
   }
-  const ssrcData = lastReport[key].find((ssrcStream) => (ssrcStream.ssrc === ssrc));
+  const ssrcData = lastReport[key][ssrc];
 
   if (ssrcData) {
     return ssrcData[subKey];
@@ -119,7 +119,16 @@ export const getSSRCDataFromBunch = (ssrc, bunch, direction) => {
     return null;
   }
   const ssrcBunch = {};
-  ssrcBunch[VALUE.AUDIO] = bunch[VALUE.AUDIO].find((b) => b.ssrc === ssrc) || (direction === DIRECTION.INBOUND ? { ...defaultAudioMetricIn } : { ...defaultAudioMetricOut });
-  ssrcBunch[VALUE.VIDEO] = bunch[VALUE.VIDEO].find((b) => b.ssrc === ssrc) || (direction === DIRECTION.INBOUND ? { ...defaultVideoMetricIn } : { ...defaultVideoMetricOut });
+  let audioBunch = bunch[VALUE.AUDIO][ssrc];
+  if (!audioBunch) {
+    audioBunch = direction === DIRECTION.INBOUND ? { ...defaultAudioMetricIn } : { ...defaultAudioMetricOut };
+  }
+  ssrcBunch[VALUE.AUDIO] = audioBunch;
+
+  let videoBunch = bunch[VALUE.VIDEO][ssrc];
+  if (!videoBunch) {
+    videoBunch = direction === DIRECTION.INBOUND ? { ...defaultVideoMetricIn } : { ...defaultVideoMetricOut };
+  }
+  ssrcBunch[VALUE.VIDEO] = videoBunch;
   return ssrcBunch;
 };
