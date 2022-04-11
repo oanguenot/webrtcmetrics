@@ -1,8 +1,8 @@
 # WEBRTC METRICS & STATS
 
-**WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` objects and generates JSON reports in live during a call as well as a **CDR** ticket at the end of the call resuming the main statistics captured.
+**WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` objects and generates JSON reports in live during a call as well as a **Call Detail Records** (CDR) at the end of the call resuming the main statistics captured.
 
-**WebRTCMetrics** launches several **probes** that collect statistics. Each probe is associated to a `RTCPeerConnection`.
+**WebRTCMetrics** launches several **probes** that collect statistics. Each probe is associated to a `RTCPeerConnection`. **WebRTCMetrics** captures statistics for all streams used in the call.
 
 ## Install
 
@@ -22,9 +22,9 @@ $ yarn add webrtcmetrics
 
 ### Breaking changes coming with version 5.0
 
-Version 5.0 comes with a support of multi streams within a single **RTCPeerConnection**. Reports and tickets generated contain statistics for each stream:
+Version 5.0 comes with a support of multi streams within a single `RTCPeerConnection`. Reports and tickets generated contain statistics for each stream:
 
-- **For report**: Properties `audio` and `video` properties contain now the list streams. Each stream entry contains the statistics.
+- **For report**: Properties `audio` and `video` properties contain now the list of all streams captured. Each stream entry contains the statistics.
 
 - **For ticket**: There is a new property `ssrc` which contains the list of all streams captured during the call. Each stream has its own global statistics.
 
@@ -150,9 +150,9 @@ _Note:_ The `report` and `ticket` parameters received from the events are JSON o
 
 ### Dealing with multiple streams in a probe
 
-A `RTCPeerConnection` can transport more than one audio and video streams (`MediaStreamTrack`). Statistics will be collected per type of stream (audio or video) and per direction (inbound or outbound).
+A `RTCPeerConnection` can transport more than one audio and video streams (`MediaStreamTrack`). Statistics is collected per type of stream (audio or video) and per direction (inbound or outbound).
 
-Each report the statistics of all streams. Same for the ticket.
+Each report contains the statistics of all streams in live. Ticket summarizes the statistics of all streams at the end of the call.
 
 ### Creating multiples probes
 
@@ -172,17 +172,17 @@ Each **report** collected from the event `onreport` contains the following stati
 
 ### Global statistics
 
-| Name | Value | Description |
-|:----:|:-----:|:------------|
-| **pname** | String | Name of the Peer Connection given |
-| **call_id** | String | Identifier or abstract name representing the call |
-| **user_id** | String | Identifier or abstract name representing the user |
-| **timestamp** | Number | Timestamp of the metric collected |
-| **count** | Number | Number of the report |
+|     Name      | Value  | Description                                       |
+|:-------------:|:------:|:--------------------------------------------------|
+|   **pname**   | String | Name of the Peer Connection given                 |
+|  **call_id**  | String | Identifier or abstract name representing the call |
+|  **user_id**  | String | Identifier or abstract name representing the user |
+| **timestamp** | Number | Timestamp of the metric collected                 |
+|   **count**   | Number | Number of the report                              |
 
 ### Audio statistics
 
-Audio statistics are gathered under the `audio` properties which is an array containing all the audio streams collected (inbound and outbound).
+Audio statistics are gathered under the `audio` properties which is an object containing all the audio streams collected (inbound and outbound). Each stream is identified by its `ssrc`.
 
 Each **inbound audio stream** contains the following statistics:
 
@@ -230,41 +230,41 @@ Each **outbound audio stream** contains the following statistics
 
 ### Video statistics
 
-Video statistics are gathered under the `video` properties which is an array containing all the video streams collected (inbound and outbound).
+Video statistics are gathered under the `video` properties which is an object containing all the video streams collected (inbound and outbound). Each stream is identified by its `ssrc`.
 
 Each **inbound video stream** contains the following statistics:
 
-| Name                           | Value | Description                                                                       |
-|:-------------------------------|:-----:|:----------------------------------------------------------------------------------|
-| **decoder_in**                 | String | Description of the video decoder used                                             |
-| **delta_KBytes_in**            | Number | Number of kilobytes (KB) received since the last report                           |
-| **delta_kbs_in**               | Number | Number of kbits received per second since the last report                         |
-| **delta_jitter_ms_in**         | Number | Incoming Jitter (in ms). Could be null when no value collected.                   |
-| **delta_ms_decode_frame_in**   | Number | Time needed to decode a frame                                                     |
-| **delta_nack_in**              | Number | Nack received since the last report                                               |
-| **delta_packets_lost_in**      | Number | Number of packets lost (not received) since last report                           |
-| **delta_packets_in**           | Number | Number of packets received since the last report                                  |
-| **delta_pli_in**               | Number | Pli received since the last report                                                |
-| **delta_pli_out**              | Number | Pli sent since the last report                                                    |
-| **codec_in**                   | JSON | Description of the video input codec and parameters used                          |
-| **codec_id_in**                | String | ID of the video input codec used                                                  |
-| **size_in**                    | Number | Size of the input video (from remote peer) + framerate                            |
-| **percent_packets_lost_in**    | Number | Percent of audio packet lost (not received) since the last report                 |
-| **total_KBytes_in**            | Number | Number of kilobytes (KB) received since the beginning of the call                 |
-| **total_frames_decoded_in**    | Number | Total of frames decoded                                                           |
-| **total_nack_in**              | Number | Total nack received since the beginning of the call                               |
-| **total_nack_out**             | Number | Total nack sent since the beginning of the call                                   |
-| **total_packets_lost_in**      | Number | Number of packets lost (not received) since the beginning of the call             |
-| **total_packets_in**           | Number | Number of packets received since the beginning of the call                        |
-| **total_pli_in**               | Number | Total pli received since the beginning of the call                                |
-| **total_pli_out**              | Number | Total pli sent since the beginning of the call                                    |
-| **total_time_decoded_in**      | Number | Total time used for decoding all frames                                           |
-| **remote_timestamp**           | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| Name                         | Value  | Description                                                                       |
+|:-----------------------------|:------:|:----------------------------------------------------------------------------------|
+| **decoder_in**               | String | Description of the video decoder used                                             |
+| **delta_KBytes_in**          | Number | Number of kilobytes (KB) received since the last report                           |
+| **delta_kbs_in**             | Number | Number of kbits received per second since the last report                         |
+| **delta_jitter_ms_in**       | Number | Incoming Jitter (in ms). Could be null when no value collected.                   |
+| **delta_ms_decode_frame_in** | Number | Time needed to decode a frame                                                     |
+| **delta_nack_in**            | Number | Nack received since the last report                                               |
+| **delta_packets_lost_in**    | Number | Number of packets lost (not received) since last report                           |
+| **delta_packets_in**         | Number | Number of packets received since the last report                                  |
+| **delta_pli_in**             | Number | Pli received since the last report                                                |
+| **delta_pli_out**            | Number | Pli sent since the last report                                                    |
+| **codec_in**                 |  JSON  | Description of the video input codec and parameters used                          |
+| **codec_id_in**              | String | ID of the video input codec used                                                  |
+| **size_in**                  | Number | Size of the input video (from remote peer) + framerate                            |
+| **percent_packets_lost_in**  | Number | Percent of audio packet lost (not received) since the last report                 |
+| **total_KBytes_in**          | Number | Number of kilobytes (KB) received since the beginning of the call                 |
+| **total_frames_decoded_in**  | Number | Total of frames decoded                                                           |
+| **total_nack_in**            | Number | Total nack received since the beginning of the call                               |
+| **total_nack_out**           | Number | Total nack sent since the beginning of the call                                   |
+| **total_packets_lost_in**    | Number | Number of packets lost (not received) since the beginning of the call             |
+| **total_packets_in**         | Number | Number of packets received since the beginning of the call                        |
+| **total_pli_in**             | Number | Total pli received since the beginning of the call                                |
+| **total_pli_out**            | Number | Total pli sent since the beginning of the call                                    |
+| **total_time_decoded_in**    | Number | Total time used for decoding all frames                                           |
+| **remote_timestamp**         | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
 
 Each **outbound video stream** contains the following statistics
 
-| Name                          | Value | Description                                                                       |
-|:------------------------------|:-----:|:----------------------------------------------------------------------------------|
+| Name                          | Value  | Description                                                                       |
+|:------------------------------|:------:|:----------------------------------------------------------------------------------|
 | **delta_KBytes_out**          | Number | Number of kilobytes (KB) sent since last report                                   |
 | **delta_kbs_out**             | Number | Number of kbits sent per second since the last report                             |
 | **delta_jitter_ms_out**       | Number | Outgoing Jitter (in ms). Could be null when no value collected.                   |
@@ -275,10 +275,10 @@ Each **outbound video stream** contains the following statistics
 | **delta_pli_out**             | Number | Pli sent since the last report                                                    |
 | **delta_rtt_ms_out**          | Number | Round Trip-Time (in ms). Could be null when no value collected.                   |
 | **encoder_out**               | String | Description of the video encoder used                                             |
-| **codec_out**                 | JSON | Description of the video output codec and parameters used                         |
+| **codec_out**                 |  JSON  | Description of the video output codec and parameters used                         |
 | **codec_id_out**              | String | ID of the video output codec used                                                 |
 | **size_out**                  | Number | Size of the output video (own video) + framerate                                  |
-| **limitation_out**            | Object| Object containing the reason and the durations spent in each state                |
+| **limitation_out**            | Object | Object containing the reason and the durations spent in each state                |
 | **total_KBytes_out**          | Number | Number of kilobytes (KB) sent since the beginning of the call                     |
 | **total_frames_encoded_out**  | Number | Total of frames encoded                                                           |
 | **total_nack_in**             | Number | Total nack received since the beginning of the call                               |
@@ -290,19 +290,18 @@ Each **outbound video stream** contains the following statistics
 | **total_time_encoded_out**    | Number | Total time used for encoding all frames                                           |
 | **remote_timestamp**          | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
 
-
 ### Network properties
 
-| Name | Value | Description                                                             |
-|:----:|:-----:|:------------------------------------------------------------------------|
-| **infrastructure** | Number | Infrastructure level (0: Eth, 3: Wifi, 5: 4G, 10: 3G).<br/>(Deprecated) |
-| **local_candidate_id** | String | ID of the local candidate used                                          |
-| **local_candidate_protocol** | String | Protocol used (udp, tcp)                                                |
-| **local_candidate_relay_protocol** | String | Protocol used when relayed with TURN (udp, tcp, tls)    |
-| **local_candidate_type** | String | Type of candidate used (host, relay, srflx)                             |
-| **remote_candidate_id** | String | ID of the remote candidate used                                         |
-| **remote_candidate_protocol** | String | Protocol used (udp, tcp)                                                |
-| **remote_candidate_type** | String | Type of candidate used (host, relay, srflx)                             |
+| Name                                 | Value  | Description                                                             |
+|:-------------------------------------|:------:|:------------------------------------------------------------------------|
+| **infrastructure**                   | Number | Infrastructure level (0: Eth, 3: Wifi, 5: 4G, 10: 3G).<br/>(Deprecated) |
+| **local_candidate_id**               | String | ID of the local candidate used                                          |
+| **local_candidate_protocol**         | String | Protocol used (udp, tcp)                                                |
+| **local_candidate_relay_protocol**   | String | Protocol used when relayed with TURN (udp, tcp, tls)                    |
+| **local_candidate_type**             | String | Type of candidate used (host, relay, srflx)                             |
+| **remote_candidate_id**              | String | ID of the remote candidate used                                         |
+| **remote_candidate_protocol**        | String | Protocol used (udp, tcp)                                                |
+| **remote_candidate_type**            | String | Type of candidate used (host, relay, srflx)                             |
 
 ### Data properties
 
@@ -314,8 +313,8 @@ These stats are collected from the candidate-pair stats.
 | **delta_KBytes_out**               | Number | Number of kilobytes (KB) sent since last report (audio+video)                         |
 | **delta_kbs_bandwidth_in**         | Number | Available incoming bitrate in kb/s (audio+video)                                      |
 | **delta_kbs_bandwidth_out**        | Number | Available outgoing bitrate in kb/s for (audio+video)                                  |
-| **delta_kbs_in**                   | Number | Number of kbits received per second since the last report (audio+video)                |
-| **delta_kbs_out**                  | Number | Number of kbits sent per second since the last report (audio+video)                    |
+| **delta_kbs_in**                   | Number | Number of kbits received per second since the last report (audio+video)               |
+| **delta_kbs_out**                  | Number | Number of kbits sent per second since the last report (audio+video)                   |
 | **delta_rtt_connectivity_ms**      | Number | Round Trip-Time (in ms) computed from STUN connectivity checks                        |
 | **total_KBytes_in**                | Number | Number of kilobytes (KB) received since the beginning of the call (audio+video)       |
 | **total_KBytes_out**               | Number | Number of kilobytes (KB) sent since the beginning of the call (audio+video)           |
@@ -324,10 +323,10 @@ These stats are collected from the candidate-pair stats.
 
 ### Experimental
 
-These stats are subject to changes in the future
+These stats are subject to change in the future
 
-| Name | Value | Description |
-|:----:|:-----:|:------------|
+|          Name          | Value  | Description                                                                                    |
+|:----------------------:|:------:|:-----------------------------------------------------------------------------------------------|
 | **time_to_measure_ms** | Number | Time (ms) to measure a probe which means the time to collect and the time to compute the stats |
 
 ## Stop reporting
@@ -344,19 +343,30 @@ If the option `record` has been set to `true`, the ticket contains all the repor
 
 The ticket generated contains the following information:
 
-| Name | Value | Description |
-|:----:|:-----:|:------------|
-| **ua** | Object | Contains the `ua`, the `pname` and the `user_id` |
-| **started** | Date | Start date of the ticket |
-| **ended** | Date | End date of the ticket |
-| **call** | Object | Contains the `call_id` and the `events` related to the call |
-| **details** | Object | Contains the list of reports as well as the reference report |
-| **jitter** | Object | `min`, `max`, `avg` and `volatility` values for audio and video |
-| **rtt** | Object | `min`, `max`, `avg` and `volatility` values for audio and video and connectivity (STUN) |
-| **mos** | Object | `min`, `max`, `avg` and `volatility` values |
-| **packetsLost** | Object | `percent` values for audio and video |
-| **bitrate** | Object | `min`, `max`, `avg` and `volatility` values  for incoming and outgoing |
-| **traffic** | Object | `min`, `max`, `avg` and `volatility` values  for incoming and outgoing |
+| Name              | Value  | Description                                                  |
+|:------------------|:------:|:-------------------------------------------------------------|
+| **call**          | Object | Contains the `call_id` and the `events` related to the call  |
+| **configuration** | Object | Contains some configuration parameters such as the frequency |
+| **data**          | Object | Contains the global statistics of the call                   |
+| **details**       | Object | Contains the list of reports as well as the reference report |
+| **ended**         |  Date  | End date of the ticket                                       |
+| **ssrc**          | Object | Contains the list of all statistics for all streams          |
+| **started**       |  Date  | Start date of the ticket                                     |
+| **ua**            | Object | Contains the `ua`, the `pname` and the `user_id`             |
+| **version**       | String | The version of the ticket format                             |
+
+Each **SSRC** is an object containing the following statistics:
+
+| Name          | Value  | Description                                                                            |
+|:--------------|:------:|:---------------------------------------------------------------------------------------|
+| **bitrate**   | Object | `min`, `max`, `avg` and `volatility` values for that bitrate of that stream            |
+| **direction** | String | The direction of the stream. Can be `inbound` or `outbound`                            |
+| **jitter**    | Object | `min`, `max`, `avg` and `volatility` values for the jitter of that stream              |
+| **loss**      | Object | `min`, `max`, `avg` and `volatility` values for the packet loss of that stream         |
+| **rtt**       | Object | `min`, `max`, `avg` and `volatility` values for the rtt of that stream (outbound only) |
+| **mos**       | Object | `min`, `max`, `avg` and `volatility` values for the mos of that stream (audio only)    |
+| **traffic**   | Object | `min`, `max`, `avg` and `volatility` values for the traffic of that stream             |
+| **type**      | String | The type of the stream. Can be `audio` or `video`                                      |
 
 ## Additional information
 

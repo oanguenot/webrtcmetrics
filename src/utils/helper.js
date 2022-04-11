@@ -57,11 +57,11 @@ export const call = (fct, context, value) => {
 export const volatilityValuesOfReports = (reports, key, subKey, ssrc) => {
   const values = getValues(reports, key, subKey, true, ssrc);
   if (values.length === 0) {
-    return 0;
+    return null;
   }
   const avg = values.reduce((p, c) => p + c, 0) / values.length;
   if (avg === 0) {
-    return 0;
+    return null;
   }
 
   const diff = values.map((data) => (Math.abs(avg - data)));
@@ -72,6 +72,9 @@ export const volatilityValuesOfReports = (reports, key, subKey, ssrc) => {
 
 export const averageValuesOfReports = (reports, key, subKey, avoidZeroValue = false, ssrc) => {
   const values = getValues(reports, key, subKey, avoidZeroValue, ssrc);
+  if (values.length === 0) {
+    return null;
+  }
   return values.reduce((p, c) => p + c, 0) / values.length;
 };
 
@@ -83,13 +86,16 @@ export const sumValuesOfReports = (reports, key, subKey) => {
 export const minValueOfReports = (reports, key, subKey, ssrc) => {
   const values = getValues(reports, key, subKey, true, ssrc);
   if (values.length === 0) {
-    return 0;
+    return null;
   }
   return Math.min(...values);
 };
 
 export const maxValueOfReports = (reports, key, subKey, ssrc) => {
   const values = getValues(reports, key, subKey, false, ssrc);
+  if (values.length === 0) {
+    return null;
+  }
   return Math.max(...values);
 };
 
