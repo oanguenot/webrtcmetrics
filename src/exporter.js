@@ -11,7 +11,7 @@ import { DIRECTION, VALUE } from "./utils/models";
 
 const moduleName = "exporter    ";
 
-const VERSION_EXPORTER = "1.0";
+const VERSION_EXPORTER = "2.0";
 
 const averageRTT = (reports, kind, ssrc) => {
   if (!reports || reports.length === 0) {
