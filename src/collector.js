@@ -285,14 +285,28 @@ export default class Collector {
     });
   }
 
-  registerToPCEvents() {
+  async registerToPCEvents() {
     const { pc } = this._config;
+    navigator.mediaDevices.ondevicechange = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "device",
+          `${devices.length} devices found`,
+          "Media Devices state",
+        );
+        // eslint-disable-next-line no-empty
+      } catch (err) {
+        error(this._moduleName, "can't get devices");
+      }
+    };
     if (pc) {
       pc.oniceconnectionstatechange = () => {
         const value = pc.iceConnectionState;
         if (
           value === ICE_CONNECTION_STATE.CONNECTED ||
-          ICE_CONNECTION_STATE.COMPLETED
+          value === ICE_CONNECTION_STATE.COMPLETED
         ) {
           this.addCustomEvent(
             new Date().toJSON(),
