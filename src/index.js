@@ -67,6 +67,20 @@ export default class WebRTCMetrics {
   }
 
   /**
+   * Is running
+   */
+  get running() {
+    return this._engine.isRunning;
+  }
+
+  /**
+   * Is Idle
+   */
+  get idle() {
+    return this._engine.isIdle;
+  }
+
+  /**
    * Experimental
    * Remote a probe
    * @param {Probe} probe

@@ -100,7 +100,7 @@ As defined in that sample, the configuration contains the following parameters:
 
 ### Probe lifecycle
 
-Once a probe has been created, call the function `start()` to collect the statistics. You need to listen to the event `onreport` to receive them.
+Once a probe has been created, it is ready to collect the statistics but the application needs to listen to the event `onreport` to receive them.
 
 A final **ticket** that summarizes all the reports received for a probe can be received by listening to the event `onticket`. Don't forget to put the parameter `ticket` to **true** in the configuration of the WebRTCMetrics Object.
 
@@ -126,15 +126,15 @@ metrics.onresult = (result) => {
 }
 
 // Start collecting statistics
-probe.start();
+metrics.startAllProbes();
 
 // At any time, call ID and user ID can be updated
 probe.updateUserId('newUserID');
 probe.updateCallId('newCallID');
 
 // Stop the analyzer when running
-if(probe.isRunning) {
-  probe.stop();
+if(metrics.running) {
+  metrics.stopAllProbes();
 }
 ```
 
@@ -159,6 +159,33 @@ Each report contains the statistics of all streams in live. Ticket summarizes th
 When connecting to a conference server such as an **SFU**, you can receive multiple `RTCPeerConnection` objects. You can collect statistics from each by creating as many probes as needed. One for each `RTCPeerConnection`.
 
 As the parameter **refreshEvery**, **startAfter** and **stopAfter** are common to all probes created, the statistics of all probes are collected one after the other, as soon as possible in order to be able to compare. To avoid any mistake, each probe has its own `timestamp` when the stats have been collected.
+
+```javascript
+const probe1 = metrics.createProbe(pc1, {
+  pname: 'pc_1',  // Optional. Name of the peer connection
+  ticket: true,               // Optional. Generate a ticket at the end of the call or not.
+  record: true,               // Optional. Record reports in the ticket or not. 
+});
+
+const probe2 = metrics.createProbe(pc2, {
+  pname: 'pc_2',  // Optional. Name of the peer connection
+  ticket: true,               // Optional. Generate a ticket at the end of the call or not.
+  record: true,               // Optional. Record reports in the ticket or not. 
+});
+
+probe1.onticket = (result) => {
+  // Do something with the ticket of probe 1
+}
+
+probe2.onticket = (result) => {
+  // Do something with the ticket of probe 2
+}
+
+// Start all registered probes
+metrics.startAllProbes();
+```
+
+
 
 ### Collecting stats from all probes
 
