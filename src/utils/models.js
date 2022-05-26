@@ -3,7 +3,7 @@ import ShortUniqueId from "short-unique-id";
 const shortUUID = new ShortUniqueId();
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("5.0.1");
+export const getVersion = () => ("5.0.2");
 
 export const DIRECTION = {
   INBOUND: "inbound",
@@ -93,7 +93,7 @@ export const defaultAudioMetricOut = {
   total_KBytes_out: 0,
   delta_KBytes_out: 0,
   delta_kbs_out: 0,
-  remote_timestamp: null,
+  timestamp_out: null,
   mos_out: 0,
   mos_emodel_out: 0,
   ssrc: "",
@@ -150,7 +150,7 @@ export const defaultVideoMetricOut = {
   total_nack_received_out: 0,
   total_pli_received_out: 0,
   limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
-  remote_timestamp: null,
+  timestamp_out: null,
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };

@@ -248,7 +248,7 @@ Each **outbound audio stream** contains the following statistics
 | **mos_emodel_out**           | Number | Audio quality indicator based on 'Monitoring VoIP Call Quality Using Improved Simplified E-model'<br>From Haytham Assem & Davide Malone & Jonathan Dunne & Pat O'Sullivan<br>Published in 2013 International Conference on Computing, Networking and Communications (ICNC) |
 | **mos_out**                  | Number | Audio quality indicator based on 'effective latency'                                                                                                                                                                                                                       |
 | **percent_packets_lost_out** | Number | Percent of audio packet lost (not received by the recipient) since the last report                                                                                                                                                                                         |
-| **remote_timestamp**         | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out**                                                                                                                                                                                          |
+| **timestamp_out**         | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out**                                                                                                                                                                                          |
 | **total_KBytes_out**         | Number | Number of kilobytes (KB) sent since the beginning of the call                                                                                                                                                                                                              |
 | **total_packets_lost_out**   | Number | Number of packets lost (not received by the recipient) since the beginning of the call                                                                                                                                                                                     |
 | **total_packets_out**        | Number | Number of packets sent since the beginning of the call                                                                                                                                                                                                                     |
@@ -286,7 +286,7 @@ Each **inbound video stream** contains the following statistics:
 | **total_pli_in**             | Number | Total pli received since the beginning of the call                                |
 | **total_pli_out**            | Number | Total pli sent since the beginning of the call                                    |
 | **total_time_decoded_in**    | Number | Total time used for decoding all frames                                           |
-| **remote_timestamp**         | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| **timestamp_out**         | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
 
 Each **outbound video stream** contains the following statistics
 
@@ -315,7 +315,7 @@ Each **outbound video stream** contains the following statistics
 | **total_rtt_measure_out**     | Number | Number of RTT measurements done                                                   |
 | **total_rtt_ms_out**          | Number | Total Round Trip Time since the beginning of the call                             |
 | **total_time_encoded_out**    | Number | Total time used for encoding all frames                                           |
-| **remote_timestamp**          | Number | Remote timestamp associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| **timestamp_out**          | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
 
 ### Network properties
 

@@ -31,7 +31,7 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
     totalRTTMeasurements: previousNbMeasure,
   };
 
-  if (bunch[PROPERTY.TIMESTAMP] === previousBunch[kind].remote_timestamp) {
+  if (bunch[PROPERTY.TIMESTAMP] === previousBunch[kind].timestamp_out) {
     return returnedValuesByDefault;
   }
 
@@ -136,7 +136,7 @@ const extractRTTBasedOnSTUNConnectivityCheck = (
 };
 
 const extractLastJitter = (bunch, kind, previousBunch) => {
-  if (bunch[PROPERTY.TIMESTAMP] === previousBunch[kind].remote_timestamp) {
+  if (bunch[PROPERTY.TIMESTAMP] === previousBunch[kind].timestamp_out) {
     return null;
   }
 
@@ -1136,7 +1136,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { remote_timestamp: bunch[PROPERTY.TIMESTAMP] },
+            value: { timestamp_out: bunch[PROPERTY.TIMESTAMP] },
           },
           {
             ssrc,
@@ -1195,7 +1195,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { remote_timestamp: bunch[PROPERTY.TIMESTAMP] },
+            value: { timestamp_out: bunch[PROPERTY.TIMESTAMP] },
           },
           {
             ssrc,
