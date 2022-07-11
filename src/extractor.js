@@ -263,7 +263,7 @@ const extractAudioVideoPacketLost = (
   }
 
   if (Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRACTION_LOST)) {
-    fractionLost = Number(bunch[PROPERTY.FRACTION_LOST]);
+    fractionLost = Number(100 * bunch[PROPERTY.FRACTION_LOST]);
   }
   return {
     packetsLost,
