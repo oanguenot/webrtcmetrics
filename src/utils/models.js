@@ -289,7 +289,6 @@ export const PROPERTY = {
   TOTAL_ROUND_TRIP_TIME: "totalRoundTripTime",
   TOTAL_ROUND_TRIP_TIME_MEASUREMENTS: "roundTripTimeMeasurements",
   TYPE: "type",
-  WRITABLE: "writable",
   DECODER_IMPLEMENTATION: "decoderImplementation",
   ENCODER_IMPLEMENTATION: "encoderImplementation",
   FRAMES_DECODED: "framesDecoded",

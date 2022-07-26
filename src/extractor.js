@@ -514,7 +514,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
     case TYPE.CANDIDATE_PAIR:
       let selectedPair = false;
       if (
-        bunch[PROPERTY.WRITABLE] &&
         bunch[PROPERTY.NOMINATED] &&
         bunch[PROPERTY.STATE] === VALUE.SUCCEEDED
       ) {
