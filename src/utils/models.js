@@ -63,6 +63,9 @@ export const defaultAudioMetricIn = {
   codec_id_in: "",
   codec_in: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
   delta_jitter_ms_in: 0,
+  delta_rtt_ms_out: null,
+  total_rtt_ms_out: 0,
+  total_rtt_measure_out: 0,
   percent_packets_lost_in: 0,
   delta_packets_in: 0,
   delta_packets_lost_in: 0,
@@ -71,6 +74,7 @@ export const defaultAudioMetricIn = {
   total_KBytes_in: 0,
   delta_KBytes_in: 0,
   delta_kbs_in: 0,
+  timestamp_in: null,
   mos_in: 0,
   mos_emodel_in: 0,
   ssrc: "",
@@ -243,6 +247,7 @@ export const TYPE = {
   OUTBOUND_RTP: "outbound-rtp",
   REMOTE_CANDIDATE: "remote-candidate",
   REMOTE_INBOUND_RTP: "remote-inbound-rtp",
+  REMOTE_OUTBOUND_RTP: "remote-outbound-rtp",
   TRACK: "track",
 };
 

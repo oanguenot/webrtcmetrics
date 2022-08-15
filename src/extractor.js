@@ -1215,6 +1215,50 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       }
       break;
     }
+    case TYPE.REMOTE_OUTBOUND_RTP: {
+      debug(
+        moduleName,
+        `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
+        bunch,
+      );
+      // get SSRC and associated data
+      const ssrc = bunch[PROPERTY.SSRC];
+      const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
+      const referenceSSRCBunch = getSSRCDataFromBunch(ssrc, referenceReport, DIRECTION.OUTBOUND);
+      if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
+        // Round Trip Time based on RTCP
+        const data = extractRTTBasedOnRTCP(
+          bunch,
+          VALUE.AUDIO,
+          referenceSSRCBunch,
+          previousSSRCBunch,
+        );
+
+        return [
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_rtt_ms_in: data.rtt },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_rtt_ms_in: data.totalRTT },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_rtt_measure_in: data.totalRTTMeasurements },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { timestamp_in: bunch[PROPERTY.TIMESTAMP] },
+          },
+        ];
+      }
+      break;
+    }
     default:
       break;
   }

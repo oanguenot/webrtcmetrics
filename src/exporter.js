@@ -13,7 +13,7 @@ const moduleName = "exporter    ";
 
 const VERSION_EXPORTER = "2.0";
 
-const averageRTT = (reports, kind, ssrc) => {
+const averageRTT = (reports, kind, ssrc, forInbound = false) => {
   if (!reports || reports.length === 0) {
     return 0;
   }
@@ -25,11 +25,11 @@ const averageRTT = (reports, kind, ssrc) => {
 
   const ssrcData = lastReport[kind][ssrc];
   if (ssrcData) {
-    const totalRTT = ssrcData.total_rtt_ms_out;
-    const totalMeasurements = ssrcData.total_rtt_measure_out;
+    const totalRTT = forInbound ? ssrcData.total_rtt_ms_in : ssrcData.total_rtt_ms_out;
+    const totalMeasurements = forInbound ? ssrcData.total_rtt_measure_in : ssrcData.total_rtt_measure_out;
 
     if (!totalMeasurements || !totalRTT) {
-      return averageValuesOfReports(reports, kind, "delta_rtt_ms_out", false, ssrc);
+      return averageValuesOfReports(reports, kind, forInbound ? "delta_rtt_ms_in" : "delta_rtt_ms_out", false, ssrc);
     }
 
     return Number(totalRTT / totalMeasurements);
@@ -345,7 +345,25 @@ export default class Exporter {
               lost: "number",
             },
           };
+          const rtt = {
+            avg: averageRTT(this._reports, VALUE.AUDIO, ssrc, true),
+            min: minValueOfReports(this._reports, VALUE.AUDIO, "delta_rtt_ms_in", ssrc),
+            max: maxValueOfReports(this._reports, VALUE.AUDIO, "delta_rtt_ms_in", ssrc),
+            volatility: volatilityValuesOfReports(
+              this._reports,
+              VALUE.AUDIO,
+              "delta_rtt_ms_in",
+              ssrc,
+            ),
+            _unit: {
+              avg: "ms",
+              min: "ms",
+              max: "ms",
+              volatility: "percent",
+            },
+          };
           ssrcExporter[ssrc].jitter = jitter;
+          ssrcExporter[ssrc].rtt = rtt;
           ssrcExporter[ssrc].mos = mos;
           ssrcExporter[ssrc].traffic = traffic;
           ssrcExporter[ssrc].bitrate = bitrate;
