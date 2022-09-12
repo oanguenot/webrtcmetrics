@@ -388,16 +388,17 @@ The ticket generated contains the following information:
 
 Each **SSRC** is an object containing the following statistics:
 
-| Name          | Value  | Description                                                                            |
-|:--------------|:------:|:---------------------------------------------------------------------------------------|
-| **bitrate**   | Object | `min`, `max`, `avg` and `volatility` values for that bitrate of that stream            |
-| **direction** | String | The direction of the stream. Can be `inbound` or `outbound`                            |
-| **jitter**    | Object | `min`, `max`, `avg` and `volatility` values for the jitter of that stream              |
-| **loss**      | Object | `min`, `max`, `avg` and `volatility` values for the packet loss of that stream         |
-| **rtt**       | Object | `min`, `max`, `avg` and `volatility` values for the rtt of that stream (outbound only) |
-| **mos**       | Object | `min`, `max`, `avg` and `volatility` values for the mos of that stream (audio only)    |
-| **traffic**   | Object | `min`, `max`, `avg` and `volatility` values for the traffic of that stream             |
-| **type**      | String | The type of the stream. Can be `audio` or `video`                                      |
+| Name            | Value  | Description                                                                                                          |
+|:----------------|:------:|:---------------------------------------------------------------------------------------------------------------------|
+| **bitrate**     | Object | `min`, `max`, `avg` and `volatility` values for that bitrate of that stream                                          |
+| **direction**   | String | The direction of the stream. Can be `inbound` or `outbound`                                                          |
+| **jitter**      | Object | `min`, `max`, `avg` and `volatility` values for the jitter of that stream                                            |
+| **loss**        | Object | `min`, `max`, `avg` and `volatility` values for the packet loss of that stream                                       |
+| **rtt**         | Object | `min`, `max`, `avg` and `volatility` values for the rtt of that stream (outbound only)                               |
+| **mos**         | Object | `min`, `max`, `avg` and `volatility` values for the mos of that stream (audio only)                                  |
+| **traffic**     | Object | `min`, `max`, `avg` and `volatility` values for the traffic of that stream                                           |
+| **type**        | String | The type of the stream. Can be `audio` or `video`                                                                    |
+| **limitations** | Object | For video outbound only. `bandwidth`, `cpu`, `other`, `none` values for the percent of time spent in that limitation |
 
 ## Additional information
 

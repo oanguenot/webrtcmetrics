@@ -37,6 +37,46 @@ const averageRTT = (reports, kind, ssrc, forInbound = false) => {
   return null;
 };
 
+const limitationsPercent = (reports, kind, ssrc) => {
+  const defaultValue = {
+    other: 0,
+    cpu: 0,
+    bandwidth: 0,
+    none: 100,
+  };
+
+  if (!reports || reports.length === 0) {
+    return defaultValue;
+  }
+
+  const lastReport = reports[reports.length - 1];
+  const ssrcData = lastReport[kind][ssrc];
+
+  if (!ssrcData) {
+    return defaultValue;
+  }
+
+  if (!("limitation_out" in ssrcData) || !("durations" in ssrcData.limitation_out)) {
+    return defaultValue;
+  }
+
+  const {
+    other,
+    bandwidth,
+    cpu,
+    none,
+  } = ssrcData.limitation_out.durations;
+
+  const totalDuration = Number(other) + Number(bandwidth) + Number(cpu) + Number(none);
+
+  return {
+    other: +((other / totalDuration) * 100).toFixed(2),
+    cpu: +((cpu / totalDuration) * 100).toFixed(2),
+    bandwidth: +((bandwidth / totalDuration) * 100).toFixed(2),
+    none: +((none / totalDuration) * 100).toFixed(2),
+  };
+};
+
 const averageRTTConnectivity = (reports, kind) => {
   if (!reports || reports.length === 0) {
     return 0;
@@ -824,11 +864,13 @@ export default class Exporter {
                 lost: "number",
               },
             };
+
             ssrcExporter[ssrc].jitter = jitter;
             ssrcExporter[ssrc].rtt = rtt;
             ssrcExporter[ssrc].traffic = traffic;
             ssrcExporter[ssrc].bitrate = bitrate;
             ssrcExporter[ssrc].loss = loss;
+            ssrcExporter[ssrc].limitations = limitationsPercent(this._reports, VALUE.VIDEO, ssrc);
           }
         });
     }
