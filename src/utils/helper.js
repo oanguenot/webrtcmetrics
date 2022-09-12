@@ -99,6 +99,8 @@ export const maxValueOfReports = (reports, key, subKey, ssrc) => {
   return Math.max(...values);
 };
 
+export const valuesOfReports = (reports, key, subKey, ssrc) => (getValues(reports, key, subKey, false, ssrc));
+
 export const lastOfReports = (reports, key, subKey, ssrc) => {
   const lastReport = reports.slice().pop();
   if (!lastReport) {

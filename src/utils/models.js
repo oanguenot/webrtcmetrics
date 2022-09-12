@@ -309,6 +309,7 @@ export const VALUE = {
   SUCCEEDED: "succeeded",
   AUDIO: "audio",
   VIDEO: "video",
+  DATA: "data",
 };
 
 export const INFRASTRUCTURE_VALUE = {

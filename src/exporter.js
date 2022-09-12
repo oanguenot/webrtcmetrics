@@ -5,7 +5,7 @@ import {
   maxValueOfReports,
   lastOfReports,
   volatilityValuesOfReports,
-  getLastReport,
+  getLastReport, valuesOfReports,
 } from "./utils/helper";
 import { DIRECTION, VALUE } from "./utils/models";
 
@@ -258,6 +258,7 @@ export default class Exporter {
               "delta_jitter_ms_in",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_jitter_ms_in", ssrc),
             _unit: {
               avg: "ms",
               min: "ms",
@@ -291,6 +292,7 @@ export default class Exporter {
               "delta_kbs_in",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_kbs_in", ssrc),
             _unit: {
               avg: "kbs",
               min: "kbs",
@@ -324,6 +326,7 @@ export default class Exporter {
               "delta_KBytes_in",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_KBytes_in", ssrc),
             _unit: {
               avg: "KB",
               min: "KB",
@@ -342,6 +345,7 @@ export default class Exporter {
                 "mos_emodel_in",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_emodel_in", ssrc),
             },
             effective: {
               avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_in", false, ssrc),
@@ -353,6 +357,7 @@ export default class Exporter {
                 "mos_in",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_in", ssrc),
             },
             _unit: {
               avg: "number (1-5)",
@@ -380,6 +385,7 @@ export default class Exporter {
                 (packetsLost + packetsReceived)) *
                 100 || 0) * 100,
             ) / 100,
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_packets_lost_in", ssrc),
             _unit: {
               avg: "percent",
               lost: "number",
@@ -395,6 +401,7 @@ export default class Exporter {
               "delta_rtt_ms_in",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_rtt_ms_in", ssrc),
             _unit: {
               avg: "ms",
               min: "ms",
@@ -435,6 +442,7 @@ export default class Exporter {
               "delta_jitter_ms_out",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_jitter_ms_out", ssrc),
             _unit: {
               avg: "ms",
               min: "ms",
@@ -468,6 +476,7 @@ export default class Exporter {
               "delta_kbs_out",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_kbs_out", ssrc),
             _unit: {
               avg: "kbs",
               min: "kbs",
@@ -501,6 +510,7 @@ export default class Exporter {
               "delta_KBytes_out",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_KBytes_out", ssrc),
             _unit: {
               avg: "KB",
               min: "KB",
@@ -519,6 +529,7 @@ export default class Exporter {
               "delta_rtt_ms_out",
               ssrc,
             ),
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_rtt_ms_out", ssrc),
             _unit: {
               avg: "ms",
               min: "ms",
@@ -545,6 +556,7 @@ export default class Exporter {
                 (packetsLost + packetsReceived)) *
                 100 || 0) * 100,
             ) / 100,
+            values: valuesOfReports(this._reports, VALUE.AUDIO, "delta_packets_lost_out", ssrc),
             _unit: {
               avg: "percent",
               lost: "number",
@@ -561,6 +573,7 @@ export default class Exporter {
                 "mos_emodel_out",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_emodel_out", ssrc),
             },
             effective: {
               avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_out", false, ssrc),
@@ -572,6 +585,7 @@ export default class Exporter {
                 "mos_out",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
             },
             _unit: {
               avg: "number (1-5)",
@@ -622,6 +636,7 @@ export default class Exporter {
                 "delta_jitter_ms_in",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_jitter_ms_in", ssrc),
               _unit: {
                 avg: "ms",
                 min: "ms",
@@ -655,6 +670,7 @@ export default class Exporter {
                 "delta_kbs_in",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_kbs_in", ssrc),
               _unit: {
                 avg: "kbs",
                 min: "kbs",
@@ -688,6 +704,7 @@ export default class Exporter {
                 "delta_KBytes_in",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_KBytes_in", ssrc),
               _unit: {
                 avg: "KB",
                 min: "KB",
@@ -714,6 +731,7 @@ export default class Exporter {
                     (packetsLost + packetsReceived)) *
                   100 || 0) * 100,
               ) / 100,
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_packets_lost_in", ssrc),
               _unit: {
                 avg: "percent",
                 lost: "number",
@@ -750,6 +768,7 @@ export default class Exporter {
                 "delta_jitter_ms_out",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_jitter_ms_out", ssrc),
               _unit: {
                 avg: "ms",
                 min: "ms",
@@ -783,6 +802,7 @@ export default class Exporter {
                 "delta_kbs_out",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_kbs_out", ssrc),
               _unit: {
                 avg: "kbs",
                 min: "kbs",
@@ -816,6 +836,7 @@ export default class Exporter {
                 "delta_KBytes_out",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_KBytes_out", ssrc),
               _unit: {
                 avg: "KB",
                 min: "KB",
@@ -833,6 +854,7 @@ export default class Exporter {
                 "delta_rtt_ms_out",
                 ssrc,
               ),
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_rtt_ms_out", ssrc),
               _unit: {
                 avg: "ms",
                 min: "ms",
@@ -859,6 +881,7 @@ export default class Exporter {
                     (packetsLost + packetsReceived)) *
                   100 || 0) * 100,
               ) / 100,
+              values: valuesOfReports(this._reports, VALUE.VIDEO, "delta_packets_lost_out", ssrc),
               _unit: {
                 avg: "percent",
                 lost: "number",
@@ -902,19 +925,20 @@ export default class Exporter {
           avg: averageRTTConnectivity(this._reports, "data"),
           min: minValueOfReports(
             this._reports,
-            "data",
+            VALUE.DATA,
             "delta_rtt_connectivity_ms",
           ),
           max: maxValueOfReports(
             this._reports,
-            "data",
+            VALUE.DATA,
             "delta_rtt_connectivity_ms",
           ),
           volatility: volatilityValuesOfReports(
             this._reports,
-            "data",
+            VALUE.DATA,
             "delta_rtt_connectivity_ms",
           ),
+          values: valuesOfReports(this._reports, VALUE.DATA, "delta_rtt_connectivity_ms"),
           _unit: {
             avg: "ms",
             min: "ms",
@@ -957,6 +981,7 @@ export default class Exporter {
               "data",
               "delta_kbs_in",
             ),
+            values: valuesOfReports(this._reports, VALUE.DATA, "delta_kbs_in"),
           },
           out: {
             avg: averageValuesOfReports(this._reports, "data", "delta_kbs_out"),
@@ -967,6 +992,7 @@ export default class Exporter {
               "data",
               "delta_kbs_out",
             ),
+            values: valuesOfReports(this._reports, VALUE.DATA, "delta_kbs_out"),
           },
           unit: {
             avg: "kbs",
@@ -985,6 +1011,7 @@ export default class Exporter {
               "data",
               "delta_KBytes_in",
             ),
+            values: valuesOfReports(this._reports, VALUE.DATA, "delta_KBytes_in"),
           },
           out: {
             avg: averageValuesOfReports(
@@ -999,6 +1026,7 @@ export default class Exporter {
               "data",
               "delta_KBytes_out",
             ),
+            values: valuesOfReports(this._reports, VALUE.DATA, "delta_KBytes_out"),
           },
           unit: {
             avg: "KBytes",

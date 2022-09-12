@@ -299,18 +299,20 @@ Each **outbound video stream** contains the following statistics
 | **delta_KBytes_out**          | Number | Number of kilobytes (KB) sent since last report                                                           |
 | **delta_kbs_out**             | Number | Number of kbits sent per second since the last report                                                     |
 | **delta_jitter_ms_out**       | Number | Outgoing Jitter (in ms). Could be null when no value collected.                                           |
+| **delta_packets_lost_out**    | Number | Number of packets lost (not received by the recipient) since last report                                  |
 | **delta_ms_encode_frame_out** | Number | Time needed to encode a frame                                                                             |
 | **delta_nack_in**             | Number | Nack received since the last report                                                                       |
 | **delta_nack_out**            | Number | Nack sent since the last report                                                                           |
-| **delta_pli_in**              | Number | Pli received since the last report                                                                        |
 | **delta_pli_out**             | Number | Pli sent since the last report                                                                            |
 | **delta_rtt_ms_out**          | Number | Round Trip-Time (in ms). Could be null when no value collected.                                           |
 | **encoder_out**               | String | Description of the video encoder used                                                                     |
 | **codec_out**                 |  JSON  | Description of the video output codec and parameters used                                                 |
 | **codec_id_out**              | String | ID of the video output codec used                                                                         |
 | **size_out**                  | Number | Size of the output video (own video) + framerate                                                          |
+| **percent_packets_lost_out**  | Number | Percent of audio packet lost (not received by the recipient) since the last report                        |
 | **limitation_out**            | Object | Object containing the reason and the durations spent in each state                                        |
 | **total_KBytes_out**          | Number | Number of kilobytes (KB) sent since the beginning of the call                                             |
+| **total_packets_lost_out**    | Number | Number of packets lost (not received by the recipient) since the beginning of the call                    |
 | **total_frames_encoded_out**  | Number | Total of frames encoded                                                                                   |
 | **total_nack_in**             | Number | Total nack received since the beginning of the call                                                       |
 | **total_nack_out**            | Number | Total nack sent since the beginning of the call                                                           |
@@ -390,14 +392,14 @@ Each **SSRC** is an object containing the following statistics:
 
 | Name            | Value  | Description                                                                                                          |
 |:----------------|:------:|:---------------------------------------------------------------------------------------------------------------------|
-| **bitrate**     | Object | `min`, `max`, `avg` and `volatility` values for that bitrate of that stream                                          |
 | **direction**   | String | The direction of the stream. Can be `inbound` or `outbound`                                                          |
-| **jitter**      | Object | `min`, `max`, `avg` and `volatility` values for the jitter of that stream                                            |
-| **loss**        | Object | `min`, `max`, `avg` and `volatility` values for the packet loss of that stream                                       |
-| **rtt**         | Object | `min`, `max`, `avg` and `volatility` values for the rtt of that stream (outbound only)                               |
-| **mos**         | Object | `min`, `max`, `avg` and `volatility` values for the mos of that stream (audio only)                                  |
-| **traffic**     | Object | `min`, `max`, `avg` and `volatility` values for the traffic of that stream                                           |
 | **type**        | String | The type of the stream. Can be `audio` or `video`                                                                    |
+| **bitrate**     | Object | `min`, `max`, `avg`, `values` and `volatility` values for that bitrate of that stream                                |
+| **jitter**      | Object | `min`, `max`, `avg`, `values` and `volatility` values for the jitter of that stream                                  |
+| **loss**        | Object | `min`, `max`, `avg`, `values` and `volatility` values for the packet loss of that stream                             |
+| **rtt**         | Object | `min`, `max`, `avg`, `values` and `volatility` values for the rtt of that stream (outbound only)                     |
+| **mos**         | Object | `min`, `max`, `avg`, `values` and `volatility` values for the mos of that stream (audio only)                        |
+| **traffic**     | Object | `min`, `max`, `avg`, `values` and `volatility` values for the traffic of that stream                                 |
 | **limitations** | Object | For video outbound only. `bandwidth`, `cpu`, `other`, `none` values for the percent of time spent in that limitation |
 
 ## Additional information
