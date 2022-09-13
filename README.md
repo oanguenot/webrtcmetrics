@@ -2,7 +2,7 @@
 
 **WebRTCMetrics** is a JavaScript library that aggregates stats received from several `RTCPeerConnection` objects and generates JSON reports in live during a call as well as a **Call Detail Records** (CDR) at the end of the call resuming the main statistics captured.
 
-**WebRTCMetrics** launches several **probes** that collect statistics. Each probe is associated to a `RTCPeerConnection`. **WebRTCMetrics** captures statistics for all streams used in the call.
+**WebRTCMetrics** is based on the WebRTC `getStats` API and collect statistics using **probes**. Each probe is associated to a `RTCPeerConnection`. A probe collects statistics from all streams of a `RTCPeerConnection`.
 
 ## Install
 
@@ -50,13 +50,13 @@ const metrics = new WebRTCMetrics(configuration);
 
 As defined in that sample, the following parameters can be configured:
 
-- `refreshEvery`: Number. Contains the number of milliseconds to wait before collecting a new set of statistics. Default value is **2000**.
+- `refreshEvery`: Number. Contains the duration to wait (in milliseconds) before collecting a new set of statistics. Default value is **2000**.
 
-- `startAfter`: Number. Contains the duration to wait before collecting the first set of statistics. Default value is equals to 0 for starting immediately.
+- `startAfter`: Number. Contains the duration to wait (in milliseconds) before collecting the first set of statistics. Default value is equals to 0 for starting immediately.
 
-- `stopAfter`: Number. Contains the duration before stopping to collect the statistics. This duration starts after the `startAfter` duration. Default value is **-1** which means that the statistics are collected until the function `stop()` is called.
+- `stopAfter`: Number. Contains the duration to wait (in milliseconds) before stopping to collect the statistics. This duration starts after the `startAfter` duration. Default value is **-1** which means that the statistics are collected until the function `stop()` is called.
 
-- `verbose`: Boolean. True for displaying verbose information in the logger. default is **false**.
+- `verbose`: Boolean. True for displaying verbose information in the logger such as the raw statistics coming from `getStats`. Default is **false**.
 
 _Note:_ The **configuration** parameter is optional.
 
@@ -86,7 +86,11 @@ const probe = metrics.createProbe(existingPeerConnection, {
 
 _Note:_ The `RTCPeerConnection` parameter is mandatory whereas the `configuration` parameter is optional.
 
-As defined in that sample, the configuration contains the following parameters:
+```typescript
+createProbe(peerConnection: RTCPeerConnection, configuration?: Object): Probe
+```
+
+The `configuration` parameter contains the following properties:
 
 - `pname`: String. Contains the name of the `RTCPeerConnection`. This is an arbitrary name that can be used to identify statistics received.
 
@@ -96,13 +100,15 @@ As defined in that sample, the configuration contains the following parameters:
 
 - `ticket`: Boolean. True for generating a ticket when the collect of statistics is stopped. Default is **true**.
 
-- `record`: Boolean. True to link all reports generated to the ticket. This allow to access to all reports after the call. Default is **false**.
+- `record`: Boolean. True to link all reports generated to the ticket. This allows to access to all reports individually after the call. Default is **false**.
 
 ### Probe lifecycle
 
-Once a probe has been created, it is ready to collect the statistics but the application needs to listen to the event `onreport` to receive them.
+Once a probe has been created, it is ready to collect the statistics using **reports**. The application needs to listen to the event `onreport` to receive them.
 
-A final **ticket** that summarizes all the reports received for a probe can be received by listening to the event `onticket`. Don't forget to put the parameter `ticket` to **true** in the configuration of the WebRTCMetrics Object.
+After the call, a **ticket** that summarizes all the reports received for a probe can be received by listening to the event `onticket`. Don't forget to put the property `ticket` to **true** in the configuration of the WebRTCMetrics Object.
+
+### Complete example
 
 ```javascript
 const probe = metrics.createProbe(existingPeerConnection, {
@@ -132,19 +138,21 @@ metrics.startAllProbes();
 probe.updateUserId('newUserID');
 probe.updateCallId('newCallID');
 
-// Stop the analyzer when running
+// Once the call is finished, stop the analyzer when running
 if(metrics.running) {
   metrics.stopAllProbes();
 }
 ```
 
-Reports can be obtained by registering to event `onreport`; this callback is called in loop with an interval equals to the value of the `refreshEvery` parameter and with the **report** generated.
+### Additional information
+
+The reports can be obtained by registering to event `onreport`; this callback is called in loop with an interval equals to the value of the `refreshEvery` parameter and with the **report** generated.
 
 If you don't want to capture the first curve of statistics but something much more linear, you can specify a delay before receiving the metrics. By default, the stats are captured immediately. But depending on your needs, use the parameter `startAfter` to delay the capture. 
 
 Stats can be captured during a defined period or time. To do that, set a value to the parameter `stopAfter` to stop receiving reports after that duration given in ms. If you want to capture statistics as long as the call is running, omit that parameter of set the value to `-1`. In that case, you will have to call manually the method `stop()` of the probe to stop the collector. 
 
-The first set of statistics collected (first report) is called the **reference report**. It is not been reported as the others (can't be received in the `onreport` event) but is used for computing statistics of the next ones (for example delta_packets_received).
+The first set of statistics collected (first report) is called the **reference report**. It is reported separately from the others (can't be received in the `onreport` event) but is used for computing statistics of the next ones (for example **delta_packets_received**).
 
 _Note:_ The `report` and `ticket` parameters received from the events are JSON objects. See below for the content.
 
@@ -185,8 +193,6 @@ probe2.onticket = (result) => {
 metrics.startAllProbes();
 ```
 
-
-
 ### Collecting stats from all probes
 
 Register to the event `onresult` from the metrics Object created to get a global report that contains all probes reports as well as some global stats. 
@@ -199,13 +205,13 @@ Each **report** collected from the event `onreport` contains the following stati
 
 ### Global statistics
 
-|     Name      | Value  | Description                                       |
-|:-------------:|:------:|:--------------------------------------------------|
-|   **pname**   | String | Name of the Peer Connection given                 |
-|  **call_id**  | String | Identifier or abstract name representing the call |
-|  **user_id**  | String | Identifier or abstract name representing the user |
+| Name          | Value  | Description                                       |
+|:--------------|:------:|:--------------------------------------------------|
+| **pname**     | String | Name of the Peer Connection given                 |
+| **call_id**   | String | Identifier or abstract name representing the call |
+| **user_id**   | String | Identifier or abstract name representing the user |
 | **timestamp** | Number | Timestamp of the metric collected                 |
-|   **count**   | Number | Number of the report                              |
+| **count**     | Number | Number of the report                              |
 
 ### Audio statistics
 
@@ -390,17 +396,17 @@ The ticket generated contains the following information:
 
 Each **SSRC** is an object containing the following statistics:
 
-| Name            | Value  | Description                                                                                                          |
-|:----------------|:------:|:---------------------------------------------------------------------------------------------------------------------|
-| **direction**   | String | The direction of the stream. Can be `inbound` or `outbound`                                                          |
-| **type**        | String | The type of the stream. Can be `audio` or `video`                                                                    |
-| **bitrate**     | Object | `min`, `max`, `avg`, `values` and `volatility` values for that bitrate of that stream                                |
-| **jitter**      | Object | `min`, `max`, `avg`, `values` and `volatility` values for the jitter of that stream                                  |
-| **loss**        | Object | `min`, `max`, `avg`, `values` and `volatility` values for the packet loss of that stream                             |
-| **rtt**         | Object | `min`, `max`, `avg`, `values` and `volatility` values for the rtt of that stream (outbound only)                     |
-| **mos**         | Object | `min`, `max`, `avg`, `values` and `volatility` values for the mos of that stream (audio only)                        |
-| **traffic**     | Object | `min`, `max`, `avg`, `values` and `volatility` values for the traffic of that stream                                 |
-| **limitations** | Object | For video outbound only. `bandwidth`, `cpu`, `other`, `none` values for the percent of time spent in that limitation |
+| Name            | Value  | Description                                                                               |
+|:----------------|:------:|:------------------------------------------------------------------------------------------|
+| **direction**   | String | The direction of the stream. Can be `inbound` or `outbound`                               |
+| **type**        | String | The type of the stream. Can be `audio` or `video`                                         |
+| **bitrate**     | Object | `min`, `max`, `avg`, `values` and `volatility` for Bitrate                                |
+| **jitter**      | Object | `min`, `max`, `avg`, `values` and `volatility` for Jitter                                 |
+| **loss**        | Object | `min`, `max`, `avg`, `values` and `volatility` for Packets Loss                           |
+| **rtt**         | Object | `min`, `max`, `avg`, `values` and `volatility` for Round Trip Time (outbound only)        |
+| **mos**         | Object | `min`, `max`, `avg`, `values` and `volatility` for MOS (audio only)                       |
+| **traffic**     | Object | `min`, `max`, `avg`, `values` and `volatility` for Traffic                                |
+| **limitations** | Object | For video outbound only. `bandwidth`, `cpu`, `other`, `none` for Limitations (in percent) |
 
 ## Additional information
 
@@ -441,11 +447,11 @@ metrics.startAllProbes();
 metrics.stopAllProbes();
 ```
 
-### Events && custom events
+### Events and custom events
 
 Each probe records some WebRTC events related to the `RTCPeerConnection`. These events are collected and available in the **ticket** report. 
 
-Additionally to these events, **custom events** can be recorded too.
+Additionally, to these events, **custom events** can be recorded too.
 
 ```javascript
 import WebRTCMetrics from "webrtcmetrics";
