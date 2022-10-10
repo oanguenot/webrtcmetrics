@@ -14,6 +14,18 @@ import { debug } from "./utils/log";
 
 const moduleName = "extractor   ";
 
+const getSSRCFromMediaSourceId = (id, stats) => {
+  let ssrc = null;
+
+  stats.forEach((report) => {
+    if ((report.type === "outbound-rtp" || report.type === "inbound-rtp") && report.mediaSourceId === id) {
+      ssrc = report.ssrc;
+    }
+  });
+
+  return ssrc;
+};
+
 const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   let supportOfMeasure = false;
   const previousRTT = previousBunch[kind].total_rtt_ms_out;
@@ -505,7 +517,7 @@ const extractAvailableBandwidth = (bunch) => {
   };
 };
 
-export const extract = (bunch, previousBunch, pname, referenceReport) => {
+export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
   if (!bunch) {
     return [];
   }
@@ -735,6 +747,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             type: STAT_TYPE.AUDIO,
             value: { delta_jitter_ms_in: jitter },
           },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { track_in: bunch[PROPERTY.TRACK_IDENTIFIER] },
+          },
         ];
       }
 
@@ -863,6 +880,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { size_in: inputVideo },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { track_in: bunch[PROPERTY.TRACK_IDENTIFIER] },
           },
         ];
       }
@@ -1033,12 +1055,24 @@ export const extract = (bunch, previousBunch, pname, referenceReport) => {
       break;
     }
     case TYPE.MEDIA_SOURCE: {
+      const result = [];
+      const ssrc = getSSRCFromMediaSourceId(bunch[PROPERTY.ID], raw);
+
       debug(
         moduleName,
         `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
         bunch,
       );
-      break;
+      result.push({
+        ssrc, type: bunch[PROPERTY.KIND], internal: "deviceChanged", value: { track_out: bunch[PROPERTY.TRACK_IDENTIFIER] },
+      });
+
+      if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
+        result.push({ ssrc, type: VALUE.AUDIO, value: { level_out: bunch[PROPERTY.AUDIO_LEVEL] } });
+      } else {
+        result.push({ ssrc, type: VALUE.VIDEO, value: { size_pref_out: { width: bunch[PROPERTY.WIDTH] || null, height: bunch[PROPERTY.HEIGHT] || null, framerate: bunch[PROPERTY.FRAMES_PER_SECOND] || null } } });
+      }
+      return result;
     }
     case TYPE.TRACK: {
       debug(

@@ -52,20 +52,19 @@ export default class Collector {
       return { ...defaultVideoMetricOut };
     };
 
+    // Get previous report without any modifications
     const report = getDefaultMetric(previousReport);
-
-    report.pname = this._config.pname;
-    report.call_id = this._config.cid;
-    report.user_id = this._config.uid;
-    report.count = previousReport ? previousReport.count + 1 : 1;
 
     let timestamp = null;
     stats.forEach((stat) => {
       if (!timestamp && stat.timestamp) {
         timestamp = stat.timestamp;
       }
-      const values = extract(stat, report, report.pname, referenceReport);
+      const values = extract(stat, report, report.pname, referenceReport, stats);
       values.forEach((data) => {
+        if ("internal" in data) {
+          this.doInternalTreatment(data, previousReport);
+        }
         if (data.value && data.type) {
           if (data.ssrc) {
             let ssrcReport = report[data.type][data.ssrc];
@@ -85,6 +84,10 @@ export default class Collector {
         }
       });
     });
+    report.pname = this._config.pname;
+    report.call_id = this._config.cid;
+    report.user_id = this._config.uid;
+    report.count = previousReport ? previousReport.count + 1 : 1;
     report.timestamp = timestamp;
     Object.keys(report[VALUE.AUDIO]).forEach((key) => {
       const ssrcReport = report[VALUE.AUDIO][key];
@@ -121,6 +124,26 @@ export default class Collector {
       }
     });
     return report;
+  }
+
+  doInternalTreatment(data, previousReport) {
+    switch (data.internal) {
+      case "deviceChanged":
+        if (previousReport) {
+          const previousTrackId = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc].track_out) || null;
+          if (previousTrackId && previousTrackId !== data.value.track_out) {
+            this.addCustomEvent(
+              new Date().toJSON(),
+              "device",
+              `device ${data.type}input changed`,
+              "Media Devices state",
+            );
+          }
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   async takeReferenceStats() {

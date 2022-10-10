@@ -3,7 +3,7 @@ import ShortUniqueId from "short-unique-id";
 const shortUUID = new ShortUniqueId();
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("5.1.0");
+export const getVersion = () => ("5.2.0");
 
 export const DIRECTION = {
   INBOUND: "inbound",
@@ -77,6 +77,7 @@ export const defaultAudioMetricIn = {
   timestamp_in: null,
   mos_in: 0,
   mos_emodel_in: 0,
+  track_in: "",
   ssrc: "",
   direction: DIRECTION.INBOUND,
 };
@@ -100,6 +101,7 @@ export const defaultAudioMetricOut = {
   timestamp_out: null,
   mos_out: 0,
   mos_emodel_out: 0,
+  track_out: "",
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };
@@ -125,6 +127,7 @@ export const defaultVideoMetricIn = {
   delta_pli_sent_in: 0,
   total_nack_sent_in: 0,
   total_pli_sent_in: 0,
+  track_in: "",
   ssrc: "",
   direction: DIRECTION.INBOUND,
 };
@@ -132,6 +135,7 @@ export const defaultVideoMetricIn = {
 export const defaultVideoMetricOut = {
   codec_id_out: "",
   size_out: { width: null, height: null, framerate: null },
+  size_pref_out: { width: null, height: null, framerate: null },
   codec_out: { mime_type: null, clock_rate: null },
   delta_jitter_ms_out: 0,
   delta_rtt_ms_out: null,
@@ -155,6 +159,7 @@ export const defaultVideoMetricOut = {
   total_pli_received_out: 0,
   limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
   timestamp_out: null,
+  track_out: "",
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };
@@ -303,6 +308,10 @@ export const PROPERTY = {
   TOTAL_ENCODE_TIME: "totalEncodeTime",
   PLI: "pliCount",
   NACK: "nackCount",
+  TRACK_IDENTIFIER: "trackIdentifier",
+  WIDTH: "width",
+  HEIGHT: "height",
+
 };
 
 export const VALUE = {

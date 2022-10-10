@@ -240,6 +240,7 @@ Each **inbound audio stream** contains the following statistics:
 | **total_packets_in**        | Number | Number of packets received since the beginning of the call                                                                                                                                                                                                                 |
 | **total_rtt_measure_in**    | Number | Number of RTT measurements done                                                                                                                                                                                                                                            |
 | **total_rtt_ms_in**         | Number | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
+| **track_in**                | String | The id of the associated mediastream track                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                |
 
 Each **outbound audio stream** contains the following statistics
 
@@ -264,6 +265,7 @@ Each **outbound audio stream** contains the following statistics
 | **total_packets_out**        | Number | Number of packets sent since the beginning of the call                                                                                                                                                                                                                     |
 | **total_rtt_measure_out**    | Number | Number of RTT measurements done                                                                                                                                                                                                                                            |
 | **total_rtt_ms_out**         | Number | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
+| **track_out**                | String | The id of the mediastream track associated                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                |
 
 ### Video statistics
 
@@ -289,14 +291,13 @@ Each **inbound video stream** contains the following statistics:
 | **percent_packets_lost_in**  | Number | Percent of audio packet lost (not received) since the last report                                         |
 | **total_KBytes_in**          | Number | Number of kilobytes (KB) received since the beginning of the call                                         |
 | **total_frames_decoded_in**  | Number | Total of frames decoded                                                                                   |
-| **total_nack_in**            | Number | Total nack received since the beginning of the call                                                       |
-| **total_nack_out**           | Number | Total nack sent since the beginning of the call                                                           |
+| **total_nack_in**            | Number | Total nack sent since the beginning of the call                                                           |
 | **total_packets_lost_in**    | Number | Number of packets lost (not received) since the beginning of the call                                     |
 | **total_packets_in**         | Number | Number of packets received since the beginning of the call                                                |
-| **total_pli_in**             | Number | Total pli received since the beginning of the call                                                        |
-| **total_pli_out**            | Number | Total pli sent since the beginning of the call                                                            |
+| **total_pli_in**             | Number | Total pli sent since the beginning of the call                                                            |
 | **total_time_decoded_in**    | Number | Total time used for decoding all frames                                                                   |
 | **timestamp_out**            | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| **track_in**                 | String | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
 
 Each **outbound video stream** contains the following statistics
 
@@ -314,20 +315,20 @@ Each **outbound video stream** contains the following statistics
 | **encoder_out**               | String | Description of the video encoder used                                                                     |
 | **codec_out**                 |  JSON  | Description of the video output codec and parameters used                                                 |
 | **codec_id_out**              | String | ID of the video output codec used                                                                         |
-| **size_out**                  | Number | Size of the output video (own video) + framerate                                                          |
+| **size_out**                  | Object | Size of the output video sent + framerate (could be lower than the size asked)                            |
+| **size_pref_out**             | Object | Size of the output video asked + framerate                                                                |
 | **percent_packets_lost_out**  | Number | Percent of audio packet lost (not received by the recipient) since the last report                        |
 | **limitation_out**            | Object | Object containing the reason and the durations spent in each state                                        |
 | **total_KBytes_out**          | Number | Number of kilobytes (KB) sent since the beginning of the call                                             |
 | **total_packets_lost_out**    | Number | Number of packets lost (not received by the recipient) since the beginning of the call                    |
 | **total_frames_encoded_out**  | Number | Total of frames encoded                                                                                   |
-| **total_nack_in**             | Number | Total nack received since the beginning of the call                                                       |
-| **total_nack_out**            | Number | Total nack sent since the beginning of the call                                                           |
-| **total_pli_in**              | Number | Total pli received since the beginning of the call                                                        |
-| **total_pli_out**             | Number | Total pli sent since the beginning of the call                                                            |
+| **total_nack_out**            | Number | Total nack received since the beginning of the call                                                       |
+| **total_pli_out**             | Number | Total pli received since the beginning of the call                                                        |
 | **total_rtt_measure_out**     | Number | Number of RTT measurements done                                                                           |
 | **total_rtt_ms_out**          | Number | Total Round Trip Time since the beginning of the call                                                     |
 | **total_time_encoded_out**    | Number | Total time used for encoding all frames                                                                   |
 | **timestamp_out**             | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| **track_out**                 | String | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
 
 ### Network properties
 
@@ -449,7 +450,7 @@ metrics.stopAllProbes();
 
 ### Events and custom events
 
-Each probe records some WebRTC events related to the `RTCPeerConnection`. These events are collected and available in the **ticket** report. 
+Each probe records some WebRTC events related to the `RTCPeerConnection` or to the devices used. These events are collected and available in the **ticket** report. 
 
 Additionally, to these events, **custom events** can be recorded too.
 
