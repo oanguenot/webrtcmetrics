@@ -10,16 +10,34 @@ import {
 
 const shortUUID = new ShortUniqueId();
 
-const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc) => {
+const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc, withTimestamp = false) => {
   let arr = reports.map((report) => {
     if (!subKey) {
+      if (withTimestamp) {
+        return {
+          timestamp: new Date(report.timestamp).toJSON(),
+          value: report[key],
+        };
+      }
       return report[key];
     }
     if (!ssrc) {
+      if (withTimestamp) {
+        return {
+          timestamp: new Date(report.timestamp).toJSON(),
+          value: report[key][subKey],
+        };
+      }
       return report[key][subKey];
     }
     const data = report[key][ssrc];
     if (data) {
+      if (withTimestamp) {
+        return {
+          timestamp: new Date(report.timestamp).toJSON(),
+          value: data[subKey],
+        };
+      }
       return data[subKey];
     }
     return null;
@@ -27,6 +45,13 @@ const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc) => {
 
   // Avoid null value
   arr = arr.filter((item) => {
+    if (withTimestamp) {
+      if (avoidZeroValue) {
+        return (Number.isFinite(item.value) && item.value > 0);
+      }
+      return Number.isFinite(item.value);
+    }
+
     if (avoidZeroValue) {
       return (Number.isFinite(item) && item > 0);
     }
@@ -99,7 +124,7 @@ export const maxValueOfReports = (reports, key, subKey, ssrc) => {
   return Math.max(...values);
 };
 
-export const valuesOfReports = (reports, key, subKey, ssrc) => (getValues(reports, key, subKey, false, ssrc));
+export const valuesOfReports = (reports, key, subKey, ssrc) => (getValues(reports, key, subKey, false, ssrc, true));
 
 export const lastOfReports = (reports, key, subKey, ssrc) => {
   const lastReport = reports.slice().pop();
