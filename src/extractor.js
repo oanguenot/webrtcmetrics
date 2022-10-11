@@ -880,6 +880,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { size_in: inputVideo },
+            internal: "inputSizeChanged",
           },
           {
             ssrc,
@@ -1044,6 +1045,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { size_out: outputVideo },
+            internal: "outputSizeChanged",
           },
           {
             ssrc,

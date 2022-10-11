@@ -13,7 +13,6 @@ import {
   defaultVideoMetricIn,
   defaultVideoMetricOut,
   getDefaultMetric,
-  ICE_CONNECTION_STATE,
   VALUE,
   TYPE,
 } from "./utils/models";
@@ -127,22 +126,66 @@ export default class Collector {
   }
 
   doInternalTreatment(data, previousReport) {
-    switch (data.internal) {
-      case "deviceChanged":
-        if (previousReport) {
-          const previousTrackId = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc].track_out) || null;
-          if (previousTrackId && previousTrackId !== data.value.track_out) {
-            this.addCustomEvent(
-              new Date().toJSON(),
-              "device",
-              `device ${data.type}input changed`,
-              "Media Devices state",
-            );
-          }
+    const compareAndSendEventForDevice = (property) => {
+      const previousTrackId = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
+      if (previousTrackId && previousTrackId !== data.value.track_out) {
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "device",
+          "change",
+          "The outbound device (microphone/camera) has changed",
+          { ssrc: data.ssrc, type: data.type },
+        );
+      }
+    };
+    const compareAndSendEventForSize = (property) => {
+      const size = data.value[property];
+      const previousSize = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
+      if (previousSize.width !== size.width && previousSize !== undefined) {
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "device",
+          "resolution",
+          `The resolution of the inbound device has ${previousSize.width > size.width ? "decreased" : "increased"}`,
+          {
+            ssrc: data.ssrc,
+            size: `${size.width}x${size.height}`,
+            size_old: `${previousSize.width}x${previousSize.height}`,
+          },
+        );
+      }
+      if (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2) {
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "device",
+          "framerate",
+          `The framerate of the inbound device has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
+          {
+            ssrc: data.ssrc,
+            framerate: size.framerate,
+            framerate_old: previousSize.framerate,
+          },
+        );
+      }
+    };
+
+    if (previousReport) {
+      switch (data.internal) {
+        case "deviceChanged": {
+          compareAndSendEventForDevice("track_out");
+          break;
         }
-        break;
-      default:
-        break;
+        case "inputSizeChanged": {
+          compareAndSendEventForSize("size_in");
+          break;
+        }
+        case "outputSizeChanged": {
+          compareAndSendEventForSize("size_out");
+          break;
+        }
+        default:
+          break;
+      }
     }
   }
 
@@ -299,12 +342,13 @@ export default class Collector {
     debug(this._moduleName, `state changed to ${newState}`);
   }
 
-  addCustomEvent(at, category, name, description) {
+  addCustomEvent(at, category, name, description, data) {
     this._exporter.addCustomEvent({
       at: typeof at === "object" ? at.toJSON() : at,
       category,
       name,
       description,
+      data,
     });
   }
 
@@ -316,8 +360,9 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "device",
-          `${devices.length} devices found`,
-          "Media Devices state",
+          "enumerate",
+          "At least one device has been plugged or unplugged",
+          { count: devices.length },
         );
         // eslint-disable-next-line no-empty
       } catch (err) {
@@ -327,50 +372,41 @@ export default class Collector {
     if (pc) {
       pc.oniceconnectionstatechange = () => {
         const value = pc.iceConnectionState;
-        if (
-          value === ICE_CONNECTION_STATE.CONNECTED ||
-          value === ICE_CONNECTION_STATE.COMPLETED
-        ) {
-          this.addCustomEvent(
-            new Date().toJSON(),
-            "call",
-            value,
-            "ICE connection state",
-          );
-        } else if (
-          value === ICE_CONNECTION_STATE.DISCONNECTED ||
-          value === ICE_CONNECTION_STATE.FAILED
-        ) {
-          this.addCustomEvent(
-            new Date().toJSON(),
-            "call",
-            value,
-            "ICE connection state",
-          );
-        } else if (value === ICE_CONNECTION_STATE.CLOSED) {
-          this.addCustomEvent(
-            new Date().toJSON(),
-            "call",
-            "ended",
-            "ICE connection state",
-          );
-        }
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "call",
+          "ice",
+          "The ICE connection state has changed",
+          { state: value },
+        );
+      };
+      pc.onconnectionstatechange = () => {
+        const value = pc.connectionState;
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "call",
+          "connection",
+          "The connection state has changed",
+          { state: value },
+        );
       };
       pc.onicegatheringstatechange = () => {
         const value = pc.iceGatheringState;
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          value,
-          "ICE gathering state",
+          "gathering",
+          "The ICE gathering state has changed",
+          { state: value },
         );
       };
       pc.ontrack = (e) => {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          `${e.track.kind}track`,
-          "MediaStreamTrack received",
+          "remote-track",
+          "A new remote track has been received",
+          { kind: e.track.kind, label: e.track.label, id: e.track.id },
         );
       };
       pc.onnegotiationneeded = () => {
@@ -378,7 +414,8 @@ export default class Collector {
           new Date().toJSON(),
           "call",
           "negotiation",
-          "Media changed",
+          "A negotiation is required",
+          {},
         );
       };
 
@@ -393,8 +430,9 @@ export default class Collector {
               this.addCustomEvent(
                 new Date().toJSON(),
                 "call",
-                "transport",
-                "Candidates Pair changed",
+                "ice",
+                "The selected candidates pair has changed",
+                {},
               );
             };
           }
