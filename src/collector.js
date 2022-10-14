@@ -126,28 +126,32 @@ export default class Collector {
   }
 
   doInternalTreatment(data, previousReport) {
+    // track id changed = device changed
     const compareAndSendEventForDevice = (property) => {
       const previousTrackId = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
-      if (previousTrackId && previousTrackId !== data.value.track_out) {
+      if (previousTrackId && previousTrackId !== data.value[property]) {
         this.addCustomEvent(
           new Date().toJSON(),
           "device",
           "change",
-          "The outbound device (microphone/camera) has changed",
+          `The outbound ${data.type === "audio" ? "microphone" : "camera"} has changed`,
           { ssrc: data.ssrc, type: data.type },
         );
       }
     };
+
+    // witdh / framerate changed = resolution changed
     const compareAndSendEventForSize = (property) => {
       const size = data.value[property];
       const previousSize = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
       if (previousSize.width !== size.width && previousSize !== undefined) {
         this.addCustomEvent(
           new Date().toJSON(),
-          "device",
+          "quality",
           "resolution",
-          `The resolution of the inbound device has ${previousSize.width > size.width ? "decreased" : "increased"}`,
+          `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type === "audio" ? "microphone" : "camera"} has ${previousSize.width > size.width ? "decreased" : "increased"}`,
           {
+            direction: property.includes("out") ? "outbound" : "inbound",
             ssrc: data.ssrc,
             size: `${size.width}x${size.height}`,
             size_old: `${previousSize.width}x${previousSize.height}`,
@@ -157,13 +161,40 @@ export default class Collector {
       if (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2) {
         this.addCustomEvent(
           new Date().toJSON(),
-          "device",
+          "quality",
           "framerate",
-          `The framerate of the inbound device has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
+          `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type === "audio" ? "microphone" : "camera"} has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
           {
+            direction: property.includes("out") ? "outbound" : "inbound",
+            type: data.type === "audio" ? "microphone" : "camera",
             ssrc: data.ssrc,
             framerate: size.framerate,
             framerate_old: previousSize.framerate,
+          },
+        );
+      }
+    };
+
+    // BytesSent changed a lot /10 or x10 = possibly track has been muted/unmuted
+    const compareAndSendEventForBytes = (property) => {
+      const bytesExchanged = data.value[property];
+      const previousBytesExchanged = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
+      const lowThreshold = previousBytesExchanged / 10;
+      const highThreshold = previousBytesExchanged * 10;
+
+      if (bytesExchanged > highThreshold || bytesExchanged < lowThreshold) {
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "quality",
+          "peak",
+          `Peak detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Is the ${data.type === "audio" ? "microphone" : "camera"} ${bytesExchanged > highThreshold ? "unmuted" : "muted"} (at track level)?`,
+          {
+            direction: property.includes("out") ? "outbound" : "inbound",
+            type: data.type,
+            ssrc: data.ssrc,
+            peak: bytesExchanged > highThreshold ? "up" : "down",
+            KBytes: bytesExchanged,
+            oldKBytes: previousBytesExchanged,
           },
         );
       }
@@ -181,6 +212,14 @@ export default class Collector {
         }
         case "outputSizeChanged": {
           compareAndSendEventForSize("size_out");
+          break;
+        }
+        case "bytesSentChanged": {
+          compareAndSendEventForBytes("delta_KBytes_out");
+          break;
+        }
+        case "bytesReceivedChanged": {
+          compareAndSendEventForBytes("delta_KBytes_in");
           break;
         }
         default:
@@ -395,7 +434,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "gathering",
+          "ice",
           "The ICE gathering state has changed",
           { state: value },
         );

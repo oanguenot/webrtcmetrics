@@ -735,6 +735,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
+            internal: "bytesReceivedChanged",
             value: { delta_KBytes_in: data.deltaKBytesReceived },
           },
           {
@@ -824,6 +825,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
+            internal: "bytesReceivedChanged",
             value: { delta_KBytes_in: packetsData.deltaKBytesReceived },
           },
           {
@@ -938,6 +940,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
+            internal: "bytesSentChanged",
             value: { delta_KBytes_out: data.deltaKBytesSent },
           },
           {
@@ -994,6 +997,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
+            internal: "bytesSentChanged",
             value: { delta_KBytes_out: dataSent.deltaKBytesSent },
           },
           {
