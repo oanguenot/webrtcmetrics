@@ -279,7 +279,8 @@ Each **inbound video stream** contains the following statistics:
 | **decoder_in**               | String | Description of the video decoder used                                                                     |
 | **delta_KBytes_in**          | Number | Number of kilobytes (KB) received since the last report                                                   |
 | **delta_kbs_in**             | Number | Number of kbits received per second since the last report                                                 |
-| **delta_jitter_ms_in**       | Number | Incoming Jitter (in ms). Could be null when no value collected.                                           |
+| **delta_jitter_ms_in**       | Number | Incoming Jitter (in ms). Could be null when no value collected                                            |
+| **delta_glitch_in**          |  JSON  | Number of freezes and pauses encountered since the last report                                            |
 | **delta_ms_decode_frame_in** | Number | Time needed to decode a frame                                                                             |
 | **delta_nack_in**            | Number | Nack received since the last report                                                                       |
 | **delta_packets_lost_in**    | Number | Number of packets lost (not received) since last report                                                   |
@@ -292,6 +293,7 @@ Each **inbound video stream** contains the following statistics:
 | **percent_packets_lost_in**  | Number | Percent of audio packet lost (not received) since the last report                                         |
 | **total_KBytes_in**          | Number | Number of kilobytes (KB) received since the beginning of the call                                         |
 | **total_frames_decoded_in**  | Number | Total of frames decoded                                                                                   |
+| **total_glitch_in**          |  JSON  | Number of freezes and pauses encountered since the beginning of the call                                  |
 | **total_nack_in**            | Number | Total nack sent since the beginning of the call                                                           |
 | **total_packets_lost_in**    | Number | Number of packets lost (not received) since the beginning of the call                                     |
 | **total_packets_in**         | Number | Number of packets received since the beginning of the call                                                |

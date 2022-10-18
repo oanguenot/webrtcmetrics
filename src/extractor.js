@@ -411,6 +411,30 @@ const extractQualityLimitation = (bunch) => {
   return { reason, durations, resolutionChanges };
 };
 
+const extractVideoGlitch = (bunch, previousReport, referenceReport) => {
+  if (
+    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FREEZE_COUNT) ||
+    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PAUSE_COUNT)
+  ) {
+    return {
+      freezeCount: previousReport.total_glitch_in.freeze,
+      pauseCount: previousReport.total_glitch_in.pause,
+      deltaFreezeCount: 0,
+      deltaPauseCount: 0,
+    };
+  }
+
+  const freezeCount = (bunch[PROPERTY.FREEZE_COUNT] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_glitch_in.freeze : 0);
+  const pauseCount = (bunch[PROPERTY.PAUSE_COUNT] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_glitch_in.pause : 0);
+
+  return {
+    freezeCount,
+    pauseCount,
+    deltaFreezeCount: freezeCount - previousReport[VALUE.VIDEO].total_glitch_in.freeze,
+    deltaPauseCount: pauseCount - previousReport[VALUE.VIDEO].total_glitch_in.pause,
+  };
+};
+
 const extractNackAndPliCountSentWhenReceiving = (bunch, previousReport, referenceReport) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PLI) ||
@@ -786,6 +810,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           referenceSSRCBunch,
         );
 
+        // Glitch
+        const freezePauseData = extractVideoGlitch(bunch, previousSSRCBunch, referenceSSRCBunch);
+
         return [
           {
             ssrc,
@@ -888,6 +915,15 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { track_in: bunch[PROPERTY.TRACK_IDENTIFIER] },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: {
+              total_glitch_in: { freeze: freezePauseData.freezeCount, pause: freezePauseData.pauseCount },
+              delta_glitch_in: { freeze: freezePauseData.deltaFreezeCount, pause: freezePauseData.deltaPauseCount },
+            },
+            internal: "glitchChanged",
           },
         ];
       }
