@@ -208,6 +208,27 @@ export default class Collector {
       }
     };
 
+    // VideoLimitation Change = cpu, bandwidth, other, none
+    const compareAndSendEventForOutboundLimitation = (property) => {
+      const limitation = data.value[property];
+      const previousLimitation = getValueFromReport(property, previousReport);
+
+      if (limitation.reason !== previousLimitation.reason) {
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "quality",
+          "resolution",
+          `The outbound video stream resolution is ${limitation.reason === "none" ? "no more limited" : `limited due to ${limitation.reason} reason`}`,
+          {
+            direction: property.includes("out") ? "outbound" : "inbound",
+            type: data.type,
+            ssrc: data.ssrc,
+            limitation: limitation.reason,
+          },
+        );
+      }
+    };
+
     // BytesSent changed a lot /10 or x10 = possibly track has been muted/unmuted
     const compareAndSendEventForBytes = (property) => {
       const bytesExchanged = data.value[property];
@@ -260,6 +281,10 @@ export default class Collector {
         }
         case "mediaSourceUpdated": {
           compareAndSendEventForOutboundMediaSource("active_out");
+          break;
+        }
+        case "videoLimitationChanged": {
+          compareAndSendEventForOutboundLimitation("limitation_out");
           break;
         }
         default:

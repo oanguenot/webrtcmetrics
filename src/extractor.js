@@ -1069,6 +1069,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { limitation_out: limitationOut },
+            internal: "videoLimitationChanged",
           },
         ];
       }
