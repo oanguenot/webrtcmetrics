@@ -371,13 +371,13 @@ const extractVideoSize = (bunch) => {
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_HEIGHT) ||
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_WIDTH)
   ) {
-    return { width: null, height: null, framerate: null };
+    return { width: 0, height: 0, framerate: 0 };
   }
 
   return {
-    width: bunch[PROPERTY.FRAME_WIDTH] || null,
-    height: bunch[PROPERTY.FRAME_HEIGHT] || null,
-    framerate: bunch[PROPERTY.FRAMES_PER_SECOND],
+    width: bunch[PROPERTY.FRAME_WIDTH] || 0,
+    height: bunch[PROPERTY.FRAME_HEIGHT] || 0,
+    framerate: bunch[PROPERTY.FRAMES_PER_SECOND || 0],
   };
 };
 
@@ -900,6 +900,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           bunch,
       );
 
+      const active = !!bunch[PROPERTY.MEDIA_SOURCE_ID];
+
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
@@ -917,6 +919,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         const data = extractAudioVideoPacketSent(bunch, VALUE.AUDIO, previousSSRCBunch, referenceSSRCBunch);
 
         return [
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            internal: "mediaSourceUpdated",
+            value: { active_out: active },
+          },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
@@ -974,6 +982,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         const dataSent = extractAudioVideoPacketSent(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
 
         return [
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            internal: "mediaSourceUpdated",
+            value: { active_out: active },
+          },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,

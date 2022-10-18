@@ -62,7 +62,7 @@ export default class Collector {
       const values = extract(stat, report, report.pname, referenceReport, stats);
       values.forEach((data) => {
         if ("internal" in data) {
-          this.doInternalTreatment(data, previousReport);
+          this.doInternalTreatment(data, previousReport, values);
         }
         if (data.value && data.type) {
           if (data.ssrc) {
@@ -125,51 +125,84 @@ export default class Collector {
     return report;
   }
 
-  doInternalTreatment(data, previousReport) {
+  doInternalTreatment(data, previousReport, values) {
+    const getValueFromReport = (property, report) => (
+      (data.type in report && data.ssrc in report[data.type] && property in report[data.type][data.ssrc]) ? report[data.type][data.ssrc][property] : null
+    );
+
+    const getValueFromReportValues = (property, reportValues) => (
+      reportValues.find((reportValue) => (property in reportValue.value ? reportValue.value[property] : null))
+    );
+
     // track id changed = device changed
     const compareAndSendEventForDevice = (property) => {
-      const previousTrackId = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
+      const previousTrackId = getValueFromReport(property, previousReport);
       if (previousTrackId && previousTrackId !== data.value[property]) {
         this.addCustomEvent(
           new Date().toJSON(),
-          "device",
-          "change",
-          `The outbound ${data.type === "audio" ? "microphone" : "camera"} has changed`,
+          "call",
+          "media",
+          `A new outbound ${data.type} stream has been started`,
           { ssrc: data.ssrc, type: data.type },
         );
       }
     };
 
-    // witdh / framerate changed = resolution changed
+    // width / framerate changed = resolution changed
     const compareAndSendEventForSize = (property) => {
       const size = data.value[property];
-      const previousSize = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
-      if (previousSize.width !== size.width && previousSize !== undefined) {
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "quality",
-          "resolution",
-          `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type === "audio" ? "microphone" : "camera"} has ${previousSize.width > size.width ? "decreased" : "increased"}`,
-          {
-            direction: property.includes("out") ? "outbound" : "inbound",
-            ssrc: data.ssrc,
-            size: `${size.width}x${size.height}`,
-            size_old: `${previousSize.width}x${previousSize.height}`,
-          },
-        );
+      const previousSize = getValueFromReport(property, previousReport);
+      const currentActive = property.includes("out") ? getValueFromReportValues("active_out", values) : true;
+      // Only send event for resolution and framerate if there is an active stream
+      if (currentActive) {
+        if (previousSize.width !== size.width) {
+          this.addCustomEvent(
+            new Date().toJSON(),
+            "quality",
+            "resolution",
+            `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.width > size.width ? "decreased" : "increased"}`,
+            {
+              direction: property.includes("out") ? "outbound" : "inbound",
+              ssrc: data.ssrc,
+              type: data.type === "audio" ? "microphone" : "camera",
+              size: `${size.width}x${size.height}`,
+              size_old: `${previousSize.width}x${previousSize.height}`,
+            },
+          );
+        }
+        if (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2) {
+          this.addCustomEvent(
+            new Date().toJSON(),
+            "quality",
+            "framerate",
+            `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
+            {
+              direction: property.includes("out") ? "outbound" : "inbound",
+              type: data.type === "audio" ? "microphone" : "camera",
+              ssrc: data.ssrc,
+              framerate: size.framerate,
+              framerate_old: previousSize.framerate,
+            },
+          );
+        }
       }
-      if (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2) {
+    };
+
+    // MediaSourceId (outbound-rtp) becomes undefined = camera or microphone track removed (muted) or added again (unmuted)
+    const compareAndSendEventForOutboundMediaSource = (property) => {
+      const active = data.value[property];
+      const previousActive = getValueFromReport(property, previousReport);
+      if (active !== previousActive) {
         this.addCustomEvent(
           new Date().toJSON(),
-          "quality",
-          "framerate",
-          `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type === "audio" ? "microphone" : "camera"} has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
+          "call",
+          "media",
+          `${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream switched to ${active ? "active" : "inactive"}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
-            type: data.type === "audio" ? "microphone" : "camera",
+            type: data.type,
             ssrc: data.ssrc,
-            framerate: size.framerate,
-            framerate_old: previousSize.framerate,
+            active,
           },
         );
       }
@@ -178,25 +211,28 @@ export default class Collector {
     // BytesSent changed a lot /10 or x10 = possibly track has been muted/unmuted
     const compareAndSendEventForBytes = (property) => {
       const bytesExchanged = data.value[property];
-      const previousBytesExchanged = (data.type in previousReport && data.ssrc in previousReport[data.type] && previousReport[data.type][data.ssrc][property]) || null;
+      const previousBytesExchanged = getValueFromReport(property, previousReport);
+      const currentActive = property.includes("out") ? getValueFromReportValues("active_out", values) : true;
       const lowThreshold = previousBytesExchanged / 10;
       const highThreshold = previousBytesExchanged * 10;
 
-      if (bytesExchanged > highThreshold || bytesExchanged < lowThreshold) {
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "quality",
-          "peak",
-          `Peak detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Is the ${data.type === "audio" ? "microphone" : "camera"} ${bytesExchanged > highThreshold ? "unmuted" : "muted"} (at track level)?`,
-          {
-            direction: property.includes("out") ? "outbound" : "inbound",
-            type: data.type,
-            ssrc: data.ssrc,
-            peak: bytesExchanged > highThreshold ? "up" : "down",
-            KBytes: bytesExchanged,
-            oldKBytes: previousBytesExchanged,
-          },
-        );
+      if (currentActive) {
+        if (bytesExchanged > highThreshold || bytesExchanged < lowThreshold) {
+          this.addCustomEvent(
+            new Date().toJSON(),
+            "quality",
+            "peak",
+            `Peak detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Could be linked to a ${bytesExchanged > highThreshold ? "unmute" : "mute"}`,
+            {
+              direction: property.includes("out") ? "outbound" : "inbound",
+              type: data.type,
+              ssrc: data.ssrc,
+              peak: bytesExchanged > highThreshold ? "up" : "down",
+              KBytes: bytesExchanged,
+              oldKBytes: previousBytesExchanged,
+            },
+          );
+        }
       }
     };
 
@@ -220,6 +256,10 @@ export default class Collector {
         }
         case "bytesReceivedChanged": {
           compareAndSendEventForBytes("delta_KBytes_in");
+          break;
+        }
+        case "mediaSourceUpdated": {
+          compareAndSendEventForOutboundMediaSource("active_out");
           break;
         }
         default:
@@ -413,7 +453,7 @@ export default class Collector {
         const value = pc.iceConnectionState;
         this.addCustomEvent(
           new Date().toJSON(),
-          "call",
+          "signal",
           "ice",
           "The ICE connection state has changed",
           { state: value },
@@ -423,7 +463,7 @@ export default class Collector {
         const value = pc.connectionState;
         this.addCustomEvent(
           new Date().toJSON(),
-          "call",
+          "signal",
           "connection",
           "The connection state has changed",
           { state: value },
@@ -433,7 +473,7 @@ export default class Collector {
         const value = pc.iceGatheringState;
         this.addCustomEvent(
           new Date().toJSON(),
-          "call",
+          "signal",
           "ice",
           "The ICE gathering state has changed",
           { state: value },
@@ -443,7 +483,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "remote-track",
+          "media",
           "A new remote track has been received",
           { kind: e.track.kind, label: e.track.label, id: e.track.id },
         );
@@ -451,7 +491,7 @@ export default class Collector {
       pc.onnegotiationneeded = () => {
         this.addCustomEvent(
           new Date().toJSON(),
-          "call",
+          "signal",
           "negotiation",
           "A negotiation is required",
           {},
@@ -468,7 +508,7 @@ export default class Collector {
             iceTransport.onselectedcandidatepairchange = () => {
               this.addCustomEvent(
                 new Date().toJSON(),
-                "call",
+                "signal",
                 "ice",
                 "The selected candidates pair has changed",
                 {},

@@ -83,6 +83,7 @@ export const defaultAudioMetricIn = {
 };
 
 export const defaultAudioMetricOut = {
+  active_out: null,
   level_out: 0,
   codec_id_out: "",
   codec_out: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
@@ -108,7 +109,7 @@ export const defaultAudioMetricOut = {
 
 export const defaultVideoMetricIn = {
   codec_id_in: "",
-  size_in: { width: null, height: null, framerate: null },
+  size_in: { width: 0, height: 0, framerate: 0 },
   codec_in: { mime_type: null, clock_rate: null },
   delta_jitter_ms_in: 0,
   percent_packets_lost_in: 0,
@@ -133,9 +134,10 @@ export const defaultVideoMetricIn = {
 };
 
 export const defaultVideoMetricOut = {
+  active_out: null,
   codec_id_out: "",
-  size_out: { width: null, height: null, framerate: null },
-  size_pref_out: { width: null, height: null, framerate: null },
+  size_out: { width: 0, height: 0, framerate: 0 },
+  size_pref_out: { width: 0, height: 0, framerate: 0 },
   codec_out: { mime_type: null, clock_rate: null },
   delta_jitter_ms_out: 0,
   delta_rtt_ms_out: null,
@@ -279,6 +281,7 @@ export const PROPERTY = {
   KIND: "kind",
   MEDIA_TYPE: "mediaType",
   MIME_TYPE: "mimeType",
+  MEDIA_SOURCE_ID: "mediaSourceId",
   LOCAL_CANDIDATE_ID: "localCandidateId",
   NETWORK_TYPE: "networkType",
   RELAY_PROTOCOL: "relayProtocol",
