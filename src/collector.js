@@ -1,5 +1,5 @@
 import Exporter from "./exporter";
-import { extract } from "./extractor";
+import { extract, extractPassthroughFields } from "./extractor";
 import {
   computeMOS,
   computeEModelMOS,
@@ -82,6 +82,14 @@ export default class Collector {
           }
         }
       });
+
+      // Extract passthrough fields
+      console.log(">>>", this._config);
+      const passthrough = extractPassthroughFields(stat, this._config.passthrough);
+      console.log(">>>pass", passthrough);
+      if (Object.keys(passthrough) > 0) {
+        report.passthrough = { ...report.passthrough, ...passthrough };
+      }
     });
     report.pname = this._config.pname;
     report.call_id = this._config.cid;

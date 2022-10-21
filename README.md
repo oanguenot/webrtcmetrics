@@ -20,7 +20,7 @@ $ yarn add webrtcmetrics
 
 ## Usage
 
-### Breaking changes coming with version 5.0
+### Version 5.0
 
 Version 5.0 comes with a support of multi streams within a single `RTCPeerConnection`. Reports and tickets generated contain statistics for each stream:
 

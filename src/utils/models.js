@@ -244,7 +244,7 @@ export const defaultConfig = {
   uid: `u-${shortUUID()}`, // Default - user identifier
   record: false, // Default - no record,
   ticket: true, // Default - ticket generated and so all reports are kept
-  // recordFields: ["*"], // Default all fields stored
+  passthrough: {}, // Access to specific fields directly from the stack {"inbound-rtp": ["jitter", "bytesReceived"]}
 };
 
 export const TYPE = {

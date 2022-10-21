@@ -411,27 +411,27 @@ const extractQualityLimitation = (bunch) => {
   return { reason, durations, resolutionChanges };
 };
 
-const extractVideoGlitch = (bunch, previousReport, referenceReport) => {
+const extractVideoGlitch = (bunch, kind, previousReport, referenceReport) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FREEZE_COUNT) ||
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PAUSE_COUNT)
   ) {
     return {
-      freezeCount: previousReport.total_glitch_in.freeze,
-      pauseCount: previousReport.total_glitch_in.pause,
+      freezeCount: previousReport[kind].total_glitch_in.freeze,
+      pauseCount: previousReport[kind].total_glitch_in.pause,
       deltaFreezeCount: 0,
       deltaPauseCount: 0,
     };
   }
 
-  const freezeCount = (bunch[PROPERTY.FREEZE_COUNT] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_glitch_in.freeze : 0);
-  const pauseCount = (bunch[PROPERTY.PAUSE_COUNT] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_glitch_in.pause : 0);
+  const freezeCount = (bunch[PROPERTY.FREEZE_COUNT] || 0) - (referenceReport ? referenceReport[kind].total_glitch_in.freeze : 0);
+  const pauseCount = (bunch[PROPERTY.PAUSE_COUNT] || 0) - (referenceReport ? referenceReport[kind].total_glitch_in.pause : 0);
 
   return {
     freezeCount,
     pauseCount,
-    deltaFreezeCount: freezeCount - previousReport[VALUE.VIDEO].total_glitch_in.freeze,
-    deltaPauseCount: pauseCount - previousReport[VALUE.VIDEO].total_glitch_in.pause,
+    deltaFreezeCount: freezeCount - previousReport[kind].total_glitch_in.freeze,
+    deltaPauseCount: pauseCount - previousReport[kind].total_glitch_in.pause,
   };
 };
 
@@ -811,7 +811,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         );
 
         // Glitch
-        const freezePauseData = extractVideoGlitch(bunch, previousSSRCBunch, referenceSSRCBunch);
+        const freezePauseData = extractVideoGlitch(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
 
         return [
           {
@@ -1356,4 +1356,24 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
 
   // No interesting data
   return [];
+};
+
+export const extractPassthroughFields = (bunch, passthrough) => {
+  if (!bunch) {
+    return [];
+  }
+  // Exemple {"inbound-rtp": ["jitter", "bytesSent"]}
+  const fieldsToReport = (passthrough && passthrough[bunch.type]) || [];
+
+  const pass = {};
+  if (fieldsToReport.length > 0) {
+    const ref = bunch.ssrc || bunch.id;
+    if (ref && !(ref in pass)) {
+      pass[ref] = {};
+    }
+    fieldsToReport.forEach((field) => {
+      pass[ref][field] = bunch[field];
+    });
+  }
+  return pass;
 };
