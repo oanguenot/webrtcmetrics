@@ -203,6 +203,7 @@ export const getDefaultMetric = (previousStats) => {
     experimental: {
       time_to_measure_ms: 0,
     },
+    passthrough: {},
   };
 
   if (previousStats) {
@@ -213,6 +214,7 @@ export const getDefaultMetric = (previousStats) => {
       data: { ...previousStats.data },
       network: { ...previousStats.network },
       experimental: { ...previousStats.experimental },
+      passthrough: {},
     };
     Object.keys(previousStats.audio).forEach((ssrc) => {
       metrics.audio[ssrc] = { ...previousStats.audio[ssrc] };

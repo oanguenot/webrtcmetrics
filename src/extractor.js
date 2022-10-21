@@ -1362,17 +1362,21 @@ export const extractPassthroughFields = (bunch, passthrough) => {
   if (!bunch) {
     return [];
   }
-  // Exemple {"inbound-rtp": ["jitter", "bytesSent"]}
-  const fieldsToReport = (passthrough && passthrough[bunch.type]) || [];
+  // Example {"inbound-rtp": ["jitter", "bytesSent"]}
+  const fieldsToReport = (passthrough && passthrough[bunch[PROPERTY.TYPE]]) || [];
 
   const pass = {};
   if (fieldsToReport.length > 0) {
-    const ref = bunch.ssrc || bunch.id;
-    if (ref && !(ref in pass)) {
-      pass[ref] = {};
-    }
+    const ref = bunch[PROPERTY.SSRC] || bunch[PROPERTY.ID];
+    const kind = bunch[PROPERTY.KIND] || "";
+    const id = `${bunch.type}${kind ? `-${kind}` : ""}_${ref}`;
     fieldsToReport.forEach((field) => {
-      pass[ref][field] = bunch[field];
+      if (field in bunch) {
+        if (!(field in pass)) {
+          pass[field] = {};
+        }
+        pass[field][id] = bunch[field];
+      }
     });
   }
   return pass;

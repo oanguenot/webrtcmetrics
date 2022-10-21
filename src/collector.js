@@ -84,12 +84,13 @@ export default class Collector {
       });
 
       // Extract passthrough fields
-      console.log(">>>", this._config);
       const passthrough = extractPassthroughFields(stat, this._config.passthrough);
-      console.log(">>>pass", passthrough);
-      if (Object.keys(passthrough) > 0) {
-        report.passthrough = { ...report.passthrough, ...passthrough };
-      }
+      Object.keys(passthrough).forEach((key) => {
+        if (!(report.passthrough[key])) {
+          report.passthrough[key] = {};
+        }
+        report.passthrough[key] = { ...report.passthrough[key], ...passthrough[key] };
+      });
     });
     report.pname = this._config.pname;
     report.call_id = this._config.cid;
