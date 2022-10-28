@@ -260,6 +260,7 @@ export const TYPE = {
   REMOTE_INBOUND_RTP: "remote-inbound-rtp",
   REMOTE_OUTBOUND_RTP: "remote-outbound-rtp",
   TRACK: "track",
+  TRANSPORT: "transport",
 };
 
 export const PROPERTY = {
@@ -311,9 +312,11 @@ export const PROPERTY = {
   SDP_FMTP_LINE: "sdpFmtpLine",
   SSRC: "ssrc",
   SELECTED: "selected",
+  SELECTED_CANDIDATEPAIR_ID: "selectedCandidatePairId",
   STATE: "state",
   TIMESTAMP: "timestamp",
   TRACK_IDENTIFIER: "trackIdentifier",
+  TRANSPORT_ID: "transportId",
   TOTAL_DECODE_TIME: "totalDecodeTime",
   TOTAL_ENCODE_TIME: "totalEncodeTime",
   TOTAL_ROUND_TRIP_TIME: "totalRoundTripTime",

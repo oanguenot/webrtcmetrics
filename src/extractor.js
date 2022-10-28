@@ -555,17 +555,19 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
   switch (bunch[PROPERTY.TYPE]) {
     case TYPE.CANDIDATE_PAIR:
       let selectedPair = false;
-      if (
-        bunch[PROPERTY.NOMINATED] &&
-        bunch[PROPERTY.STATE] === VALUE.SUCCEEDED
-      ) {
-        selectedPair = true;
-
-        // FF: Do not use candidate-pair with selected=false
-        if (PROPERTY.SELECTED in bunch && !bunch[PROPERTY.SELECTED]) {
-          selectedPair = false;
+      // get Transport report
+      if (raw.has(bunch[PROPERTY.TRANSPORT_ID])) {
+        const transportReport = raw.get(bunch[PROPERTY.TRANSPORT_ID]);
+        if (transportReport[PROPERTY.SELECTED_CANDIDATEPAIR_ID] === bunch[PROPERTY.ID]) {
+          selectedPair = true;
         }
       }
+
+      // FF: Do not use candidate-pair with selected=false - Don't remember why...
+      if (PROPERTY.SELECTED in bunch && !bunch[PROPERTY.SELECTED]) {
+        selectedPair = false;
+      }
+
       if (selectedPair) {
         const localCandidateId = bunch[PROPERTY.LOCAL_CANDIDATE_ID];
         const remoteCandidateId = bunch[PROPERTY.REMOTE_CANDIDATE_ID];
@@ -1307,6 +1309,15 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         ];
       }
       break;
+    }
+    case TYPE.TRANSPORT: {
+      const selectedCandidatePairId = bunch[PROPERTY.SELECTED_CANDIDATEPAIR_ID];
+      return [
+        {
+          type: STAT_TYPE.DATA,
+          value: { selected_candidate_pair_id: selectedCandidatePairId },
+        },
+      ];
     }
     default:
       break;
