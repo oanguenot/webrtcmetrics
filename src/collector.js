@@ -150,9 +150,13 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "media",
+          "streamchange",
           `A new outbound ${data.type} stream has been started`,
-          { ssrc: data.ssrc, type: data.type },
+          {
+            ssrc: data.ssrc,
+            kind: data.type,
+            direction: "outbound",
+          },
         );
       }
     };
@@ -168,12 +172,12 @@ export default class Collector {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "resolution",
+            "resolutionchange",
             `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.width > size.width ? "decreased" : "increased"}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               ssrc: data.ssrc,
-              type: data.type === "audio" ? "microphone" : "camera",
+              kind: data.type,
               size: `${size.width}x${size.height}`,
               size_old: `${previousSize.width}x${previousSize.height}`,
             },
@@ -183,11 +187,11 @@ export default class Collector {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "framerate",
+            "frameratechange",
             `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
-              type: data.type === "audio" ? "microphone" : "camera",
+              kind: data.type,
               ssrc: data.ssrc,
               framerate: size.framerate,
               framerate_old: previousSize.framerate,
@@ -205,11 +209,11 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "media",
+          "streamactivechange",
           `${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream switched to ${active ? "active" : "inactive"}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
-            type: data.type,
+            kind: data.type,
             ssrc: data.ssrc,
             active,
           },
@@ -226,11 +230,11 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "quality",
-          "resolution",
+          "limitationchange",
           `The outbound video stream resolution is ${limitation.reason === "none" ? "no more limited" : `limited due to ${limitation.reason} reason`}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
-            type: data.type,
+            kind: data.type,
             ssrc: data.ssrc,
             limitation: limitation.reason,
           },
@@ -251,11 +255,11 @@ export default class Collector {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "peak",
+            "peakdetected",
             `Peak detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Could be linked to a ${bytesExchanged > highThreshold ? "unmute" : "mute"}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
-              type: data.type,
+              kind: data.type,
               ssrc: data.ssrc,
               peak: bytesExchanged > highThreshold ? "up" : "down",
               KBytes: bytesExchanged,
@@ -473,7 +477,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "device",
-          "enumerate",
+          "devicechange",
           "At least one device has been plugged or unplugged",
           { count: devices.length },
         );
@@ -488,9 +492,9 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "ice",
+          "icechange",
           "The ICE connection state has changed",
-          { state: value },
+          { state: value, type: "icestate" },
         );
       };
       pc.onconnectionstatechange = () => {
@@ -498,9 +502,9 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "connection",
+          "icechange",
           "The connection state has changed",
-          { state: value },
+          { state: value, type: "connection" },
         );
       };
       pc.onicegatheringstatechange = () => {
@@ -508,27 +512,32 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "ice",
+          "icechange",
           "The ICE gathering state has changed",
-          { state: value },
+          { state: value, type: "gathering" },
         );
       };
       pc.ontrack = (e) => {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "media",
-          "A new remote track has been received",
-          { kind: e.track.kind, label: e.track.label, id: e.track.id },
+          "streamchange",
+          `A new inbound ${e.track.kind} stream has been started`,
+          {
+            kind: e.track.kind,
+            label: e.track.label,
+            id: e.track.id,
+            direction: "inbound",
+          },
         );
       };
       pc.onnegotiationneeded = () => {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "negotiation",
+          "icechange",
           "A negotiation is required",
-          {},
+          { type: "negotiation" },
         );
       };
 
@@ -543,7 +552,7 @@ export default class Collector {
               this.addCustomEvent(
                 new Date().toJSON(),
                 "signal",
-                "ice",
+                "icechange",
                 "The selected candidates pair has changed",
                 {},
               );
