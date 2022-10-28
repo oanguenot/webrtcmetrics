@@ -546,6 +546,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
     return [];
   }
 
+  debug(
+    moduleName,
+    `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
+    bunch,
+  );
+
   switch (bunch[PROPERTY.TYPE]) {
     case TYPE.CANDIDATE_PAIR:
       let selectedPair = false;
@@ -554,12 +560,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         bunch[PROPERTY.STATE] === VALUE.SUCCEEDED
       ) {
         selectedPair = true;
-
-        debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-        );
 
         // FF: Do not use candidate-pair with selected=false
         if (PROPERTY.SELECTED in bunch && !bunch[PROPERTY.SELECTED]) {
@@ -688,12 +688,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       }
       break;
     case TYPE.INBOUND_RTP: {
-      debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-      );
-
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.INBOUND);
@@ -930,12 +924,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       break;
     }
     case TYPE.OUTBOUND_RTP: {
-      debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-      );
-
       const active = !!bunch[PROPERTY.MEDIA_SOURCE_ID];
 
       // get SSRC and associated data
@@ -1115,11 +1103,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       const result = [];
       const ssrc = getSSRCFromMediaSourceId(bunch[PROPERTY.ID], raw);
 
-      debug(
-        moduleName,
-        `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-        bunch,
-      );
       result.push({
         ssrc, type: bunch[PROPERTY.KIND], internal: "deviceChanged", value: { track_out: bunch[PROPERTY.TRACK_IDENTIFIER] },
       });
@@ -1132,11 +1115,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       return result;
     }
     case TYPE.TRACK: {
-      debug(
-        moduleName,
-        `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-        bunch,
-      );
       break;
     }
     case TYPE.CODEC:
@@ -1145,11 +1123,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       Object.keys(previousBunch[VALUE.AUDIO]).forEach((ssrc) => {
         const ssrcAudioBunch = previousBunch[VALUE.AUDIO][ssrc];
         if ((ssrcAudioBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcAudioBunch.codec_id_out === bunch[PROPERTY.ID])) {
-          debug(
-              moduleName,
-              `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-              bunch,
-          );
           const codec = extractAudioCodec(bunch);
           if (bunch[PROPERTY.ID] === ssrcAudioBunch.codec_id_in) {
             result.push({ ssrc: ssrcAudioBunch.ssrc, type: STAT_TYPE.AUDIO, value: { codec_in: codec } });
@@ -1163,11 +1136,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       Object.keys(previousBunch[VALUE.VIDEO]).forEach((ssrc) => {
         const ssrcVideoBunch = previousBunch[VALUE.VIDEO][ssrc];
         if ((ssrcVideoBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcVideoBunch.codec_id_out === bunch[PROPERTY.ID])) {
-          debug(
-              moduleName,
-              `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-              bunch,
-          );
           const codec = extractVideoCodec(bunch);
           if (bunch[PROPERTY.ID] === ssrcVideoBunch.codec_id_in) {
             result.push({ ssrc: ssrcVideoBunch.ssrc, type: STAT_TYPE.VIDEO, value: { codec_in: codec } });
@@ -1178,11 +1146,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       });
       return result;
     case TYPE.REMOTE_INBOUND_RTP: {
-      debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-      );
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
@@ -1307,11 +1270,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       break;
     }
     case TYPE.REMOTE_OUTBOUND_RTP: {
-      debug(
-        moduleName,
-        `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-        bunch,
-      );
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
