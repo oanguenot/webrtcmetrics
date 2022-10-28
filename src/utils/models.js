@@ -179,6 +179,7 @@ export const getDefaultMetric = (previousStats) => {
     video: {},
     network: {
       infrastructure: 3,
+      selected_candidate_pair_id: "",
       local_candidate_id: "",
       local_candidate_type: "",
       local_candidate_protocol: "",

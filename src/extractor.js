@@ -14,18 +14,6 @@ import { debug } from "./utils/log";
 
 const moduleName = "extractor   ";
 
-// const getSSRCFromMediaSourceId = (id, stats) => {
-//   let ssrc = null;
-//
-//   stats.forEach((report) => {
-//     if ((report.type === "outbound-rtp" || report.type === "inbound-rtp") && report.mediaSourceId === id) {
-//       ssrc = report.ssrc;
-//     }
-//   });
-//
-//   return ssrc;
-// };
-
 const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   let supportOfMeasure = false;
   const previousRTT = previousBunch[kind].total_rtt_ms_out;
@@ -1138,19 +1126,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       break;
     }
     case TYPE.MEDIA_SOURCE: {
-      // const result = [];
-      // const ssrc = getSSRCFromMediaSourceId(bunch[PROPERTY.ID], raw);
-      //
-      // result.push({
-      //   ssrc, type: bunch[PROPERTY.KIND], internal: "deviceChanged", value: { track_out: bunch[PROPERTY.TRACK_IDENTIFIER] },
-      // });
-      //
-      // if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
-      //   result.push({ ssrc, type: VALUE.AUDIO, value: { level_out: bunch[PROPERTY.AUDIO_LEVEL] } });
-      // } else {
-      //   result.push({ ssrc, type: VALUE.VIDEO, value: { size_pref_out: { width: bunch[PROPERTY.WIDTH] || null, height: bunch[PROPERTY.HEIGHT] || null, framerate: bunch[PROPERTY.FRAMES_PER_SECOND] || null } } });
-      // }
-      // return result;
       break;
     }
     case TYPE.TRACK: {
@@ -1351,7 +1326,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       const selectedCandidatePairId = bunch[PROPERTY.SELECTED_CANDIDATEPAIR_ID];
       return [
         {
-          type: STAT_TYPE.DATA,
+          type: STAT_TYPE.NETWORK,
+          internal: "selectedPairChanged",
           value: { selected_candidate_pair_id: selectedCandidatePairId },
         },
       ];

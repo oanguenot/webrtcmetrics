@@ -135,9 +135,12 @@ export default class Collector {
   }
 
   doInternalTreatment(data, previousReport, values) {
-    const getValueFromReport = (property, report) => (
-      (data.type in report && data.ssrc in report[data.type] && property in report[data.type][data.ssrc]) ? report[data.type][data.ssrc][property] : null
-    );
+    const getValueFromReport = (property, report, withoutSSRC = false) => {
+      if (withoutSSRC) {
+        return ((data.type in report && property in report[data.type]) ? report[data.type][property] : null);
+      }
+      return ((data.type in report && data.ssrc in report[data.type] && property in report[data.type][data.ssrc]) ? report[data.type][data.ssrc][property] : null);
+    };
 
     const getValueFromReportValues = (property, reportValues) => (
       reportValues.find((reportValue) => (property in reportValue.value ? reportValue.value[property] : null))
@@ -270,6 +273,23 @@ export default class Collector {
       }
     };
 
+    const compareAndSendEventForSelectedCandidatePairChanged = (property) => {
+      const selectedCandidatePairId = data.value[property];
+      const previousSelectedCandidatePairId = getValueFromReport(property, previousReport, true);
+      if (selectedCandidatePairId !== previousSelectedCandidatePairId) {
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "ice",
+          "icechange",
+          `The selected candidates pair changed to ${selectedCandidatePairId}`,
+          {
+            oldSelectedCandidatePairId: previousSelectedCandidatePairId,
+            selectedCandidatePairId,
+          },
+        );
+      }
+    };
+
     if (previousReport) {
       switch (data.internal) {
         case "deviceChanged": {
@@ -298,6 +318,10 @@ export default class Collector {
         }
         case "videoLimitationChanged": {
           compareAndSendEventForOutboundLimitation("limitation_out");
+          break;
+        }
+        case "selectedPairChanged": {
+          compareAndSendEventForSelectedCandidatePairChanged("selected_candidate_pair_id");
           break;
         }
         default:
@@ -540,26 +564,6 @@ export default class Collector {
           { type: "negotiation" },
         );
       };
-
-      const receivers = pc.getReceivers();
-      if (receivers && receivers.length > 0) {
-        const receiver = receivers[0];
-        const { transport } = receiver;
-        if (transport) {
-          const { iceTransport } = transport;
-          if (iceTransport) {
-            iceTransport.onselectedcandidatepairchange = () => {
-              this.addCustomEvent(
-                new Date().toJSON(),
-                "signal",
-                "icechange",
-                "The selected candidates pair has changed",
-                {},
-              );
-            };
-          }
-        }
-      }
     }
   }
 }
