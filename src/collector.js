@@ -176,7 +176,7 @@ export default class Collector {
             new Date().toJSON(),
             "quality",
             "resolutionchange",
-            `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.width > size.width ? "decreased" : "increased"}`,
+            `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.width > size.width ? "decreased" : "increased"} to ${size.width}x${size.height}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               ssrc: data.ssrc,
@@ -191,7 +191,7 @@ export default class Collector {
             new Date().toJSON(),
             "quality",
             "frameratechange",
-            `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
+            `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.framerate > size.framerate ? "decreased" : "increased"} to ${size.framerate}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               kind: data.type,
@@ -259,7 +259,7 @@ export default class Collector {
             new Date().toJSON(),
             "quality",
             "peakdetected",
-            `Peak detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Could be linked to a ${bytesExchanged > highThreshold ? "unmute" : "mute"}`,
+            `A peak has been detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Could be linked to a ${bytesExchanged > highThreshold ? "unmute" : "mute"}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               kind: data.type,
@@ -279,12 +279,13 @@ export default class Collector {
       if (selectedCandidatePairId !== previousSelectedCandidatePairId) {
         this.addCustomEvent(
           new Date().toJSON(),
-          "ice",
+          "signal",
           "icechange",
           `The selected candidates pair changed to ${selectedCandidatePairId}`,
           {
             oldSelectedCandidatePairId: previousSelectedCandidatePairId,
             selectedCandidatePairId,
+            type: "candidatepair",
           },
         );
       }
@@ -502,7 +503,7 @@ export default class Collector {
           new Date().toJSON(),
           "device",
           "devicechange",
-          "At least one device has been plugged or unplugged",
+          "One device (at least) has been plugged or unplugged",
           { count: devices.length },
         );
         // eslint-disable-next-line no-empty
@@ -517,7 +518,7 @@ export default class Collector {
           new Date().toJSON(),
           "signal",
           "icechange",
-          "The ICE connection state has changed",
+          `The ICE connection state has changed to ${value}`,
           { state: value, type: "icestate" },
         );
       };
@@ -527,7 +528,7 @@ export default class Collector {
           new Date().toJSON(),
           "signal",
           "icechange",
-          "The connection state has changed",
+          `The connection state has changed to ${value}`,
           { state: value, type: "connection" },
         );
       };
@@ -537,7 +538,7 @@ export default class Collector {
           new Date().toJSON(),
           "signal",
           "icechange",
-          "The ICE gathering state has changed",
+          `The ICE gathering state has changed to ${value}`,
           { state: value, type: "gathering" },
         );
       };
