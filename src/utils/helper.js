@@ -47,9 +47,9 @@ const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc, withTimes
   arr = arr.filter((item) => {
     if (withTimestamp) {
       if (avoidZeroValue) {
-        return (Number.isFinite(item.value) && item.value > 0);
+        return (item && Number.isFinite(item.value) && item.value > 0);
       }
-      return Number.isFinite(item.value);
+      return item && Number.isFinite(item.value);
     }
 
     if (avoidZeroValue) {

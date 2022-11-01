@@ -171,33 +171,33 @@ export default class Collector {
       const currentActive = property.includes("out") ? getValueFromReportValues("active_out", values) : true;
       // Only send event for resolution and framerate if there is an active stream
       if (currentActive) {
-        if (previousSize.width !== size.width) {
+        if (!previousSize || previousSize.width !== size.width) {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
             "resolutionchange",
-            `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.width > size.width ? "decreased" : "increased"} to ${size.width}x${size.height}`,
+            `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${!previousSize || previousSize.width < size.width ? "increased" : "decreased"} to ${size.width}x${size.height}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               ssrc: data.ssrc,
               kind: data.type,
               size: `${size.width}x${size.height}`,
-              size_old: `${previousSize.width}x${previousSize.height}`,
+              size_old: `${previousSize ? previousSize.width : 0}x${previousSize ? previousSize.height : 0}`,
             },
           );
         }
-        if (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2) {
+        if (!previousSize || (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2)) {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
             "frameratechange",
-            `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.framerate > size.framerate ? "decreased" : "increased"} to ${size.framerate}`,
+            `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${!previousSize || previousSize.framerate < size.framerate ? "increased" : "decreased"} to ${size.framerate}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               kind: data.type,
               ssrc: data.ssrc,
               framerate: size.framerate,
-              framerate_old: previousSize.framerate,
+              framerate_old: previousSize ? previousSize.framerate : 0,
             },
           );
         }
@@ -229,7 +229,7 @@ export default class Collector {
       const limitation = data.value[property];
       const previousLimitation = getValueFromReport(property, previousReport);
 
-      if (limitation.reason !== previousLimitation.reason) {
+      if (!previousLimitation || (limitation.reason !== previousLimitation.reason)) {
         this.addCustomEvent(
           new Date().toJSON(),
           "quality",
