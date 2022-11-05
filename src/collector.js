@@ -148,15 +148,25 @@ export default class Collector {
 
     // track id changed = device changed
     const compareAndSendEventForDevice = (property) => {
+      const currentTrackId = data.value[property];
       const previousTrackId = getValueFromReport(property, previousReport);
-      if (previousTrackId && previousTrackId !== data.value[property]) {
+      if (previousTrackId !== currentTrackId) {
+        let message = `The existing outbound ${data.type} stream has been stopped or muted`;
+        if (currentTrackId && previousTrackId) {
+          message = `The existing outbound ${data.type} device has been changed`;
+        } else if (!previousTrackId) {
+          message = `A new outbound ${data.type} stream has been started or unmuted`;
+        }
+
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
           "streamchange",
-          `A new outbound ${data.type} stream has been started`,
+          message,
           {
             ssrc: data.ssrc,
+            id: data.value[property],
+            id_old: previousTrackId,
             kind: data.type,
             direction: "outbound",
           },
@@ -213,12 +223,13 @@ export default class Collector {
           new Date().toJSON(),
           "call",
           "streamactivechange",
-          `${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream switched to ${active ? "active" : "inactive"}`,
+          `The ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream switched to ${active ? "active" : "inactive"}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
             kind: data.type,
             ssrc: data.ssrc,
             active,
+            active_old: previousActive,
           },
         );
       }
