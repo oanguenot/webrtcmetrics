@@ -560,6 +560,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       if (selectedPair || selectedPairForFirefox) {
         const localCandidateId = bunch[PROPERTY.LOCAL_CANDIDATE_ID];
         const remoteCandidateId = bunch[PROPERTY.REMOTE_CANDIDATE_ID];
+        const selectedCandidatePairId = bunch[PROPERTY.ID];
+
         const valueSentReceived = extractBytesSentReceived(
           bunch,
           previousBunch,
@@ -632,6 +634,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             },
           },
         ];
+
+        if (selectedPairForFirefox) {
+          result.push(
+            {
+              type: STAT_TYPE.NETWORK,
+              internal: "selectedPairChanged",
+              value: { selected_candidate_pair_id: selectedCandidatePairId },
+            },
+          );
+        }
         return result;
       }
       break;
