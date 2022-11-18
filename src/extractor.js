@@ -542,6 +542,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
 
   switch (bunch[PROPERTY.TYPE]) {
     case TYPE.CANDIDATE_PAIR:
+      let selectedPairForFirefox = false;
       let selectedPair = false;
       // get Transport report
       if (raw.has(bunch[PROPERTY.TRANSPORT_ID])) {
@@ -551,12 +552,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         }
       }
 
-      // FF: Do not use candidate-pair with selected=false - Don't remember why...
-      if (PROPERTY.SELECTED in bunch && !bunch[PROPERTY.SELECTED]) {
-        selectedPair = false;
+      // FF: NO RTCTransportStats report - Use candidate-pair with selected=true
+      if (PROPERTY.SELECTED in bunch && bunch[PROPERTY.SELECTED]) {
+        selectedPairForFirefox = true;
       }
 
-      if (selectedPair) {
+      if (selectedPair || selectedPairForFirefox) {
         const localCandidateId = bunch[PROPERTY.LOCAL_CANDIDATE_ID];
         const remoteCandidateId = bunch[PROPERTY.REMOTE_CANDIDATE_ID];
         const valueSentReceived = extractBytesSentReceived(
@@ -572,7 +573,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           previousBunch,
         );
 
-        return [
+        const result = [
           {
             type: STAT_TYPE.NETWORK,
             value: { local_candidate_id: localCandidateId },
@@ -631,6 +632,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             },
           },
         ];
+        return result;
       }
       break;
     case TYPE.LOCAL_CANDIDATE:
