@@ -16,7 +16,7 @@ import {
   VALUE,
   TYPE,
 } from "./utils/models";
-import { createCollectorId, call } from "./utils/helper";
+import { createCollectorId, call, findTrackInPeerConnectionById } from "./utils/helper";
 import { debug, error, info } from "./utils/log";
 
 export default class Collector {
@@ -36,7 +36,7 @@ export default class Collector {
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
-  analyze(stats, previousReport, beforeLastReport, referenceReport) {
+  analyze(stats, previousReport, beforeLastReport, referenceReport, _refPC) {
     const getDefaultSSRCMetric = (kind, reportType) => {
       if (kind === VALUE.AUDIO) {
         if (reportType === TYPE.INBOUND_RTP) {
@@ -62,7 +62,7 @@ export default class Collector {
       const values = extract(stat, report, report.pname, referenceReport, stats);
       values.forEach((data) => {
         if ("internal" in data) {
-          this.doInternalTreatment(data, previousReport, values);
+          this.doInternalTreatment(data, previousReport, values, _refPC);
         }
         if (data.value && data.type) {
           if (data.ssrc) {
@@ -134,7 +134,7 @@ export default class Collector {
     return report;
   }
 
-  doInternalTreatment(data, previousReport, values) {
+  doInternalTreatment(data, previousReport, values, _pc) {
     const getValueFromReport = (property, report, withoutSSRC = false) => {
       if (withoutSSRC) {
         return ((data.type in report && property in report[data.type]) ? report[data.type][property] : null);
@@ -150,23 +150,32 @@ export default class Collector {
     const compareAndSendEventForDevice = (property) => {
       const currentTrackId = data.value[property];
       const previousTrackId = getValueFromReport(property, previousReport);
+      const currentTrack = findTrackInPeerConnectionById(currentTrackId, _pc);
+      const oldTrack = findTrackInPeerConnectionById(previousTrackId, _pc);
+      let eventName = "trackstopormute";
+
       if (previousTrackId !== currentTrackId) {
-        let message = `The existing outbound ${data.type} stream has been stopped or muted`;
+        // Message when currentTrackId is null
+        let message = `The existing outbound ${data.type} stream from ${oldTrack ? oldTrack.label : "unknown"} has been stopped or muted`;
         if (currentTrackId && previousTrackId) {
-          message = `The existing outbound ${data.type} device has been changed`;
+          // Message when trackId changed
+          message = `The existing outbound ${data.type} device has been changed to ${currentTrack ? currentTrack.label : "unknown"}`;
+          eventName = "trackupdate";
         } else if (!previousTrackId) {
-          message = `A new outbound ${data.type} stream has been started or unmuted`;
+          // Message when new trackId
+          message = `A new outbound ${data.type} stream from ${currentTrack ? currentTrack.label : "unknown"} has been started or unmuted`;
+          eventName = "trackstartorunmute";
         }
 
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "streamchange",
+          eventName,
           message,
           {
             ssrc: data.ssrc,
-            id: data.value[property],
-            id_old: previousTrackId,
+            value: currentTrackId,
+            value_old: previousTrackId,
             kind: data.type,
             direction: "outbound",
           },
@@ -350,7 +359,7 @@ export default class Collector {
           const waitTime = Date.now() - preWaitTime;
           const preTime = Date.now();
           const reports = await this._config.pc.getStats();
-          const referenceReport = this.analyze(reports, null, null, null);
+          const referenceReport = this.analyze(reports, null, null, null, this._config.pc);
           const postTime = Date.now();
           referenceReport.experimental.time_to_measure_ms = postTime - preTime;
           referenceReport.experimental.time_to_wait_ms = waitTime;
@@ -385,6 +394,7 @@ export default class Collector {
         this._exporter.getLastReport(),
         this._exporter.getBeforeLastReport(),
         this._exporter.getReferenceReport(),
+        this._config.pc,
       );
       const postTime = Date.now();
       report.experimental.time_to_measure_ms = postTime - preTime;

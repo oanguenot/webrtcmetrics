@@ -165,3 +165,21 @@ export const getSSRCDataFromBunch = (ssrc, bunch, direction) => {
   ssrcBunch[VALUE.VIDEO] = videoBunch;
   return ssrcBunch;
 };
+
+export const findTrackInPeerConnectionById = (trackId, pc) => {
+  // Get track from PC senders
+  const senderOfTrack = pc.getSenders().find((sender) => sender.track && sender.track.id === trackId);
+
+  if (senderOfTrack) {
+    return senderOfTrack.track;
+  }
+
+  // Get track from PC receivers
+  const receiverOfTrack = pc.getReceivers().find((receiver) => receiver.track && receiver.track.id === trackId);
+
+  if (receiverOfTrack) {
+    return receiverOfTrack.track;
+  }
+
+  return null;
+};
