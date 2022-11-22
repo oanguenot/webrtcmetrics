@@ -8,7 +8,7 @@ import {
   DIRECTION,
 } from "./utils/models";
 
-import { getSSRCDataFromBunch } from "./utils/helper";
+import { findTrackInPeerConnectionById, getSSRCDataFromBunch } from "./utils/helper";
 
 import { debug } from "./utils/log";
 
@@ -529,7 +529,7 @@ const extractAvailableBandwidth = (bunch) => {
   };
 };
 
-export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
+export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refPC) => {
   if (!bunch) {
     return [];
   }
@@ -954,6 +954,14 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         }
       }
 
+      let deviceLabel = "";
+      if (trackOut) {
+        const track = findTrackInPeerConnectionById(trackOut, _refPC);
+        if (track) {
+          deviceLabel = track.label;
+        }
+      }
+
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
@@ -966,6 +974,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             type: STAT_TYPE.AUDIO,
             internal: "mediaSourceUpdated",
             value: { active_out: active },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { device_out: deviceLabel },
           },
           {
             ssrc,
@@ -1040,6 +1053,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             type: STAT_TYPE.VIDEO,
             internal: "mediaSourceUpdated",
             value: { active_out: active },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { device_out: deviceLabel },
           },
           {
             ssrc,

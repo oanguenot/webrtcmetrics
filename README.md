@@ -267,6 +267,7 @@ Each **outbound audio stream** contains the following statistics
 | **total_rtt_measure_out**    | Number  | Number of RTT measurements done                                                                                                                                                                                                                                            |
 | **total_rtt_ms_out**         | Number  | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
 | **track_out**                | String  | The id of the mediastream track associated                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                |
+| **device_out**               | String  | The label of the device associated to the **track_out**                                                                                                                                                                                                                    |
 
 ### Video statistics
 
@@ -332,7 +333,8 @@ Each **outbound video stream** contains the following statistics
 | **total_rtt_ms_out**          | Number  | Total Round Trip Time since the beginning of the call                                                     |
 | **total_time_encoded_out**    | Number  | Total time used for encoding all frames                                                                   |
 | **timestamp_out**             | Number  | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
-| **track_out**                 | String  | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
+| **track_out**                 | String  | The id of the mediastream track associated                                                                |
+| **device_out**                | String  | The label of the device associated to the **track_out**                                                   |
 
 ### Network properties
 

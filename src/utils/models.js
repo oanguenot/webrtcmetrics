@@ -103,6 +103,7 @@ export const defaultAudioMetricOut = {
   mos_out: 0,
   mos_emodel_out: 0,
   track_out: "",
+  device_out: "",
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };
@@ -164,6 +165,7 @@ export const defaultVideoMetricOut = {
   limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
   timestamp_out: null,
   track_out: "",
+  device_out: "",
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };

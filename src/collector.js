@@ -59,7 +59,7 @@ export default class Collector {
       if (!timestamp && stat.timestamp) {
         timestamp = stat.timestamp;
       }
-      const values = extract(stat, report, report.pname, referenceReport, stats);
+      const values = extract(stat, report, report.pname, referenceReport, stats, _refPC);
       values.forEach((data) => {
         if ("internal" in data) {
           this.doInternalTreatment(data, previousReport, values, _refPC);

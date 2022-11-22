@@ -180,6 +180,5 @@ export const findTrackInPeerConnectionById = (trackId, pc) => {
   if (receiverOfTrack) {
     return receiverOfTrack.track;
   }
-
   return null;
 };
