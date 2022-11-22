@@ -8,7 +8,11 @@ import {
   DIRECTION,
 } from "./utils/models";
 
-import { findTrackInPeerConnectionById, getSSRCDataFromBunch } from "./utils/helper";
+import {
+  findOutgoingTrackFromPeerConnectionByKind,
+  findTrackInPeerConnectionById,
+  getSSRCDataFromBunch,
+} from "./utils/helper";
 
 import { debug } from "./utils/log";
 
@@ -964,6 +968,15 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
 
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        // FF: no media-source, try to find the track from the sender (first track of kind found)
+        if (!trackOut) {
+          const track = findOutgoingTrackFromPeerConnectionByKind("audio", _refPC);
+          if (track) {
+            trackOut = track.id;
+            deviceLabel = track.label;
+          }
+        }
 
         // packets and bytes
         const data = extractAudioVideoPacketSent(bunch, VALUE.AUDIO, previousSSRCBunch, referenceSSRCBunch);

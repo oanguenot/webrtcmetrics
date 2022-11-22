@@ -182,3 +182,11 @@ export const findTrackInPeerConnectionById = (trackId, pc) => {
   }
   return null;
 };
+
+export const findOutgoingTrackFromPeerConnectionByKind = (kind, pc) => {
+  const senderOfTrack = pc.getSenders().find((sender) => sender.track && sender.track.kind === kind);
+  if (senderOfTrack) {
+    return senderOfTrack.track;
+  }
+  return null;
+};
