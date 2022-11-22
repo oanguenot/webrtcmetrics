@@ -223,7 +223,7 @@ export default class Collector {
       }
     };
 
-    // MediaSourceId (outbound-rtp) becomes undefined = camera or microphone track removed (muted) or added again (unmuted)
+    // Outbound active property changed: camera or microphone track removed (muted) or added again (unmuted)
     const compareAndSendEventForOutboundMediaSource = (property) => {
       const active = data.value[property];
       const previousActive = getValueFromReport(property, previousReport);
