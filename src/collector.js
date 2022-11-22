@@ -16,7 +16,7 @@ import {
   VALUE,
   TYPE,
 } from "./utils/models";
-import { createCollectorId, call, findTrackInPeerConnectionById } from "./utils/helper";
+import { createCollectorId, call } from "./utils/helper";
 import { debug, error, info } from "./utils/log";
 
 export default class Collector {
@@ -62,7 +62,7 @@ export default class Collector {
       const values = extract(stat, report, report.pname, referenceReport, stats, _refPC);
       values.forEach((data) => {
         if ("internal" in data) {
-          this.doInternalTreatment(data, previousReport, values, _refPC);
+          this.doInternalTreatment(data, previousReport, values);
         }
         if (data.value && data.type) {
           if (data.ssrc) {
@@ -134,7 +134,7 @@ export default class Collector {
     return report;
   }
 
-  doInternalTreatment(data, previousReport, values, _pc) {
+  doInternalTreatment(data, previousReport, values) {
     const getValueFromReport = (property, report, withoutSSRC = false) => {
       if (withoutSSRC) {
         return ((data.type in report && property in report[data.type]) ? report[data.type][property] : null);
@@ -150,21 +150,21 @@ export default class Collector {
     const compareAndSendEventForDevice = (property) => {
       const currentTrackId = data.value[property];
       const previousTrackId = getValueFromReport(property, previousReport);
-      const currentTrack = findTrackInPeerConnectionById(currentTrackId, _pc);
-      const oldTrack = findTrackInPeerConnectionById(previousTrackId, _pc);
-      let eventName = "trackstopormute";
+      const currentDevice = getValueFromReportValues("device_out", values);
+      const oldDevice = getValueFromReport("device_out", previousReport);
+      let eventName = "trackended";
 
       if (previousTrackId !== currentTrackId) {
         // Message when currentTrackId is null
-        let message = `The existing outbound ${data.type} stream from ${oldTrack ? oldTrack.label : "unknown"} has been stopped or muted`;
+        let message = `The existing outbound ${data.type} stream from ${oldDevice || "unknown"} has been stopped or muted`;
         if (currentTrackId && previousTrackId) {
           // Message when trackId changed
-          message = `The existing outbound ${data.type} device has been changed to ${currentTrack ? currentTrack.label : "unknown"}`;
-          eventName = "trackupdate";
+          message = `The existing outbound ${data.type} device has been changed to ${currentDevice ? currentDevice.value.device_out : "unknown"}`;
+          eventName = "trackupdated";
         } else if (!previousTrackId) {
           // Message when new trackId
-          message = `A new outbound ${data.type} stream from ${currentTrack ? currentTrack.label : "unknown"} has been started or unmuted`;
-          eventName = "trackstartorunmute";
+          message = `A new outbound ${data.type} stream from ${currentDevice ? currentDevice.value.device_out : "unknown"} has been started or unmuted`;
+          eventName = "trackstarted";
         }
 
         this.addCustomEvent(

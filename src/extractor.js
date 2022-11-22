@@ -1041,6 +1041,15 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
         const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         const videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
+        // FF: no media-source, try to find the track from the sender (first track of kind found)
+        if (!trackOut) {
+          const track = findOutgoingTrackFromPeerConnectionByKind("video", _refPC);
+          if (track) {
+            trackOut = track.id;
+            deviceLabel = track.label;
+          }
+        }
+
         // Encode time
         const data = extractEncodeTime(bunch, previousSSRCBunch);
 
