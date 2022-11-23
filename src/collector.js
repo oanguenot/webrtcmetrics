@@ -152,7 +152,7 @@ export default class Collector {
       const previousTrackId = getValueFromReport(property, previousReport);
       const currentDevice = getValueFromReportValues("device_out", values);
       const oldDevice = getValueFromReport("device_out", previousReport);
-      let eventName = "trackended";
+      let eventName = "track-stop";
 
       if (previousTrackId !== currentTrackId) {
         // Message when currentTrackId is null
@@ -160,11 +160,11 @@ export default class Collector {
         if (currentTrackId && previousTrackId) {
           // Message when trackId changed
           message = `The existing outbound ${data.type} device has been changed to ${currentDevice ? currentDevice.value.device_out : "unknown"}`;
-          eventName = "trackupdated";
+          eventName = "track-change";
         } else if (!previousTrackId) {
           // Message when new trackId
           message = `A new outbound ${data.type} stream from ${currentDevice ? currentDevice.value.device_out : "unknown"} has been started or unmuted`;
-          eventName = "trackstarted";
+          eventName = "track-start";
         }
 
         this.addCustomEvent(
@@ -194,14 +194,14 @@ export default class Collector {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "resolutionchange",
+            (!previousSize || previousSize.width < size.width) ? "size-up" : "size-down",
             `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${!previousSize || previousSize.width < size.width ? "increased" : "decreased"} to ${size.width}x${size.height}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               ssrc: data.ssrc,
               kind: data.type,
-              size: `${size.width}x${size.height}`,
-              size_old: `${previousSize ? previousSize.width : 0}x${previousSize ? previousSize.height : 0}`,
+              value: `${size.width}x${size.height}`,
+              value_old: `${previousSize ? previousSize.width : 0}x${previousSize ? previousSize.height : 0}`,
             },
           );
         }
@@ -209,14 +209,14 @@ export default class Collector {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "frameratechange",
+            (!previousSize || previousSize.framerate < size.framerate) ? "fps-up" : "fps-down",
             `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${!previousSize || previousSize.framerate < size.framerate ? "increased" : "decreased"} to ${size.framerate}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               kind: data.type,
               ssrc: data.ssrc,
-              framerate: size.framerate,
-              framerate_old: previousSize ? previousSize.framerate : 0,
+              value: size.framerate,
+              value_old: previousSize ? previousSize.framerate : 0,
             },
           );
         }
@@ -231,14 +231,14 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "streamactivechange",
+          active ? "track-active" : "track-inactive",
           `The ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream switched to ${active ? "active" : "inactive"}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
             kind: data.type,
             ssrc: data.ssrc,
-            active,
-            active_old: previousActive,
+            value: active,
+            value_old: previousActive,
           },
         );
       }
@@ -253,13 +253,14 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "quality",
-          "limitationchange",
+          limitation.reason === "none" ? "unlimited" : limitation.reason,
           `The outbound video stream resolution is ${limitation.reason === "none" ? "no more limited" : `limited due to ${limitation.reason} reason`}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
             kind: data.type,
             ssrc: data.ssrc,
-            limitation: limitation.reason,
+            value: limitation.reason,
+            value_old: previousLimitation,
           },
         );
       }
@@ -278,15 +279,15 @@ export default class Collector {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "peakdetected",
+            bytesExchanged > highThreshold ? "peak-up" : "peak-down",
             `A peak has been detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Could be linked to a ${bytesExchanged > highThreshold ? "unmute" : "mute"}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               kind: data.type,
               ssrc: data.ssrc,
               peak: bytesExchanged > highThreshold ? "up" : "down",
-              KBytes: bytesExchanged,
-              oldKBytes: previousBytesExchanged,
+              value: bytesExchanged,
+              value_old: previousBytesExchanged,
             },
           );
         }
@@ -300,12 +301,11 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "icechange",
+          "route-change",
           `The selected candidates pair changed to ${selectedCandidatePairId}`,
           {
-            oldSelectedCandidatePairId: previousSelectedCandidatePairId,
-            selectedCandidatePairId,
-            type: "candidatepair",
+            value: selectedCandidatePairId,
+            value_old: previousSelectedCandidatePairId,
           },
         );
       }
@@ -523,7 +523,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "device",
-          "devicechange",
+          "device-change",
           "One device (at least) has been plugged or unplugged",
           { count: devices.length },
         );
@@ -538,7 +538,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "icechange",
+          "ice-change",
           `The ICE connection state has changed to ${value}`,
           { state: value, type: "icestate" },
         );
@@ -548,7 +548,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "icechange",
+          "connection-change",
           `The connection state has changed to ${value}`,
           { state: value, type: "connection" },
         );
@@ -558,7 +558,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "icechange",
+          "gathering-change",
           `The ICE gathering state has changed to ${value}`,
           { state: value, type: "gathering" },
         );
@@ -567,7 +567,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "streamchange",
+          "track-received",
           `A new inbound ${e.track.kind} stream has been started`,
           {
             kind: e.track.kind,
@@ -581,7 +581,7 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "icechange",
+          "ice-negotiation",
           "A negotiation is required",
           { type: "negotiation" },
         );
