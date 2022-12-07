@@ -242,6 +242,8 @@ Each **inbound audio stream** contains the following statistics:
 | **total_rtt_ms_in**         | Number | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
 | **track_in**                | String | The id of the associated mediastream track                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                |
 
+_Note:_ `mos_emodel_in` and `mos_in` reflects the quality of the audio media received using a rank from 0 (inaudible) to 4.5 (excellent). It is the quality the local user experienced from his call.
+
 Each **outbound audio stream** contains the following statistics
 
 | Name                         |  Value  | Description                                                                                                                                                                                                                                                                |
@@ -268,6 +270,8 @@ Each **outbound audio stream** contains the following statistics
 | **total_rtt_ms_out**         | Number  | Total Round Trip Time since the beginning of the call                                                                                                                                                                                                                      |
 | **track_out**                | String  | The id of the mediastream track associated                                                                                                                                                                                                                                 |                                                                                                                                                                                                                                |
 | **device_out**               | String  | The label of the device associated to the **track_out**                                                                                                                                                                                                                    |
+
+_Note:_ `mos_emodel_out` and `mos_out` reflects the quality of the audio media sent using a rank from 0 (inaudible) to 4.5 (excellent). It is not the quality the remote peer will experience but is a good indicator of the capacity of the local user to send the media to detect a quality issue on the local side
 
 ### Video statistics
 
