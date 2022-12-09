@@ -103,6 +103,7 @@ export const defaultAudioMetricOut = {
   mos_out: 0,
   mos_emodel_out: 0,
   track_out: "",
+  device_out: "",
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };
@@ -164,6 +165,7 @@ export const defaultVideoMetricOut = {
   limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
   timestamp_out: null,
   track_out: "",
+  device_out: "",
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
 };
@@ -179,6 +181,7 @@ export const getDefaultMetric = (previousStats) => {
     video: {},
     network: {
       infrastructure: 3,
+      selected_candidate_pair_id: "",
       local_candidate_id: "",
       local_candidate_type: "",
       local_candidate_protocol: "",
@@ -203,6 +206,7 @@ export const getDefaultMetric = (previousStats) => {
     experimental: {
       time_to_measure_ms: 0,
     },
+    passthrough: {},
   };
 
   if (previousStats) {
@@ -213,6 +217,7 @@ export const getDefaultMetric = (previousStats) => {
       data: { ...previousStats.data },
       network: { ...previousStats.network },
       experimental: { ...previousStats.experimental },
+      passthrough: {},
     };
     Object.keys(previousStats.audio).forEach((ssrc) => {
       metrics.audio[ssrc] = { ...previousStats.audio[ssrc] };
@@ -244,7 +249,7 @@ export const defaultConfig = {
   uid: `u-${shortUUID()}`, // Default - user identifier
   record: false, // Default - no record,
   ticket: true, // Default - ticket generated and so all reports are kept
-  // recordFields: ["*"], // Default all fields stored
+  passthrough: {}, // Access to specific fields directly from the stack {"inbound-rtp": ["jitter", "bytesReceived"]}
 };
 
 export const TYPE = {
@@ -258,6 +263,7 @@ export const TYPE = {
   REMOTE_INBOUND_RTP: "remote-inbound-rtp",
   REMOTE_OUTBOUND_RTP: "remote-outbound-rtp",
   TRACK: "track",
+  TRANSPORT: "transport",
 };
 
 export const PROPERTY = {
@@ -309,9 +315,11 @@ export const PROPERTY = {
   SDP_FMTP_LINE: "sdpFmtpLine",
   SSRC: "ssrc",
   SELECTED: "selected",
+  SELECTED_CANDIDATEPAIR_ID: "selectedCandidatePairId",
   STATE: "state",
   TIMESTAMP: "timestamp",
   TRACK_IDENTIFIER: "trackIdentifier",
+  TRANSPORT_ID: "transportId",
   TOTAL_DECODE_TIME: "totalDecodeTime",
   TOTAL_ENCODE_TIME: "totalEncodeTime",
   TOTAL_ROUND_TRIP_TIME: "totalRoundTripTime",

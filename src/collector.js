@@ -1,5 +1,5 @@
 import Exporter from "./exporter";
-import { extract } from "./extractor";
+import { extract, extractPassthroughFields } from "./extractor";
 import {
   computeMOS,
   computeEModelMOS,
@@ -36,7 +36,7 @@ export default class Collector {
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
-  analyze(stats, previousReport, beforeLastReport, referenceReport) {
+  analyze(stats, previousReport, beforeLastReport, referenceReport, _refPC) {
     const getDefaultSSRCMetric = (kind, reportType) => {
       if (kind === VALUE.AUDIO) {
         if (reportType === TYPE.INBOUND_RTP) {
@@ -59,7 +59,7 @@ export default class Collector {
       if (!timestamp && stat.timestamp) {
         timestamp = stat.timestamp;
       }
-      const values = extract(stat, report, report.pname, referenceReport, stats);
+      const values = extract(stat, report, report.pname, referenceReport, stats, _refPC);
       values.forEach((data) => {
         if ("internal" in data) {
           this.doInternalTreatment(data, previousReport, values);
@@ -81,6 +81,15 @@ export default class Collector {
             });
           }
         }
+      });
+
+      // Extract passthrough fields
+      const passthrough = extractPassthroughFields(stat, this._config.passthrough);
+      Object.keys(passthrough).forEach((key) => {
+        if (!(report.passthrough[key])) {
+          report.passthrough[key] = {};
+        }
+        report.passthrough[key] = { ...report.passthrough[key], ...passthrough[key] };
       });
     });
     report.pname = this._config.pname;
@@ -126,9 +135,12 @@ export default class Collector {
   }
 
   doInternalTreatment(data, previousReport, values) {
-    const getValueFromReport = (property, report) => (
-      (data.type in report && data.ssrc in report[data.type] && property in report[data.type][data.ssrc]) ? report[data.type][data.ssrc][property] : null
-    );
+    const getValueFromReport = (property, report, withoutSSRC = false) => {
+      if (withoutSSRC) {
+        return ((data.type in report && property in report[data.type]) ? report[data.type][property] : null);
+      }
+      return ((data.type in report && data.ssrc in report[data.type] && property in report[data.type][data.ssrc]) ? report[data.type][data.ssrc][property] : null);
+    };
 
     const getValueFromReportValues = (property, reportValues) => (
       reportValues.find((reportValue) => (property in reportValue.value ? reportValue.value[property] : null))
@@ -136,14 +148,37 @@ export default class Collector {
 
     // track id changed = device changed
     const compareAndSendEventForDevice = (property) => {
+      const currentTrackId = data.value[property];
       const previousTrackId = getValueFromReport(property, previousReport);
-      if (previousTrackId && previousTrackId !== data.value[property]) {
+      const currentDevice = getValueFromReportValues("device_out", values);
+      const oldDevice = getValueFromReport("device_out", previousReport);
+      let eventName = "track-stop";
+
+      if (previousTrackId !== currentTrackId) {
+        // Message when currentTrackId is null
+        let message = `The existing outbound ${data.type} stream from ${oldDevice || "unknown"} has been stopped or muted`;
+        if (currentTrackId && previousTrackId) {
+          // Message when trackId changed
+          message = `The existing outbound ${data.type} device has been changed to ${currentDevice ? currentDevice.value.device_out : "unknown"}`;
+          eventName = "track-change";
+        } else if (!previousTrackId) {
+          // Message when new trackId
+          message = `A new outbound ${data.type} stream from ${currentDevice ? currentDevice.value.device_out : "unknown"} has been started or unmuted`;
+          eventName = "track-start";
+        }
+
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "media",
-          `A new outbound ${data.type} stream has been started`,
-          { ssrc: data.ssrc, type: data.type },
+          eventName,
+          message,
+          {
+            ssrc: data.ssrc,
+            value: currentTrackId,
+            value_old: previousTrackId,
+            kind: data.type,
+            direction: "outbound",
+          },
         );
       }
     };
@@ -155,40 +190,40 @@ export default class Collector {
       const currentActive = property.includes("out") ? getValueFromReportValues("active_out", values) : true;
       // Only send event for resolution and framerate if there is an active stream
       if (currentActive) {
-        if (previousSize.width !== size.width) {
+        if (!previousSize || previousSize.width !== size.width) {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "resolution",
-            `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.width > size.width ? "decreased" : "increased"}`,
+            (!previousSize || previousSize.width < size.width) ? "size-up" : "size-down",
+            `The resolution of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${!previousSize || previousSize.width < size.width ? "increased" : "decreased"} to ${size.width}x${size.height}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
               ssrc: data.ssrc,
-              type: data.type === "audio" ? "microphone" : "camera",
-              size: `${size.width}x${size.height}`,
-              size_old: `${previousSize.width}x${previousSize.height}`,
+              kind: data.type,
+              value: `${size.width}x${size.height}`,
+              value_old: `${previousSize ? previousSize.width : 0}x${previousSize ? previousSize.height : 0}`,
             },
           );
         }
-        if (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2) {
+        if (!previousSize || (previousSize.framerate !== undefined && Math.abs(previousSize.framerate - size.framerate) > 2)) {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "framerate",
-            `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${previousSize.framerate > size.framerate ? "decreased" : "increased"}`,
+            (!previousSize || previousSize.framerate < size.framerate) ? "fps-up" : "fps-down",
+            `The framerate of the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream has ${!previousSize || previousSize.framerate < size.framerate ? "increased" : "decreased"} to ${size.framerate}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
-              type: data.type === "audio" ? "microphone" : "camera",
+              kind: data.type,
               ssrc: data.ssrc,
-              framerate: size.framerate,
-              framerate_old: previousSize.framerate,
+              value: size.framerate,
+              value_old: previousSize ? previousSize.framerate : 0,
             },
           );
         }
       }
     };
 
-    // MediaSourceId (outbound-rtp) becomes undefined = camera or microphone track removed (muted) or added again (unmuted)
+    // Outbound active property changed: camera or microphone track removed (muted) or added again (unmuted)
     const compareAndSendEventForOutboundMediaSource = (property) => {
       const active = data.value[property];
       const previousActive = getValueFromReport(property, previousReport);
@@ -196,13 +231,14 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "media",
-          `${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream switched to ${active ? "active" : "inactive"}`,
+          active ? "track-active" : "track-inactive",
+          `The ${property.includes("out") ? "outbound" : "inbound"} ${data.type} stream switched to ${active ? "active" : "inactive"}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
-            type: data.type,
+            kind: data.type,
             ssrc: data.ssrc,
-            active,
+            value: active,
+            value_old: previousActive,
           },
         );
       }
@@ -213,17 +249,18 @@ export default class Collector {
       const limitation = data.value[property];
       const previousLimitation = getValueFromReport(property, previousReport);
 
-      if (limitation.reason !== previousLimitation.reason) {
+      if (!previousLimitation || (limitation.reason !== previousLimitation.reason)) {
         this.addCustomEvent(
           new Date().toJSON(),
           "quality",
-          "resolution",
+          limitation.reason === "none" ? "unlimited" : limitation.reason,
           `The outbound video stream resolution is ${limitation.reason === "none" ? "no more limited" : `limited due to ${limitation.reason} reason`}`,
           {
             direction: property.includes("out") ? "outbound" : "inbound",
-            type: data.type,
+            kind: data.type,
             ssrc: data.ssrc,
-            limitation: limitation.reason,
+            value: limitation.reason,
+            value_old: previousLimitation,
           },
         );
       }
@@ -242,18 +279,35 @@ export default class Collector {
           this.addCustomEvent(
             new Date().toJSON(),
             "quality",
-            "peak",
-            `Peak detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Could be linked to a ${bytesExchanged > highThreshold ? "unmute" : "mute"}`,
+            bytesExchanged > highThreshold ? "peak-up" : "peak-down",
+            `A peak has been detected for the ${property.includes("out") ? "outbound" : "inbound"} ${data.type} steam. Could be linked to a ${bytesExchanged > highThreshold ? "unmute" : "mute"}`,
             {
               direction: property.includes("out") ? "outbound" : "inbound",
-              type: data.type,
+              kind: data.type,
               ssrc: data.ssrc,
               peak: bytesExchanged > highThreshold ? "up" : "down",
-              KBytes: bytesExchanged,
-              oldKBytes: previousBytesExchanged,
+              value: bytesExchanged,
+              value_old: previousBytesExchanged,
             },
           );
         }
+      }
+    };
+
+    const compareAndSendEventForSelectedCandidatePairChanged = (property) => {
+      const selectedCandidatePairId = data.value[property];
+      const previousSelectedCandidatePairId = getValueFromReport(property, previousReport, true);
+      if (selectedCandidatePairId !== previousSelectedCandidatePairId) {
+        this.addCustomEvent(
+          new Date().toJSON(),
+          "signal",
+          "route-change",
+          `The selected candidates pair changed to ${selectedCandidatePairId}`,
+          {
+            value: selectedCandidatePairId,
+            value_old: previousSelectedCandidatePairId,
+          },
+        );
       }
     };
 
@@ -287,6 +341,10 @@ export default class Collector {
           compareAndSendEventForOutboundLimitation("limitation_out");
           break;
         }
+        case "selectedPairChanged": {
+          compareAndSendEventForSelectedCandidatePairChanged("selected_candidate_pair_id");
+          break;
+        }
         default:
           break;
       }
@@ -301,7 +359,7 @@ export default class Collector {
           const waitTime = Date.now() - preWaitTime;
           const preTime = Date.now();
           const reports = await this._config.pc.getStats();
-          const referenceReport = this.analyze(reports, null, null, null);
+          const referenceReport = this.analyze(reports, null, null, null, this._config.pc);
           const postTime = Date.now();
           referenceReport.experimental.time_to_measure_ms = postTime - preTime;
           referenceReport.experimental.time_to_wait_ms = waitTime;
@@ -336,6 +394,7 @@ export default class Collector {
         this._exporter.getLastReport(),
         this._exporter.getBeforeLastReport(),
         this._exporter.getReferenceReport(),
+        this._config.pc,
       );
       const postTime = Date.now();
       report.experimental.time_to_measure_ms = postTime - preTime;
@@ -464,8 +523,8 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "device",
-          "enumerate",
-          "At least one device has been plugged or unplugged",
+          "device-change",
+          "One device (at least) has been plugged or unplugged",
           { count: devices.length },
         );
         // eslint-disable-next-line no-empty
@@ -479,9 +538,9 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "ice",
-          "The ICE connection state has changed",
-          { state: value },
+          "ice-change",
+          `The ICE connection state has changed to ${value}`,
+          { state: value, type: "icestate" },
         );
       };
       pc.onconnectionstatechange = () => {
@@ -489,9 +548,9 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "connection",
-          "The connection state has changed",
-          { state: value },
+          "connection-change",
+          `The connection state has changed to ${value}`,
+          { state: value, type: "connection" },
         );
       };
       pc.onicegatheringstatechange = () => {
@@ -499,49 +558,34 @@ export default class Collector {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "ice",
-          "The ICE gathering state has changed",
-          { state: value },
+          "gathering-change",
+          `The ICE gathering state has changed to ${value}`,
+          { state: value, type: "gathering" },
         );
       };
       pc.ontrack = (e) => {
         this.addCustomEvent(
           new Date().toJSON(),
           "call",
-          "media",
-          "A new remote track has been received",
-          { kind: e.track.kind, label: e.track.label, id: e.track.id },
+          "track-received",
+          `A new inbound ${e.track.kind} stream has been started`,
+          {
+            kind: e.track.kind,
+            label: e.track.label,
+            id: e.track.id,
+            direction: "inbound",
+          },
         );
       };
       pc.onnegotiationneeded = () => {
         this.addCustomEvent(
           new Date().toJSON(),
           "signal",
-          "negotiation",
+          "ice-negotiation",
           "A negotiation is required",
-          {},
+          { type: "negotiation" },
         );
       };
-
-      const receivers = pc.getReceivers();
-      if (receivers && receivers.length > 0) {
-        const receiver = receivers[0];
-        const { transport } = receiver;
-        if (transport) {
-          const { iceTransport } = transport;
-          if (iceTransport) {
-            iceTransport.onselectedcandidatepairchange = () => {
-              this.addCustomEvent(
-                new Date().toJSON(),
-                "signal",
-                "ice",
-                "The selected candidates pair has changed",
-                {},
-              );
-            };
-          }
-        }
-      }
     }
   }
 }

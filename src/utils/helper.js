@@ -47,9 +47,9 @@ const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc, withTimes
   arr = arr.filter((item) => {
     if (withTimestamp) {
       if (avoidZeroValue) {
-        return (Number.isFinite(item.value) && item.value > 0);
+        return (item && Number.isFinite(item.value) && item.value > 0);
       }
-      return Number.isFinite(item.value);
+      return item && Number.isFinite(item.value);
     }
 
     if (avoidZeroValue) {
@@ -164,4 +164,29 @@ export const getSSRCDataFromBunch = (ssrc, bunch, direction) => {
   }
   ssrcBunch[VALUE.VIDEO] = videoBunch;
   return ssrcBunch;
+};
+
+export const findTrackInPeerConnectionById = (trackId, pc) => {
+  // Get track from PC senders
+  const senderOfTrack = pc.getSenders().find((sender) => sender.track && sender.track.id === trackId);
+
+  if (senderOfTrack) {
+    return senderOfTrack.track;
+  }
+
+  // Get track from PC receivers
+  const receiverOfTrack = pc.getReceivers().find((receiver) => receiver.track && receiver.track.id === trackId);
+
+  if (receiverOfTrack) {
+    return receiverOfTrack.track;
+  }
+  return null;
+};
+
+export const findOutgoingTrackFromPeerConnectionByKind = (kind, pc) => {
+  const senderOfTrack = pc.getSenders().find((sender) => sender.track && sender.track.kind === kind);
+  if (senderOfTrack) {
+    return senderOfTrack.track;
+  }
+  return null;
 };

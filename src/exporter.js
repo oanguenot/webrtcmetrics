@@ -60,6 +60,11 @@ const limitationsPercent = (reports, kind, ssrc) => {
     return defaultValue;
   }
 
+  // FF: No quality limitations
+  if (!ssrcData.limitation_out.durations) {
+    return defaultValue;
+  }
+
   const {
     other,
     bandwidth,

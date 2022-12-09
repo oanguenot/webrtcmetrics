@@ -8,23 +8,15 @@ import {
   DIRECTION,
 } from "./utils/models";
 
-import { getSSRCDataFromBunch } from "./utils/helper";
+import {
+  findOutgoingTrackFromPeerConnectionByKind,
+  findTrackInPeerConnectionById,
+  getSSRCDataFromBunch,
+} from "./utils/helper";
 
 import { debug } from "./utils/log";
 
 const moduleName = "extractor   ";
-
-const getSSRCFromMediaSourceId = (id, stats) => {
-  let ssrc = null;
-
-  stats.forEach((report) => {
-    if ((report.type === "outbound-rtp" || report.type === "inbound-rtp") && report.mediaSourceId === id) {
-      ssrc = report.ssrc;
-    }
-  });
-
-  return ssrc;
-};
 
 const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   let supportOfMeasure = false;
@@ -411,27 +403,27 @@ const extractQualityLimitation = (bunch) => {
   return { reason, durations, resolutionChanges };
 };
 
-const extractVideoGlitch = (bunch, previousReport, referenceReport) => {
+const extractVideoGlitch = (bunch, kind, previousReport, referenceReport) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FREEZE_COUNT) ||
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PAUSE_COUNT)
   ) {
     return {
-      freezeCount: previousReport.total_glitch_in.freeze,
-      pauseCount: previousReport.total_glitch_in.pause,
+      freezeCount: previousReport[kind].total_glitch_in.freeze,
+      pauseCount: previousReport[kind].total_glitch_in.pause,
       deltaFreezeCount: 0,
       deltaPauseCount: 0,
     };
   }
 
-  const freezeCount = (bunch[PROPERTY.FREEZE_COUNT] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_glitch_in.freeze : 0);
-  const pauseCount = (bunch[PROPERTY.PAUSE_COUNT] || 0) - (referenceReport ? referenceReport[VALUE.VIDEO].total_glitch_in.pause : 0);
+  const freezeCount = (bunch[PROPERTY.FREEZE_COUNT] || 0) - (referenceReport ? referenceReport[kind].total_glitch_in.freeze : 0);
+  const pauseCount = (bunch[PROPERTY.PAUSE_COUNT] || 0) - (referenceReport ? referenceReport[kind].total_glitch_in.pause : 0);
 
   return {
     freezeCount,
     pauseCount,
-    deltaFreezeCount: freezeCount - previousReport[VALUE.VIDEO].total_glitch_in.freeze,
-    deltaPauseCount: pauseCount - previousReport[VALUE.VIDEO].total_glitch_in.pause,
+    deltaFreezeCount: freezeCount - previousReport[kind].total_glitch_in.freeze,
+    deltaPauseCount: pauseCount - previousReport[kind].total_glitch_in.pause,
   };
 };
 
@@ -541,34 +533,39 @@ const extractAvailableBandwidth = (bunch) => {
   };
 };
 
-export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
+export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refPC) => {
   if (!bunch) {
     return [];
   }
 
+  debug(
+    moduleName,
+    `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
+    bunch,
+  );
+
   switch (bunch[PROPERTY.TYPE]) {
     case TYPE.CANDIDATE_PAIR:
+      let selectedPairForFirefox = false;
       let selectedPair = false;
-      if (
-        bunch[PROPERTY.NOMINATED] &&
-        bunch[PROPERTY.STATE] === VALUE.SUCCEEDED
-      ) {
-        selectedPair = true;
-
-        debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-        );
-
-        // FF: Do not use candidate-pair with selected=false
-        if (PROPERTY.SELECTED in bunch && !bunch[PROPERTY.SELECTED]) {
-          selectedPair = false;
+      // get Transport report
+      if (raw.has(bunch[PROPERTY.TRANSPORT_ID])) {
+        const transportReport = raw.get(bunch[PROPERTY.TRANSPORT_ID]);
+        if (transportReport[PROPERTY.SELECTED_CANDIDATEPAIR_ID] === bunch[PROPERTY.ID]) {
+          selectedPair = true;
         }
       }
-      if (selectedPair) {
+
+      // FF: NO RTCTransportStats report - Use candidate-pair with selected=true
+      if (PROPERTY.SELECTED in bunch && bunch[PROPERTY.SELECTED]) {
+        selectedPairForFirefox = true;
+      }
+
+      if (selectedPair || selectedPairForFirefox) {
         const localCandidateId = bunch[PROPERTY.LOCAL_CANDIDATE_ID];
         const remoteCandidateId = bunch[PROPERTY.REMOTE_CANDIDATE_ID];
+        const selectedCandidatePairId = bunch[PROPERTY.ID];
+
         const valueSentReceived = extractBytesSentReceived(
           bunch,
           previousBunch,
@@ -582,7 +579,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
           previousBunch,
         );
 
-        return [
+        const result = [
           {
             type: STAT_TYPE.NETWORK,
             value: { local_candidate_id: localCandidateId },
@@ -641,6 +638,17 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             },
           },
         ];
+
+        if (selectedPairForFirefox) {
+          result.push(
+            {
+              type: STAT_TYPE.NETWORK,
+              internal: "selectedPairChanged",
+              value: { selected_candidate_pair_id: selectedCandidatePairId },
+            },
+          );
+        }
+        return result;
       }
       break;
     case TYPE.LOCAL_CANDIDATE:
@@ -688,12 +696,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       }
       break;
     case TYPE.INBOUND_RTP: {
-      debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-      );
-
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.INBOUND);
@@ -719,6 +721,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
 
         // Codec stats
         const audioInputCodecId = bunch[PROPERTY.CODEC_ID] || "";
+
+        // Audio level in
+        const audioLevel = bunch[PROPERTY.AUDIO_LEVEL] || 0;
 
         return [
           {
@@ -777,6 +782,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             type: STAT_TYPE.AUDIO,
             value: { track_in: bunch[PROPERTY.TRACK_IDENTIFIER] },
           },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { level_in: audioLevel },
+          },
         ];
       }
 
@@ -811,7 +821,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
         );
 
         // Glitch
-        const freezePauseData = extractVideoGlitch(bunch, previousSSRCBunch, referenceSSRCBunch);
+        const freezePauseData = extractVideoGlitch(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
 
         return [
           {
@@ -930,12 +940,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       break;
     }
     case TYPE.OUTBOUND_RTP: {
-      debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-      );
-
       const active = !!bunch[PROPERTY.MEDIA_SOURCE_ID];
 
       // get SSRC and associated data
@@ -948,8 +952,39 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       if (referenceSSRCBunch) {
         referenceSSRCBunch.timestamp = referenceReport.timestamp;
       }
+
+      let trackOut = "";
+      let audioLevel = 0;
+      let size = { width: 0, height: 0, framerate: 0 };
+      if (active && raw.has(bunch[PROPERTY.MEDIA_SOURCE_ID])) {
+        const mediaSourceReport = raw.get(bunch[PROPERTY.MEDIA_SOURCE_ID]);
+        trackOut = mediaSourceReport[PROPERTY.TRACK_IDENTIFIER];
+        if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
+          audioLevel = mediaSourceReport[PROPERTY.AUDIO_LEVEL];
+        } else {
+          size = { width: mediaSourceReport[PROPERTY.WIDTH] || null, height: mediaSourceReport[PROPERTY.HEIGHT] || null, framerate: mediaSourceReport[PROPERTY.FRAMES_PER_SECOND] || null };
+        }
+      }
+
+      let deviceLabel = "";
+      if (trackOut) {
+        const track = findTrackInPeerConnectionById(trackOut, _refPC);
+        if (track) {
+          deviceLabel = track.label;
+        }
+      }
+
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        // FF: no media-source, try to find the track from the sender (first track of kind found)
+        if (!trackOut) {
+          const track = findOutgoingTrackFromPeerConnectionByKind("audio", _refPC);
+          if (track) {
+            trackOut = track.id;
+            deviceLabel = track.label;
+          }
+        }
 
         // packets and bytes
         const data = extractAudioVideoPacketSent(bunch, VALUE.AUDIO, previousSSRCBunch, referenceSSRCBunch);
@@ -960,6 +995,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             type: STAT_TYPE.AUDIO,
             internal: "mediaSourceUpdated",
             value: { active_out: active },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { device_out: deviceLabel },
           },
           {
             ssrc,
@@ -992,11 +1032,31 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             type: STAT_TYPE.AUDIO,
             value: { delta_kbs_out: data.kbsSent },
           },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            internal: "deviceChanged",
+            value: { track_out: trackOut },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { level_out: audioLevel },
+          },
         ];
       }
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
         const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         const videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+
+        // FF: no media-source, try to find the track from the sender (first track of kind found)
+        if (!trackOut) {
+          const track = findOutgoingTrackFromPeerConnectionByKind("video", _refPC);
+          if (track) {
+            trackOut = track.id;
+            deviceLabel = track.label;
+          }
+        }
 
         // Encode time
         const data = extractEncodeTime(bunch, previousSSRCBunch);
@@ -1023,6 +1083,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             type: STAT_TYPE.VIDEO,
             internal: "mediaSourceUpdated",
             value: { active_out: active },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { device_out: deviceLabel },
           },
           {
             ssrc,
@@ -1107,36 +1172,25 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
             value: { limitation_out: limitationOut },
             internal: "videoLimitationChanged",
           },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            internal: "deviceChanged",
+            value: { track_out: trackOut },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { size_pref_out: size },
+          },
         ];
       }
       break;
     }
     case TYPE.MEDIA_SOURCE: {
-      const result = [];
-      const ssrc = getSSRCFromMediaSourceId(bunch[PROPERTY.ID], raw);
-
-      debug(
-        moduleName,
-        `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-        bunch,
-      );
-      result.push({
-        ssrc, type: bunch[PROPERTY.KIND], internal: "deviceChanged", value: { track_out: bunch[PROPERTY.TRACK_IDENTIFIER] },
-      });
-
-      if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
-        result.push({ ssrc, type: VALUE.AUDIO, value: { level_out: bunch[PROPERTY.AUDIO_LEVEL] } });
-      } else {
-        result.push({ ssrc, type: VALUE.VIDEO, value: { size_pref_out: { width: bunch[PROPERTY.WIDTH] || null, height: bunch[PROPERTY.HEIGHT] || null, framerate: bunch[PROPERTY.FRAMES_PER_SECOND] || null } } });
-      }
-      return result;
+      break;
     }
     case TYPE.TRACK: {
-      debug(
-        moduleName,
-        `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-        bunch,
-      );
       break;
     }
     case TYPE.CODEC:
@@ -1145,11 +1199,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       Object.keys(previousBunch[VALUE.AUDIO]).forEach((ssrc) => {
         const ssrcAudioBunch = previousBunch[VALUE.AUDIO][ssrc];
         if ((ssrcAudioBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcAudioBunch.codec_id_out === bunch[PROPERTY.ID])) {
-          debug(
-              moduleName,
-              `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-              bunch,
-          );
           const codec = extractAudioCodec(bunch);
           if (bunch[PROPERTY.ID] === ssrcAudioBunch.codec_id_in) {
             result.push({ ssrc: ssrcAudioBunch.ssrc, type: STAT_TYPE.AUDIO, value: { codec_in: codec } });
@@ -1163,11 +1212,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       Object.keys(previousBunch[VALUE.VIDEO]).forEach((ssrc) => {
         const ssrcVideoBunch = previousBunch[VALUE.VIDEO][ssrc];
         if ((ssrcVideoBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcVideoBunch.codec_id_out === bunch[PROPERTY.ID])) {
-          debug(
-              moduleName,
-              `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-              bunch,
-          );
           const codec = extractVideoCodec(bunch);
           if (bunch[PROPERTY.ID] === ssrcVideoBunch.codec_id_in) {
             result.push({ ssrc: ssrcVideoBunch.ssrc, type: STAT_TYPE.VIDEO, value: { codec_in: codec } });
@@ -1178,11 +1222,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       });
       return result;
     case TYPE.REMOTE_INBOUND_RTP: {
-      debug(
-          moduleName,
-          `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-          bunch,
-      );
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
@@ -1307,11 +1346,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       break;
     }
     case TYPE.REMOTE_OUTBOUND_RTP: {
-      debug(
-        moduleName,
-        `analyze() - got stats ${bunch[PROPERTY.TYPE]} for ${pname}`,
-        bunch,
-      );
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
       const previousSSRCBunch = getSSRCDataFromBunch(ssrc, previousBunch, DIRECTION.OUTBOUND);
@@ -1350,10 +1384,44 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw) => {
       }
       break;
     }
+    case TYPE.TRANSPORT: {
+      const selectedCandidatePairId = bunch[PROPERTY.SELECTED_CANDIDATEPAIR_ID];
+      return [
+        {
+          type: STAT_TYPE.NETWORK,
+          internal: "selectedPairChanged",
+          value: { selected_candidate_pair_id: selectedCandidatePairId },
+        },
+      ];
+    }
     default:
       break;
   }
 
   // No interesting data
   return [];
+};
+
+export const extractPassthroughFields = (bunch, passthrough) => {
+  if (!bunch) {
+    return [];
+  }
+  // Example {"inbound-rtp": ["jitter", "bytesSent"]}
+  const fieldsToReport = (passthrough && passthrough[bunch[PROPERTY.TYPE]]) || [];
+
+  const pass = {};
+  if (fieldsToReport.length > 0) {
+    const ref = bunch[PROPERTY.SSRC] || bunch[PROPERTY.ID];
+    const kind = bunch[PROPERTY.KIND] || "";
+    const id = `${bunch.type}${kind ? `-${kind}` : ""}_${ref}`;
+    fieldsToReport.forEach((field) => {
+      if (field in bunch) {
+        if (!(field in pass)) {
+          pass[field] = {};
+        }
+        pass[field][id] = bunch[field];
+      }
+    });
+  }
+  return pass;
 };
