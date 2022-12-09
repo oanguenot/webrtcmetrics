@@ -722,6 +722,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
         // Codec stats
         const audioInputCodecId = bunch[PROPERTY.CODEC_ID] || "";
 
+        // Audio level in
+        const audioLevel = bunch[PROPERTY.AUDIO_LEVEL] || 0;
+
         return [
           {
             ssrc,
@@ -778,6 +781,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { track_in: bunch[PROPERTY.TRACK_IDENTIFIER] },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { level_in: audioLevel },
           },
         ];
       }
