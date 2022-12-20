@@ -63,6 +63,14 @@ const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc, withTimes
   return arr;
 };
 
+export const filteredAverage = (nums, defaultValue) => {
+  const filtered = nums.filter((num) => num !== null);
+  if (filtered.length > 0) {
+    return filtered.reduce((a, b) => a + b, 0) / nums.length;
+  }
+  return defaultValue;
+};
+
 export const average = (nums) => (nums.reduce((a, b) => a + b, 0) / nums.length);
 
 export const createProbeId = () => (`probe-${shortUUID()}`);

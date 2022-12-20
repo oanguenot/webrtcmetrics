@@ -2,19 +2,17 @@ import Exporter from "./exporter";
 import { extract, extractPassthroughFields } from "./extractor";
 import {
   computeMOS,
-  computeEModelMOS,
-  computeMOSForOutgoing,
-  computeEModelMOSForOutgoing,
+  computeEModelMOS, computeFullEModelScore,
 } from "./utils/score";
 import {
-  COLLECTOR_STATE, DIRECTION,
+  COLLECTOR_STATE,
   defaultAudioMetricIn,
   defaultAudioMetricOut,
   defaultVideoMetricIn,
   defaultVideoMetricOut,
   getDefaultMetric,
   VALUE,
-  TYPE,
+  TYPE, DIRECTION,
 } from "./utils/models";
 import { createCollectorId, call } from "./utils/helper";
 import { debug, error, info } from "./utils/log";
@@ -99,37 +97,33 @@ export default class Collector {
     report.timestamp = timestamp;
     Object.keys(report[VALUE.AUDIO]).forEach((key) => {
       const ssrcReport = report[VALUE.AUDIO][key];
-      if (ssrcReport.direction === DIRECTION.INBOUND) {
-        ssrcReport.mos_emodel_in = computeEModelMOS(
-          report,
-          VALUE.AUDIO,
-          previousReport,
-          beforeLastReport,
-          ssrcReport.ssrc,
-        );
-        ssrcReport.mos_in = computeMOS(
-          report,
-          VALUE.AUDIO,
-          previousReport,
-          beforeLastReport,
-          ssrcReport.ssrc,
-        );
-      } else {
-        ssrcReport.mos_emodel_out = computeEModelMOSForOutgoing(
-          report,
-          VALUE.AUDIO,
-          previousReport,
-          beforeLastReport,
-          ssrcReport.ssrc,
-        );
-        ssrcReport.mos_out = computeMOSForOutgoing(
-          report,
-          VALUE.AUDIO,
-          previousReport,
-          beforeLastReport,
-          ssrcReport.ssrc,
-        );
-      }
+      ssrcReport[ssrcReport.direction === DIRECTION.INBOUND ? "mos_emodel_in" : "mos_model_out"] = computeEModelMOS(
+        report,
+        VALUE.AUDIO,
+        previousReport,
+        beforeLastReport,
+        ssrcReport.ssrc,
+        ssrcReport.direction,
+        3,
+      );
+      ssrcReport[ssrcReport.direction === DIRECTION.INBOUND ? "mos_in" : "mos_out"] = computeMOS(
+        report,
+        VALUE.AUDIO,
+        previousReport,
+        beforeLastReport,
+        ssrcReport.ssrc,
+        ssrcReport.direction,
+        3,
+      );
+      ssrcReport[ssrcReport.direction === DIRECTION.INBOUND ? "mos_fullband_in" : "mos_fullband_out"] = computeFullEModelScore(
+        report,
+        VALUE.AUDIO,
+        previousReport,
+        beforeLastReport,
+        ssrcReport.ssrc,
+        ssrcReport.direction,
+        3,
+      );
     });
     return report;
   }
