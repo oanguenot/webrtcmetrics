@@ -30,11 +30,12 @@ export default class Collector {
     this._config = cfg;
     this._exporter = new Exporter(cfg);
     this._state = COLLECTOR_STATE.IDLE;
+    this._oldReports = null;
     this.registerToPCEvents();
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
-  analyze(stats, previousReport, beforeLastReport, referenceReport, _refPC) {
+  analyze(stats, oldStats, previousReport, beforeLastReport, referenceReport, _refPC) {
     const getDefaultSSRCMetric = (kind, reportType) => {
       if (kind === VALUE.AUDIO) {
         if (reportType === TYPE.INBOUND_RTP) {
@@ -57,7 +58,7 @@ export default class Collector {
       if (!timestamp && stat.timestamp) {
         timestamp = stat.timestamp;
       }
-      const values = extract(stat, report, report.pname, referenceReport, stats, _refPC);
+      const values = extract(stat, report, report.pname, referenceReport, stats, oldStats, _refPC);
       values.forEach((data) => {
         if ("internal" in data) {
           this.doInternalTreatment(data, previousReport, values);
@@ -353,7 +354,7 @@ export default class Collector {
           const waitTime = Date.now() - preWaitTime;
           const preTime = Date.now();
           const reports = await this._config.pc.getStats();
-          const referenceReport = this.analyze(reports, null, null, null, this._config.pc);
+          const referenceReport = this.analyze(reports, null, null, null, null, this._config.pc);
           const postTime = Date.now();
           referenceReport.experimental.time_to_measure_ms = postTime - preTime;
           referenceReport.experimental.time_to_wait_ms = waitTime;
@@ -380,16 +381,17 @@ export default class Collector {
         return null;
       }
 
-      // Take into account last report in case no report have been generated (eg: candidate-pair)
       const preTime = Date.now();
       const reports = await this._config.pc.getStats();
       const report = this.analyze(
         reports,
+        this._oldReports,
         this._exporter.getLastReport(),
         this._exporter.getBeforeLastReport(),
         this._exporter.getReferenceReport(),
         this._config.pc,
       );
+      this._oldReports = reports;
       const postTime = Date.now();
       report.experimental.time_to_measure_ms = postTime - preTime;
       this._exporter.addReport(report);

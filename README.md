@@ -210,28 +210,34 @@ Audio statistics are gathered under the `audio` properties which is an object co
 
 Each **inbound audio stream** contains the following statistics:
 
-| Name                        | Value  | Description                                                                                                                       |
-|:----------------------------|:------:|:----------------------------------------------------------------------------------------------------------------------------------|
-| **codec_in**                |  JSON  | Description of the audio input codec and parameters used                                                                          |
-| **codec_id_in**             | String | ID of the audio input codec used                                                                                                  |
-| **delta_KBytes_in**         | Number | Number of kilobytes (KB) received since the last report                                                                           |
-| **delta_kbs_in**            | Number | Number of kilobits received per second since the last report                                                                      |
-| **delta_jitter_ms_in**      | Number | Incoming Jitter (in ms)                                                                                                           |
-| **delta_packets_lost_in**   | Number | Number of packets lost (not received) since last report                                                                           |
-| **delta_packets_in**        | Number | Number of packets received since the last report                                                                                  |
-| **delta_rtt_ms_in**         | Number | Round Trip-Time (in ms). Could be null when no value collected.                                                                   |
-| **direction**               | String | Direction of the stream. "inbound" here.                                                                                          |
-| **level_in**                | Number | Level of the input sound. Detect presence of incoming sound                                                                       |
-| **mos_emodel_in**           | Number | Audio quality indicator based on 'MOS E-Model ITU-T G.107.2 (Fullband E-model)'                                                   |
-| **mos_in**                  | Number | Audio quality indicator based on 'Effective Latency' or 'Codec fitting parameters'                                                |
-| **percent_packets_lost_in** | Number | Percent of audio packet lost (not received) since the last report                                                                 |
-| **timestamp_in**            | Number | Timestamp when report has been sent. Associated with **delta_rtt_ms_in**, **total_rtt_measure_in** and **total_rtt_ms_in**        |
-| **total_KBytes_in**         | Number | Number of kilobytes (KB) received since the beginning of the call                                                                 |
-| **total_packets_lost_in**   | Number | Number of packets lost (not received) since the beginning of the call                                                             |
-| **total_packets_in**        | Number | Number of packets received since the beginning of the call                                                                        |
-| **total_rtt_measure_in**    | Number | Number of RTT measurements done                                                                                                   |
-| **total_rtt_ms_in**         | Number | Total Round Trip Time since the beginning of the call                                                                             |
-| **track_in**                | String | The id of the associated mediastream track                                                                                        |                                                                                                                                                                                                                                |
+| Name                             | Value  | Description                                                                                                                |
+|:---------------------------------|:------:|:---------------------------------------------------------------------------------------------------------------------------|
+| **codec_in**                     |  JSON  | Description of the audio input codec and parameters used                                                                   |
+| **codec_id_in**                  | String | ID of the audio input codec used                                                                                           |
+| **delta_KBytes_in**              | Number | Number of kilobytes (KB) received since the last report                                                                    |
+| **delta_kbs_in**                 | Number | Number of kilobits received per second since the last report                                                               |
+| **delta_jitter_ms_in**           | Number | Incoming Jitter (in ms)                                                                                                    |
+| **delta_packets_lost_in**        | Number | Number of packets lost (not received) since last report                                                                    |
+| **delta_packets_in**             | Number | Number of packets received since the last report                                                                           |
+| **delta_rtt_ms_in**              | Number | Round Trip-Time (in ms). Could be null when no value collected.                                                            |
+ | **delta_synthetized_ms_in**      | Number | Duration of synthetized voice since last report (in ms)                                                                    |
+ | **delta_playout_delay_ms_in**    | Number | Delay of the playout path since last report (in ms)                                                                        |
+| **direction**                    | String | Direction of the stream. "inbound" here.                                                                                   |
+| **level_in**                     | Number | Level of the input sound. Detect presence of incoming sound                                                                |
+| **mos_emodel_in**                | Number | Audio quality indicator based on 'MOS E-Model ITU-T G.107.2 (Fullband E-model)'                                            |
+| **mos_in**                       | Number | Audio quality indicator based on 'Effective Latency' or 'Codec fitting parameters'                                         |
+| **percent_packets_lost_in**      | Number | Percent of audio packet lost (not received) since the last report                                                          |
+| **percent_synthetized_in**       | Number | Percent of voice packet synthetized (generated) since the last report                                                      |
+| **timestamp_in**                 | Number | Timestamp when report has been sent. Associated with **delta_rtt_ms_in**, **total_rtt_measure_in** and **total_rtt_ms_in** |
+| **total_KBytes_in**              | Number | Number of kilobytes (KB) received since the beginning of the call                                                          |
+| **total_packets_lost_in**        | Number | Number of packets lost (not received) since the beginning of the call                                                      |
+| **total_packets_in**             | Number | Number of packets received since the beginning of the call                                                                 |
+| **total_rtt_measure_in**         | Number | Number of RTT measurements done                                                                                            |
+| **total_rtt_ms_in**              | Number | Total Round Trip Time since the beginning of the call                                                                      |
+| **total_playout_ms_in**          | Number | Total duration of the playout since the beginning of the call (in ms)                                                      |
+| **total_synthetized_ms_in**      | Number | Total duration of the synthetized voice since the beginning of the call (in ms)                                            |
+| **total_percent_synthetized_in** | Number | Percent of voice packet synthetized (generated) since the beginning of the call                                            |
+| **track_in**                     | String | The id of the associated mediastream track                                                                                 |
 
 _Note:_ `mos_emodel_in` and `mos_in` reflects the quality of the audio media received using a rank from 0 (inaudible) to 4.5 (excellent). It is the quality the local user experienced from his call.
 

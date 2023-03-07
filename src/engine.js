@@ -107,18 +107,18 @@ export default class ProbesEngine {
     await takeReferenceStat();
     debug(moduleName, "reference reports generated");
     this._startedTime = Date.now();
+    debug(moduleName, `wait ${this._config.refreshEvery}ms before collecting`);
+    await timeout(this._config.refreshEvery);
     while (shouldCollectStats()) {
+      debug(moduleName, "collecting...");
+      const preTime = Date.now();
+      const globalReport = await collectStats();
+      const postTime = Date.now();
+      globalReport.delta_time_consumed_to_measure_ms = postTime - preTime;
+      this.fireOnReports(globalReport);
+      debug(moduleName, "collected");
       debug(moduleName, `wait ${this._config.refreshEvery}ms before collecting`);
       await timeout(this._config.refreshEvery);
-      if (shouldCollectStats()) {
-        debug(moduleName, "collecting...");
-        const preTime = Date.now();
-        const globalReport = await collectStats();
-        const postTime = Date.now();
-        globalReport.delta_time_consumed_to_measure_ms = postTime - preTime;
-        this.fireOnReports(globalReport);
-        debug(moduleName, "collected");
-      }
     }
 
     debug(moduleName, "reaching end of the collecting period...");

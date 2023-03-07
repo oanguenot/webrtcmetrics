@@ -18,6 +18,30 @@ import { debug } from "./utils/log";
 
 const moduleName = "extractor   ";
 
+const extractPlayoutInformation = (report, previousReport) => {
+  const previousSynthetized = previousReport ? (previousReport[PROPERTY.SYNTHETIZED_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const currentSynthetized = report ? (report[PROPERTY.SYNTHETIZED_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const totalSamplesDuration = report ? (report[PROPERTY.TOTAL_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const previousTotalSamplesDuration = previousReport ? (previousReport[PROPERTY.TOTAL_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const delta = currentSynthetized - previousSynthetized;
+  const deltaDuration = totalSamplesDuration - previousTotalSamplesDuration;
+  const totalDelay = report ? report[PROPERTY.TOTAL_PLAYOUT_DELAY] || 0 : 0;
+  const totalSamplesCount = report ? report[PROPERTY.TOTAL_SAMPLES_COUNT] || 0 : 0;
+
+  const deltaDelay = totalSamplesCount ? totalDelay / totalSamplesCount : 0;
+  const deltaPercentSynthetized = deltaDuration ? (delta / deltaDuration) * 100 : 0;
+  const totalPercentSynthetized = totalSamplesDuration ? (currentSynthetized / totalSamplesDuration) * 100 : 0;
+
+  return {
+    total_synthetized_ms_in: currentSynthetized,
+    delta_synthetized_ms_in: delta,
+    percent_synthetized_in: deltaPercentSynthetized,
+    total_percent_synthetized_in: totalPercentSynthetized,
+    total_playout_ms_in: totalDelay,
+    delta_playout_delay_ms_in: deltaDelay,
+  };
+};
+
 const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   let supportOfMeasure = false;
   const previousRTT = previousBunch[kind].total_rtt_ms_out;
@@ -533,7 +557,7 @@ const extractAvailableBandwidth = (bunch) => {
   };
 };
 
-export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refPC) => {
+export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRaw, _refPC) => {
   if (!bunch) {
     return [];
   }
@@ -725,6 +749,14 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
         // Audio level in
         const audioLevel = bunch[PROPERTY.AUDIO_LEVEL] || 0;
 
+        // average playout delay
+        let playout = null;
+        if (raw.has(bunch[PROPERTY.PLAYOUT_ID])) {
+          const playoutReport = raw.get(bunch[PROPERTY.PLAYOUT_ID]);
+          const previousPlayoutReport = oldRaw ? oldRaw.get(bunch[PROPERTY.PLAYOUT_ID]) : null;
+          playout = extractPlayoutInformation(playoutReport, previousPlayoutReport);
+        }
+
         return [
           {
             ssrc,
@@ -786,6 +818,36 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { level_in: audioLevel },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_synthetized_ms_in: playout ? playout.delta_synthetized_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_synthetized_ms_in: playout ? playout.total_synthetized_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_playout_delay_ms_in: playout ? playout.delta_playout_delay_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_playout_ms_in: playout ? playout.total_playout_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { percent_synthetized_in: playout ? playout.percent_synthetized_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_percent_synthetized_in: playout ? playout.total_percent_synthetized_in : 0 },
           },
         ];
       }
