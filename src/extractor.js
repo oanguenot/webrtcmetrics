@@ -241,21 +241,14 @@ const extractAudioVideoPacketSent = (
   previousBunch,
   referenceReport,
 ) => {
-  if (
-    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_SENT) ||
-    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.BYTES_SENT)
-  ) {
-    return {
-      packetsSent: previousBunch[kind].total_packets_out,
-      packetsLost: previousBunch[kind].total_packets_lost_out,
-      bytesSent: previousBunch[kind].total_KBytes_out,
-    };
-  }
-
   const packetsSent =
     Number(bunch[PROPERTY.PACKETS_SENT]) ||
     0 - (referenceReport ? referenceReport[kind].total_packets_out : 0);
   const deltaPacketsSent = packetsSent - previousBunch[kind].total_packets_out;
+  const totalPacketSendDelay = Number(bunch[PROPERTY.TOTAL_PACKETS_SEND_DELAY]) * 1000 ||
+    0 - (referenceReport ? referenceReport[kind].total_packets_delay_out : 0);
+  const deltaPacketsDelay = totalPacketSendDelay - previousBunch[kind].total_packets_delay_out;
+  const deltaAvgPacketSendDelay = deltaPacketsSent ? deltaPacketsDelay / deltaPacketsSent : 0;
   const KBytesSent = (Number(bunch[PROPERTY.BYTES_SENT]) / 1024) - (referenceReport ? referenceReport[kind].total_KBytes_out : 0);
   const deltaKBytesSent = KBytesSent - previousBunch[kind].total_KBytes_out;
   const timestamp = bunch[PROPERTY.TIMESTAMP] || Date.now();
@@ -273,6 +266,8 @@ const extractAudioVideoPacketSent = (
     KBytesSent,
     deltaKBytesSent,
     kbsSent,
+    deltaAvgPacketSendDelay,
+    totalPacketSendDelay,
   };
 };
 
@@ -1081,6 +1076,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
+            value: { delta_avg_packet_delay_out: data.deltaAvgPacketSendDelay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_packets_delay_out: data.totalPacketSendDelay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
             value: { total_KBytes_out: data.KBytesSent },
           },
           {
@@ -1165,6 +1170,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { delta_packets_out: dataSent.deltaPacketsSent },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_avg_packet_delay_out: dataSent.deltaAvgPacketSendDelay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_packets_delay_out: dataSent.totalPacketSendDelay },
           },
           {
             ssrc,
