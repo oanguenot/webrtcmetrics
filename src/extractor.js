@@ -246,8 +246,8 @@ const extractAudioVideoPacketSent = (
     0 - (referenceReport ? referenceReport[kind].total_packets_out : 0);
   const deltaPacketsSent = packetsSent - previousBunch[kind].total_packets_out;
   const totalPacketSendDelay = Number(bunch[PROPERTY.TOTAL_PACKETS_SEND_DELAY]) * 1000 ||
-    0 - (referenceReport ? referenceReport[kind].total_packets_delay_out : 0);
-  const deltaPacketsDelay = totalPacketSendDelay - previousBunch[kind].total_packets_delay_out;
+    0 - (referenceReport ? referenceReport[kind].total_time_packets_delay_out : 0);
+  const deltaPacketsDelay = totalPacketSendDelay - previousBunch[kind].total_time_packets_delay_out;
   const deltaAvgPacketSendDelay = deltaPacketsSent ? deltaPacketsDelay / deltaPacketsSent : 0;
   const KBytesSent = (Number(bunch[PROPERTY.BYTES_SENT]) / 1024) - (referenceReport ? referenceReport[kind].total_KBytes_out : 0);
   const deltaKBytesSent = KBytesSent - previousBunch[kind].total_KBytes_out;
@@ -1076,12 +1076,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { delta_avg_packet_delay_out: data.deltaAvgPacketSendDelay },
+            value: { delta_ms_packet_delay_out: data.deltaAvgPacketSendDelay },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
-            value: { total_packets_delay_out: data.totalPacketSendDelay },
+            value: { total_time_packets_delay_out: data.totalPacketSendDelay },
           },
           {
             ssrc,
@@ -1174,12 +1174,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_avg_packet_delay_out: dataSent.deltaAvgPacketSendDelay },
+            value: { delta_ms_packet_delay_out: dataSent.deltaAvgPacketSendDelay },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { total_packets_delay_out: dataSent.totalPacketSendDelay },
+            value: { total_time_packets_delay_out: dataSent.totalPacketSendDelay },
           },
           {
             ssrc,

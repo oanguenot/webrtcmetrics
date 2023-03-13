@@ -243,32 +243,32 @@ _Note:_ `mos_emodel_in` and `mos_in` reflects the quality of the audio media rec
 
 Each **outbound audio stream** contains the following statistics
 
-| Name                           |  Value  | Description                                                                                               |
-|:-------------------------------|:-------:|:----------------------------------------------------------------------------------------------------------|
-| **active_out**                 | Boolean | True if that stream is active (sending media)                                                             |
-| **codec_out**                  |  JSON   | Description of the audio output codec and parameters used                                                 |
-| **codec_id_out**               | String  | ID of the audio output codec used                                                                         |
-| **delta_avg_packet_delay_out** | Number  | Average duration spent by packets before being sent (in ms)                                               |
-| **delta_KBytes_out**           | Number  | Number of kilobytes (KB) sent since last report                                                           |
-| **delta_kbs_out**              | Number  | Number of kbits sent per second since the last report                                                     |
-| **delta_jitter_ms_out**        | Number  | Outgoing Jitter (in ms)                                                                                   |
-| **delta_packets_lost_out**     | Number  | Number of packets lost (not received by the recipient) since last report                                  |
-| **delta_packets_out**          | Number  | Number of packets sent since the last report                                                              |
-| **delta_rtt_ms_out**           | Number  | Round Trip-Time (in ms). Could be null when no value collected.                                           |
-| **direction**                  | String  | Direction of the stream. "outbound" here.                                                                 |
-| **level_out**                  | Number  | Level of the output sound. Detect presence of outgoing sound                                              |
-| **mos_emodel_out**             | Number  | Audio quality indicator based on 'MOS E-Model ITU-T G.107.2 (Fullband E-model)'                           |
-| **mos_out**                    | Number  | Audio quality indicator based on 'Effective Latency' or 'Codec fitting parameters'                        |
-| **percent_packets_lost_out**   | Number  | Percent of audio packet lost (not received by the recipient) since the last report                        |
-| **timestamp_out**              | Number  | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
-| **total_KBytes_out**           | Number  | Number of kilobytes (KB) sent since the beginning of the call                                             |
-| **total_packets_delay_out**    | Number  | Total time spent for all packets before being sent (in ms)                                                |
-| **total_packets_lost_out**     | Number  | Number of packets lost (not received by the recipient) since the beginning of the call                    |
-| **total_packets_out**          | Number  | Number of packets sent since the beginning of the call                                                    |
-| **total_rtt_measure_out**      | Number  | Number of RTT measurements done                                                                           |
-| **total_rtt_ms_out**           | Number  | Total Round Trip Time since the beginning of the call                                                     |
-| **track_out**                  | String  | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
-| **device_out**                 | String  | The label of the device associated to the **track_out**                                                   |
+| Name                             |  Value  | Description                                                                                               |
+|:---------------------------------|:-------:|:----------------------------------------------------------------------------------------------------------|
+| **active_out**                   | Boolean | True if that stream is active (sending media)                                                             |
+| **codec_out**                    |  JSON   | Description of the audio output codec and parameters used                                                 |
+| **codec_id_out**                 | String  | ID of the audio output codec used                                                                         |
+| **delta_ms_packet_delay_out**    | Number  | Average duration spent by packets before being sent (in ms)                                               |
+| **delta_KBytes_out**             | Number  | Number of kilobytes (KB) sent since last report                                                           |
+| **delta_kbs_out**                | Number  | Number of kbits sent per second since the last report                                                     |
+| **delta_jitter_ms_out**          | Number  | Outgoing Jitter (in ms)                                                                                   |
+| **delta_packets_lost_out**       | Number  | Number of packets lost (not received by the recipient) since last report                                  |
+| **delta_packets_out**            | Number  | Number of packets sent since the last report                                                              |
+| **delta_rtt_ms_out**             | Number  | Round Trip-Time (in ms). Could be null when no value collected.                                           |
+| **direction**                    | String  | Direction of the stream. "outbound" here.                                                                 |
+| **level_out**                    | Number  | Level of the output sound. Detect presence of outgoing sound                                              |
+| **mos_emodel_out**               | Number  | Audio quality indicator based on 'MOS E-Model ITU-T G.107.2 (Fullband E-model)'                           |
+| **mos_out**                      | Number  | Audio quality indicator based on 'Effective Latency' or 'Codec fitting parameters'                        |
+| **percent_packets_lost_out**     | Number  | Percent of audio packet lost (not received by the recipient) since the last report                        |
+| **timestamp_out**                | Number  | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| **total_KBytes_out**             | Number  | Number of kilobytes (KB) sent since the beginning of the call                                             |
+| **total_time_packets_delay_out** | Number  | Total time spent for all packets before being sent (in ms)                                                |
+| **total_packets_lost_out**       | Number  | Number of packets lost (not received by the recipient) since the beginning of the call                    |
+| **total_packets_out**            | Number  | Number of packets sent since the beginning of the call                                                    |
+| **total_rtt_measure_out**        | Number  | Number of RTT measurements done                                                                           |
+| **total_rtt_ms_out**             | Number  | Total Round Trip Time since the beginning of the call                                                     |
+| **track_out**                    | String  | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
+| **device_out**                   | String  | The label of the device associated to the **track_out**                                                   |
 
 _Note:_ `mos_emodel_out` and `mos_out` reflects the quality of the audio media sent using a rank from 0 (inaudible) to 4.5 (excellent). It is not the quality the remote peer will experience but is a good indicator of the capacity of the local user to send the media to detect a quality issue on the local side
 
@@ -308,38 +308,38 @@ Each **inbound video stream** contains the following statistics:
 
 Each **outbound video stream** contains the following statistics
 
-| Name                           |  Value  | Description                                                                                               |
-|:-------------------------------|:-------:|:----------------------------------------------------------------------------------------------------------|
-| **active_out**                 | Boolean | True if that stream is active (sending media)                                                             |
-| **codec_out**                  |  JSON   | Description of the video output codec and parameters used                                                 |
-| **codec_id_out**               | String  | ID of the video output codec used                                                                         |
-| **delta_avg_packet_delay_out** | Number  | Average duration spent by packets before being sent (in ms)                                               |
-| **delta_KBytes_out**           | Number  | Number of kilobytes (KB) sent since last report                                                           |
-| **delta_kbs_out**              | Number  | Number of kbits sent per second since the last report                                                     |
-| **delta_jitter_ms_out**        | Number  | Outgoing Jitter (in ms). Could be null when no value collected.                                           |
-| **delta_packets_lost_out**     | Number  | Number of packets lost (not received by the recipient) since last report                                  |
-| **delta_ms_encode_frame_out**  | Number  | Time needed to encode a frame                                                                             |
-| **delta_nack_in**              | Number  | Nack received since the last report                                                                       |
-| **delta_nack_out**             | Number  | Nack sent since the last report                                                                           |
-| **delta_pli_out**              | Number  | Pli sent since the last report                                                                            |
-| **delta_rtt_ms_out**           | Number  | Round Trip-Time (in ms). Could be null when no value collected.                                           |
-| **encoder_out**                | String  | Description of the video encoder used                                                                     |
-| **size_out**                   | Object  | Size of the output video sent + framerate (could be lower than the size asked)                            |
-| **size_pref_out**              | Object  | Size of the output video asked + framerate                                                                |
-| **percent_packets_lost_out**   | Number  | Percent of audio packet lost (not received by the recipient) since the last report                        |
-| **limitation_out**             | Object  | Object containing the reason and the durations spent in each state                                        |
-| **total_KBytes_out**           | Number  | Number of kilobytes (KB) sent since the beginning of the call                                             |
-| **total_packets_delay_out**    | Number  | Total time spent for all packets before being sent (in ms)                                                |
-| **total_packets_lost_out**     | Number  | Number of packets lost (not received by the recipient) since the beginning of the call                    |
-| **total_frames_encoded_out**   | Number  | Total of frames encoded                                                                                   |
-| **total_nack_out**             | Number  | Total nack received since the beginning of the call                                                       |
-| **total_pli_out**              | Number  | Total pli received since the beginning of the call                                                        |
-| **total_rtt_measure_out**      | Number  | Number of RTT measurements done                                                                           |
-| **total_rtt_ms_out**           | Number  | Total Round Trip Time since the beginning of the call                                                     |
-| **total_time_encoded_out**     | Number  | Total time used for encoding all frames                                                                   |
-| **timestamp_out**              | Number  | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
-| **track_out**                  | String  | The id of the mediastream track associated                                                                |
-| **device_out**                 | String  | The label of the device associated to the **track_out**                                                   |
+| Name                             |  Value  | Description                                                                                               |
+|:---------------------------------|:-------:|:----------------------------------------------------------------------------------------------------------|
+| **active_out**                   | Boolean | True if that stream is active (sending media)                                                             |
+| **codec_out**                    |  JSON   | Description of the video output codec and parameters used                                                 |
+| **codec_id_out**                 | String  | ID of the video output codec used                                                                         |
+| **delta_ms_packet_delay_out**    | Number  | Average duration spent by packets before being sent (in ms)                                               |
+| **delta_KBytes_out**             | Number  | Number of kilobytes (KB) sent since last report                                                           |
+| **delta_kbs_out**                | Number  | Number of kbits sent per second since the last report                                                     |
+| **delta_jitter_ms_out**          | Number  | Outgoing Jitter (in ms). Could be null when no value collected.                                           |
+| **delta_packets_lost_out**       | Number  | Number of packets lost (not received by the recipient) since last report                                  |
+| **delta_ms_encode_frame_out**    | Number  | Time needed to encode a frame                                                                             |
+| **delta_nack_in**                | Number  | Nack received since the last report                                                                       |
+| **delta_nack_out**               | Number  | Nack sent since the last report                                                                           |
+| **delta_pli_out**                | Number  | Pli sent since the last report                                                                            |
+| **delta_rtt_ms_out**             | Number  | Round Trip-Time (in ms). Could be null when no value collected.                                           |
+| **encoder_out**                  | String  | Description of the video encoder used                                                                     |
+| **size_out**                     | Object  | Size of the output video sent + framerate (could be lower than the size asked)                            |
+| **size_pref_out**                | Object  | Size of the output video asked + framerate                                                                |
+| **percent_packets_lost_out**     | Number  | Percent of audio packet lost (not received by the recipient) since the last report                        |
+| **limitation_out**               | Object  | Object containing the reason and the durations spent in each state                                        |
+| **total_KBytes_out**             | Number  | Number of kilobytes (KB) sent since the beginning of the call                                             |
+| **total_time_packets_delay_out** | Number  | Total time spent for all packets before being sent (in ms)                                                |
+| **total_packets_lost_out**       | Number  | Number of packets lost (not received by the recipient) since the beginning of the call                    |
+| **total_frames_encoded_out**     | Number  | Total of frames encoded                                                                                   |
+| **total_nack_out**               | Number  | Total nack received since the beginning of the call                                                       |
+| **total_pli_out**                | Number  | Total pli received since the beginning of the call                                                        |
+| **total_rtt_measure_out**        | Number  | Number of RTT measurements done                                                                           |
+| **total_rtt_ms_out**             | Number  | Total Round Trip Time since the beginning of the call                                                     |
+| **total_time_encoded_out**       | Number  | Total time used for encoding all frames                                                                   |
+| **timestamp_out**                | Number  | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| **track_out**                    | String  | The id of the mediastream track associated                                                                |
+| **device_out**                   | String  | The label of the device associated to the **track_out**                                                   |
 
 ### Network properties
 
