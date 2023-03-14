@@ -175,6 +175,20 @@ const extractLastJitter = (bunch, kind, previousBunch) => {
   return Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
 };
 
+const extractJitterBufferInfo = (bunch, kind, previousBunch) => {
+  const jitterBufferDelay = bunch[PROPERTY.JITTER_BUFFER_DELAY] * 1000 || 0;
+  const jitterBufferEmittedCount = bunch[PROPERTY.JITTER_BUFFER_EMITTED_COUNT] * 1000 || 0;
+
+  const deltaJitterBufferDelay = jitterBufferDelay - previousBunch[kind].total_time_jitter_buffer_delay_in;
+  const deltaJitterBufferEmittedCount = jitterBufferEmittedCount - previousBunch[kind].total_time_jitter_emitted_in;
+
+  return {
+    delta_ms_jitter_buffer_delay: deltaJitterBufferEmittedCount ? deltaJitterBufferDelay / deltaJitterBufferEmittedCount : 0,
+    total_time_jitter_buffer_delay_in: jitterBufferDelay,
+    total_time_jitter_emitted_in: jitterBufferEmittedCount,
+  };
+};
+
 const extractDecodeTime = (bunch, previousBunch) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAMES_DECODED) ||
@@ -757,6 +771,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
           playout = extractPlayoutInformation(playoutReport, previousPlayoutReport);
         }
 
+        const jitterBuffer = extractJitterBufferInfo(bunch, VALUE.AUDIO, previousSSRCBunch);
+
         return [
           {
             ssrc,
@@ -808,6 +824,26 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { delta_jitter_ms_in: jitter },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_ms_jitter_buffer_delay_in: jitterBuffer.delta_ms_jitter_buffer_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_ms_jitter_buffer_emitted_in: jitterBuffer.delta_ms_jitter_buffer_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_time_jitter_buffer_delay_in: jitterBuffer.total_time_jitter_buffer_delay_in },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_time_jitter_emitted_in: jitterBuffer.total_time_jitter_emitted_in },
           },
           {
             ssrc,
