@@ -191,18 +191,21 @@ const extractDecodeTime = (bunch, previousBunch) => {
   const decodedFrames = bunch[PROPERTY.FRAMES_DECODED];
   const totalDecodeTime = bunch[PROPERTY.TOTAL_DECODE_TIME] * 1000; // in ms
   const totalProcessingDelay = bunch[PROPERTY.TOTAL_PROCESSING_DELAY] * 1000 || 0; // in ms
+  const totalAssemblyTime = bunch[PROPERTY.TOTAL_ASSEMBLY_TIME] * 1000 || 0; // in ms
 
   const totalProcessingDelayDelta = totalProcessingDelay - previousBunch[VALUE.VIDEO].total_time_processing_delay_in;
   const decodeTimeDelta = totalDecodeTime - previousBunch[VALUE.VIDEO].total_time_decoded_in;
   const frameDelta = decodedFrames - previousBunch[VALUE.VIDEO].total_frames_decoded_in;
+  const totalAssemblyTimeDelta = totalAssemblyTime - previousBunch[VALUE.VIDEO].total_time_assembly_delay_in;
 
   return {
-    delta_ms_decode_frame:
-      frameDelta > 0 ? decodeTimeDelta / frameDelta : 0,
-    delta_ms_processing_delay: frameDelta > 0 ? totalProcessingDelayDelta / frameDelta : 0,
-    total_time_processing_delay: totalProcessingDelay,
     frames_decoded: decodedFrames,
+    delta_ms_decode_frame: frameDelta > 0 ? decodeTimeDelta / frameDelta : 0,
+    delta_ms_processing_delay: frameDelta > 0 ? totalProcessingDelayDelta / frameDelta : 0,
+    delta_ms_assembly_delay: frameDelta > 0 ? totalAssemblyTimeDelta / frameDelta : 0,
+    total_time_processing_delay: totalProcessingDelay,
     total_decode_time: totalDecodeTime,
+    total_assembly_time: totalAssemblyTime,
   };
 };
 
@@ -958,6 +961,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { total_time_processing_delay_in: data.total_time_processing_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_ms_assembly_delay_in: data.delta_ms_assembly_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_time_assembly_delay_in: data.total_assembly_time },
           },
           {
             ssrc,
