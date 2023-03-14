@@ -287,11 +287,11 @@ Each **inbound video stream** contains the following statistics:
 | **delta_glitch_in**                |  JSON  | Number of freezes and pauses encountered since the last report                                            |
 | **delta_ms_decode_frame_in**       | Number | Time needed to decode a frame (in ms)                                                                     |
 | **delta_ms_processing_delay_in**   | Number | Time needed to process a frame (in ms)                                                                    |
-| **delta_nack_in**                  | Number | Nack received since the last report                                                                       |
+| **delta_ms_assembly_delay_in**     | Number | Time needed to assemble a frame (in ms)                                                                   |
+| **delta_nack_sent_in**             | Number | Nack sent since the last report                                                                           |
 | **delta_packets_lost_in**          | Number | Number of packets lost (not received) since last report                                                   |
 | **delta_packets_in**               | Number | Number of packets received since the last report                                                          |
-| **delta_pli_in**                   | Number | Pli received since the last report                                                                        |
-| **delta_pli_out**                  | Number | Pli sent since the last report                                                                            |
+| **delta_pli_sent_in**              | Number | Pli sent since the last report                                                                            |
 | **codec_in**                       |  JSON  | Description of the video input codec and parameters used                                                  |
 | **codec_id_in**                    | String | ID of the video input codec used                                                                          |
 | **size_in**                        | Number | Size of the input video (from remote peer) + framerate                                                    |
@@ -299,12 +299,13 @@ Each **inbound video stream** contains the following statistics:
 | **total_KBytes_in**                | Number | Number of kilobytes (KB) received since the beginning of the call                                         |
 | **total_frames_decoded_in**        | Number | Total of frames decoded                                                                                   |
 | **total_glitch_in**                |  JSON  | Number of freezes and pauses encountered since the beginning of the call                                  |
-| **total_nack_in**                  | Number | Total nack sent since the beginning of the call                                                           |
+| **total_nack_sent_in**             | Number | Total nack sent since the beginning of the call                                                           |
 | **total_packets_lost_in**          | Number | Number of packets lost (not received) since the beginning of the call                                     |
 | **total_packets_in**               | Number | Number of packets received since the beginning of the call                                                |
-| **total_pli_in**                   | Number | Total pli sent since the beginning of the call                                                            |
+| **total_pli_sent_in**              | Number | Total pli sent since the beginning of the call                                                            |
 | **total_time_decoded_in**          | Number | Total time used for decoding all frames (in ms)                                                           |
-| **total_time_processing_delay_in** | Number | Total time processing all frames (in ms)                                                                  |
+| **total_time_processing_delay_in** | Number | Total time used for processing all frames (in ms)                                                         |
+| **total_time_assembly_delay_in**   | Number | Total time used for assembling all frames (in ms)                                                         |
 | **timestamp_out**                  | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
 | **track_in**                       | String | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
 
@@ -321,9 +322,8 @@ Each **outbound video stream** contains the following statistics
 | **delta_jitter_ms_out**          | Number  | Outgoing Jitter (in ms). Could be null when no value collected.                                           |
 | **delta_packets_lost_out**       | Number  | Number of packets lost (not received by the recipient) since last report                                  |
 | **delta_ms_encode_frame_out**    | Number  | Time needed to encode a frame                                                                             |
-| **delta_nack_in**                | Number  | Nack received since the last report                                                                       |
-| **delta_nack_out**               | Number  | Nack sent since the last report                                                                           |
-| **delta_pli_out**                | Number  | Pli sent since the last report                                                                            |
+| **delta_nack_received_out**      | Number  | Nack received since the last report                                                                       |
+| **delta_pli_received_out**       | Number  | Pli received since the last report                                                                        |
 | **delta_rtt_ms_out**             | Number  | Round Trip-Time (in ms). Could be null when no value collected.                                           |
 | **encoder_out**                  | String  | Description of the video encoder used                                                                     |
 | **size_out**                     | Object  | Size of the output video sent + framerate (could be lower than the size asked)                            |
@@ -334,8 +334,8 @@ Each **outbound video stream** contains the following statistics
 | **total_time_packets_delay_out** | Number  | Total time spent for all packets before being sent (in ms)                                                |
 | **total_packets_lost_out**       | Number  | Number of packets lost (not received by the recipient) since the beginning of the call                    |
 | **total_frames_encoded_out**     | Number  | Total of frames encoded                                                                                   |
-| **total_nack_out**               | Number  | Total nack received since the beginning of the call                                                       |
-| **total_pli_out**                | Number  | Total pli received since the beginning of the call                                                        |
+| **total_nack_received_out**      | Number  | Total nack received since the beginning of the call                                                       |
+| **total_pli_received_out**       | Number  | Total pli received since the beginning of the call                                                        |
 | **total_rtt_measure_out**        | Number  | Number of RTT measurements done                                                                           |
 | **total_rtt_ms_out**             | Number  | Total Round Trip Time since the beginning of the call                                                     |
 | **total_time_encoded_out**       | Number  | Total time used for encoding all frames                                                                   |
