@@ -278,33 +278,35 @@ Video statistics are gathered under the `video` properties which is an object co
 
 Each **inbound video stream** contains the following statistics:
 
-| Name                         | Value  | Description                                                                                               |
-|:-----------------------------|:------:|:----------------------------------------------------------------------------------------------------------|
-| **decoder_in**               | String | Description of the video decoder used                                                                     |
-| **delta_KBytes_in**          | Number | Number of kilobytes (KB) received since the last report                                                   |
-| **delta_kbs_in**             | Number | Number of kbits received per second since the last report                                                 |
-| **delta_jitter_ms_in**       | Number | Incoming Jitter (in ms). Could be null when no value collected                                            |
-| **delta_glitch_in**          |  JSON  | Number of freezes and pauses encountered since the last report                                            |
-| **delta_ms_decode_frame_in** | Number | Time needed to decode a frame                                                                             |
-| **delta_nack_in**            | Number | Nack received since the last report                                                                       |
-| **delta_packets_lost_in**    | Number | Number of packets lost (not received) since last report                                                   |
-| **delta_packets_in**         | Number | Number of packets received since the last report                                                          |
-| **delta_pli_in**             | Number | Pli received since the last report                                                                        |
-| **delta_pli_out**            | Number | Pli sent since the last report                                                                            |
-| **codec_in**                 |  JSON  | Description of the video input codec and parameters used                                                  |
-| **codec_id_in**              | String | ID of the video input codec used                                                                          |
-| **size_in**                  | Number | Size of the input video (from remote peer) + framerate                                                    |
-| **percent_packets_lost_in**  | Number | Percent of audio packet lost (not received) since the last report                                         |
-| **total_KBytes_in**          | Number | Number of kilobytes (KB) received since the beginning of the call                                         |
-| **total_frames_decoded_in**  | Number | Total of frames decoded                                                                                   |
-| **total_glitch_in**          |  JSON  | Number of freezes and pauses encountered since the beginning of the call                                  |
-| **total_nack_in**            | Number | Total nack sent since the beginning of the call                                                           |
-| **total_packets_lost_in**    | Number | Number of packets lost (not received) since the beginning of the call                                     |
-| **total_packets_in**         | Number | Number of packets received since the beginning of the call                                                |
-| **total_pli_in**             | Number | Total pli sent since the beginning of the call                                                            |
-| **total_time_decoded_in**    | Number | Total time used for decoding all frames                                                                   |
-| **timestamp_out**            | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
-| **track_in**                 | String | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
+| Name                               | Value  | Description                                                                                               |
+|:-----------------------------------|:------:|:----------------------------------------------------------------------------------------------------------|
+| **decoder_in**                     | String | Description of the video decoder used                                                                     |
+| **delta_KBytes_in**                | Number | Number of kilobytes (KB) received since the last report                                                   |
+| **delta_kbs_in**                   | Number | Number of kbits received per second since the last report                                                 |
+| **delta_jitter_ms_in**             | Number | Incoming Jitter (in ms). Could be null when no value collected                                            |
+| **delta_glitch_in**                |  JSON  | Number of freezes and pauses encountered since the last report                                            |
+| **delta_ms_decode_frame_in**       | Number | Time needed to decode a frame (in ms)                                                                     |
+| **delta_ms_processing_delay_in**   | Number | Time needed to process a frame (in ms)                                                                    |
+| **delta_nack_in**                  | Number | Nack received since the last report                                                                       |
+| **delta_packets_lost_in**          | Number | Number of packets lost (not received) since last report                                                   |
+| **delta_packets_in**               | Number | Number of packets received since the last report                                                          |
+| **delta_pli_in**                   | Number | Pli received since the last report                                                                        |
+| **delta_pli_out**                  | Number | Pli sent since the last report                                                                            |
+| **codec_in**                       |  JSON  | Description of the video input codec and parameters used                                                  |
+| **codec_id_in**                    | String | ID of the video input codec used                                                                          |
+| **size_in**                        | Number | Size of the input video (from remote peer) + framerate                                                    |
+| **percent_packets_lost_in**        | Number | Percent of audio packet lost (not received) since the last report                                         |
+| **total_KBytes_in**                | Number | Number of kilobytes (KB) received since the beginning of the call                                         |
+| **total_frames_decoded_in**        | Number | Total of frames decoded                                                                                   |
+| **total_glitch_in**                |  JSON  | Number of freezes and pauses encountered since the beginning of the call                                  |
+| **total_nack_in**                  | Number | Total nack sent since the beginning of the call                                                           |
+| **total_packets_lost_in**          | Number | Number of packets lost (not received) since the beginning of the call                                     |
+| **total_packets_in**               | Number | Number of packets received since the beginning of the call                                                |
+| **total_pli_in**                   | Number | Total pli sent since the beginning of the call                                                            |
+| **total_time_decoded_in**          | Number | Total time used for decoding all frames (in ms)                                                           |
+| **total_time_processing_delay_in** | Number | Total time processing all frames (in ms)                                                                  |
+| **timestamp_out**                  | Number | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
+| **track_in**                       | String | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
 
 Each **outbound video stream** contains the following statistics
 
