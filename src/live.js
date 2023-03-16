@@ -1,3 +1,5 @@
+import { alertOnFramerate, alertOnPeak } from "./utils/rules";
+
 const getValueFromReport = (data, property, report, withoutSSRC = false) => {
   if (withoutSSRC) {
     return data.type in report && property in report[data.type]
@@ -104,11 +106,7 @@ export const doLiveTreatment = (data, previousReport, values) => {
           },
         );
       }
-      if (
-        !previousSize ||
-        (previousSize.framerate !== undefined &&
-          Math.abs(previousSize.framerate - size.framerate) > 2)
-      ) {
+      if (alertOnFramerate(previousSize?.framerate, size?.framerate)) {
         addEvent(
           new Date().toJSON(),
           "quality",
@@ -201,25 +199,20 @@ export const doLiveTreatment = (data, previousReport, values) => {
     const currentActive = property.includes("out")
       ? getValueFromReportValues("active_out", values)
       : true;
-    const lowThreshold = previousBytesExchanged / 10;
-    const highThreshold = previousBytesExchanged * 10;
 
     if (currentActive) {
-      if (bytesExchanged > highThreshold || bytesExchanged < lowThreshold) {
+      if (alertOnPeak(previousBytesExchanged, bytesExchanged)) {
         addEvent(
           new Date().toJSON(),
           "quality",
-          bytesExchanged > highThreshold ? "peak-up" : "peak-down",
+          bytesExchanged > previousBytesExchanged ? "peak-up" : "peak-down",
           data.ssrc,
           {
             message: `A peak has been detected for the ${
               property.includes("out") ? "outbound" : "inbound"
-            } ${data.type} steam. Could be linked to a ${
-              bytesExchanged > highThreshold ? "unmute" : "mute"
-            }`,
+            } ${data.type} steam.`,
             direction: property.includes("out") ? "outbound" : "inbound",
             kind: data.type,
-            ssrc: data.ssrc,
             value: bytesExchanged,
             value_old: previousBytesExchanged,
           },
