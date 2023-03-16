@@ -2,7 +2,8 @@ import Exporter from "./exporter";
 import { extract, extractPassthroughFields } from "./extractor";
 import {
   computeMOS,
-  computeEModelMOS, computeFullEModelScore,
+  computeEModelMOS,
+  computeFullEModelScore,
 } from "./utils/score";
 import {
   COLLECTOR_STATE,
@@ -12,7 +13,8 @@ import {
   defaultVideoMetricOut,
   getDefaultMetric,
   VALUE,
-  TYPE, DIRECTION,
+  TYPE,
+  DIRECTION,
 } from "./utils/models";
 import { createCollectorId, call } from "./utils/helper";
 import { debug, error, info } from "./utils/log";
@@ -36,7 +38,14 @@ export default class Collector {
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
-  analyze(stats, oldStats, previousReport, beforeLastReport, referenceReport, _refPC) {
+  analyze(
+    stats,
+    oldStats,
+    previousReport,
+    beforeLastReport,
+    referenceReport,
+    _refPC,
+  ) {
     const getDefaultSSRCMetric = (kind, reportType) => {
       if (kind === VALUE.AUDIO) {
         if (reportType === TYPE.INBOUND_RTP) {
@@ -59,10 +68,19 @@ export default class Collector {
       if (!timestamp && stat.timestamp) {
         timestamp = stat.timestamp;
       }
-      const values = extract(stat, report, report.pname, referenceReport, stats, oldStats, _refPC);
+      const values = extract(
+        stat,
+        report,
+        report.pname,
+        referenceReport,
+        stats,
+        oldStats,
+        _refPC,
+      );
       values.forEach((data) => {
         if ("internal" in data) {
-          doLiveTreatment(data, previousReport, values);
+          const events = doLiveTreatment(data, previousReport, values);
+          events.forEach((event) => this.addCustomEvent(event));
         }
         if (data.value && data.type) {
           if (data.ssrc) {
@@ -70,7 +88,7 @@ export default class Collector {
             if (!ssrcReport) {
               ssrcReport = getDefaultSSRCMetric(data.type, stat.type);
               ssrcReport.ssrc = data.ssrc;
-              report[data.type][data.ssrc] = (ssrcReport);
+              report[data.type][data.ssrc] = ssrcReport;
             }
             Object.keys(data.value).forEach((key) => {
               ssrcReport[key] = data.value[key];
@@ -84,12 +102,18 @@ export default class Collector {
       });
 
       // Extract passthrough fields
-      const passthrough = extractPassthroughFields(stat, this._config.passthrough);
+      const passthrough = extractPassthroughFields(
+        stat,
+        this._config.passthrough,
+      );
       Object.keys(passthrough).forEach((key) => {
-        if (!(report.passthrough[key])) {
+        if (!report.passthrough[key]) {
           report.passthrough[key] = {};
         }
-        report.passthrough[key] = { ...report.passthrough[key], ...passthrough[key] };
+        report.passthrough[key] = {
+          ...report.passthrough[key],
+          ...passthrough[key],
+        };
       });
     });
     report.pname = this._config.pname;
@@ -99,7 +123,11 @@ export default class Collector {
     report.timestamp = timestamp;
     Object.keys(report[VALUE.AUDIO]).forEach((key) => {
       const ssrcReport = report[VALUE.AUDIO][key];
-      ssrcReport[ssrcReport.direction === DIRECTION.INBOUND ? "mos_emodel_in" : "mos_model_out"] = computeEModelMOS(
+      ssrcReport[
+        ssrcReport.direction === DIRECTION.INBOUND
+          ? "mos_emodel_in"
+          : "mos_model_out"
+      ] = computeEModelMOS(
         report,
         VALUE.AUDIO,
         previousReport,
@@ -108,7 +136,9 @@ export default class Collector {
         ssrcReport.direction,
         3,
       );
-      ssrcReport[ssrcReport.direction === DIRECTION.INBOUND ? "mos_in" : "mos_out"] = computeMOS(
+      ssrcReport[
+        ssrcReport.direction === DIRECTION.INBOUND ? "mos_in" : "mos_out"
+      ] = computeMOS(
         report,
         VALUE.AUDIO,
         previousReport,
@@ -117,7 +147,11 @@ export default class Collector {
         ssrcReport.direction,
         3,
       );
-      ssrcReport[ssrcReport.direction === DIRECTION.INBOUND ? "mos_fullband_in" : "mos_fullband_out"] = computeFullEModelScore(
+      ssrcReport[
+        ssrcReport.direction === DIRECTION.INBOUND
+          ? "mos_fullband_in"
+          : "mos_fullband_out"
+      ] = computeFullEModelScore(
         report,
         VALUE.AUDIO,
         previousReport,
@@ -138,7 +172,14 @@ export default class Collector {
           const waitTime = Date.now() - preWaitTime;
           const preTime = Date.now();
           const reports = await this._config.pc.getStats();
-          const referenceReport = this.analyze(reports, null, null, null, null, this._config.pc);
+          const referenceReport = this.analyze(
+            reports,
+            null,
+            null,
+            null,
+            null,
+            this._config.pc,
+          );
           const postTime = Date.now();
           referenceReport.experimental.time_to_measure_ms = postTime - preTime;
           referenceReport.experimental.time_to_wait_ms = waitTime;
@@ -285,14 +326,8 @@ export default class Collector {
     debug(this._moduleName, `state changed to ${newState}`);
   }
 
-  addCustomEvent(at, category, name, description, data) {
-    this._exporter.addCustomEvent({
-      at: typeof at === "object" ? at.toJSON() : at,
-      category,
-      name,
-      description,
-      data,
-    });
+  addCustomEvent(event) {
+    this._exporter.addCustomEvent(event);
   }
 
   async registerToPCEvents() {
@@ -300,13 +335,19 @@ export default class Collector {
     navigator.mediaDevices.ondevicechange = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "device",
-          "device-change",
-          "One device (at least) has been plugged or unplugged",
-          { count: devices.length },
-        );
+        this.addCustomEvent({
+          at: new Date().toJSON(),
+          category: "device",
+          name: "device-change",
+          ssrc: null,
+          details: {
+            message: "One device (at least) has been plugged or unplugged",
+            direction: null,
+            kind: null,
+            value: devices.length,
+            value_old: null,
+          },
+        });
         // eslint-disable-next-line no-empty
       } catch (err) {
         error(this._moduleName, "can't get devices");
@@ -315,56 +356,81 @@ export default class Collector {
     if (pc) {
       pc.oniceconnectionstatechange = () => {
         const value = pc.iceConnectionState;
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "ice-change",
-          `The ICE connection state has changed to ${value}`,
-          { state: value, type: "icestate" },
-        );
+        this.addCustomEvent({
+          at: new Date().toJSON(),
+          category: "signal",
+          name: "ice-change",
+          ssrc: null,
+          details: {
+            message: `The ICE connection state has changed to ${value}`,
+            direction: null,
+            kind: null,
+            value,
+            value_old: null,
+          },
+        });
       };
       pc.onconnectionstatechange = () => {
         const value = pc.connectionState;
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "connection-change",
-          `The connection state has changed to ${value}`,
-          { state: value, type: "connection" },
-        );
+        this.addCustomEvent({
+          at: new Date().toJSON(),
+          category: "signal",
+          name: "connection-change",
+          ssrc: null,
+          details: {
+            message: `The connection state has changed to ${value}`,
+            direction: null,
+            kind: null,
+            value,
+            value_old: null,
+          },
+        });
       };
       pc.onicegatheringstatechange = () => {
         const value = pc.iceGatheringState;
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "gathering-change",
-          `The ICE gathering state has changed to ${value}`,
-          { state: value, type: "gathering" },
-        );
+        this.addCustomEvent({
+          at: new Date().toJSON(),
+          category: "signal",
+          name: "gathering-change",
+          ssrc: null,
+          details: {
+            message: `The ICE gathering state has changed to ${value}`,
+            direction: null,
+            kind: null,
+            value,
+            value_old: null,
+          },
+        });
       };
       pc.ontrack = (e) => {
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "call",
-          "track-received",
-          `A new inbound ${e.track.kind} stream has been started`,
-          {
-            kind: e.track.kind,
-            label: e.track.label,
-            id: e.track.id,
+        this.addCustomEvent({
+          at: new Date().toJSON(),
+          category: "signal",
+          name: "track-received",
+          ssrc: null,
+          details: {
+            message: `A new inbound ${e.track.id} stream has been started`,
             direction: "inbound",
+            kind: e.track.kind,
+            value: e.track.label,
+            value_old: null,
           },
-        );
+        });
       };
       pc.onnegotiationneeded = () => {
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "ice-negotiation",
-          "A negotiation is required",
-          { type: "negotiation" },
-        );
+        this.addCustomEvent({
+          at: new Date().toJSON(),
+          category: "signal",
+          name: "ice-negotiation",
+          ssrc: null,
+          details: {
+            message: "A negotiation is required",
+            direction: null,
+            kind: null,
+            value: "negotiation-needed",
+            value_old: null,
+          },
+        });
       };
     }
   }

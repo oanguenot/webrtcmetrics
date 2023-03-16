@@ -5,7 +5,8 @@ import { createProbeId } from "./utils/helper";
 
 export default class Probe {
   constructor(cfg) {
-    this._id = (cfg.pname && cfg.pname.substr(0, 12).padEnd(12, " ")) || createProbeId();
+    this._id =
+      (cfg.pname && cfg.pname.substr(0, 12).padEnd(12, " ")) || createProbeId();
     this._moduleName = this._id;
     info(this._moduleName, "probe created");
     this._config = cfg;
@@ -41,7 +42,7 @@ export default class Probe {
   /**
    * Get the id of the Probe
    */
-   get id() {
+  get id() {
     return this._id;
   }
 
@@ -62,7 +63,7 @@ export default class Probe {
   /**
    * Get the user identifier
    */
-   get uid() {
+  get uid() {
     return this._config.uid;
   }
 
@@ -82,11 +83,32 @@ export default class Probe {
    * Add a custom event for that probe
    * @param {String} name The name of the event
    * @param {String} category The category of the event. Could be any strings
-   * @param {String} description A description. Could be empty
-   * @param {Date} at Optional. The date of the event
+   * @param {String} message A description. Could be empty
+   * @param {Date} at Optional. The date of the event.
+   * @param {String} ssrc Optional. The associated ssrc of the stream. Null by default.
+   * @param {Any} value. The value. Null by default
    */
-  addCustomEvent(name, category, description, at = new Date().toJSON()) {
-    this._collector.addCustomEvent(at, category, name, description);
+  addCustomEvent(
+    name,
+    category,
+    message,
+    at = new Date(),
+    ssrc = null,
+    value = null,
+  ) {
+    this._collector.addCustomEvent({
+      at: typeof at === "object" ? at.toJSON() : at,
+      category,
+      name,
+      ssrc,
+      details: {
+        message,
+        kind: null,
+        direction: null,
+        value,
+        value_old: null,
+      },
+    });
   }
 
   /**
@@ -145,6 +167,6 @@ export default class Probe {
   }
 
   async collectStats() {
-    return (this._collector.collectStats());
+    return this._collector.collectStats();
   }
 }
