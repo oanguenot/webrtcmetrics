@@ -30,7 +30,14 @@ export default class Collector {
     this._config = cfg;
     this._exporter = new Exporter(cfg);
     this._state = COLLECTOR_STATE.IDLE;
-    this.registerToPCEvents();
+
+    this.deviceChanged = () => this._onDeviceChange();
+    this.connectionStateChange = () => this._onConnectionStateChange();
+    this.iceConnectionStateChange = () => this._onIceConnectionStateChange();
+    this.iceGatheringStateChange = () => this._onIceGatheringStateChange();
+    this.track = (e) => this._onTrack(e);
+    this.negotiationNeeded = () => this._onNegotiationNeeded();
+
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
@@ -409,6 +416,7 @@ export default class Collector {
 
   async start() {
     debug(this._moduleName, "starting");
+    await this.registerToPCEvents();
     this.state = COLLECTOR_STATE.RUNNING;
     this._startedTime = this._exporter.start();
     debug(this._moduleName, "started");
@@ -427,6 +435,7 @@ export default class Collector {
   async stop(forced) {
     debug(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
     this._stoppedTime = this._exporter.stop();
+    this.unregisterToPCEvents();
     this.state = COLLECTOR_STATE.IDLE;
 
     if (this._config.ticket) {
@@ -509,77 +518,104 @@ export default class Collector {
     });
   }
 
+  async _onDeviceChange() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      this.addCustomEvent(
+        new Date().toJSON(),
+        "device",
+        "device-change",
+        "One device (at least) has been plugged or unplugged",
+        { count: devices.length },
+      );
+      // eslint-disable-next-line no-empty
+    } catch (err) {
+      error(this._moduleName, "can't get devices");
+    }
+  }
+
+  _onIceConnectionStateChange() {
+    const { pc } = this._config;
+    const value = pc.iceConnectionState;
+    this.addCustomEvent(
+      new Date().toJSON(),
+      "signal",
+      "ice-change",
+      `The ICE connection state has changed to ${value}`,
+      { state: value, type: "icestate" },
+    );
+  }
+
+  _onConnectionStateChange() {
+    const { pc } = this._config;
+    const value = pc.connectionState;
+    this.addCustomEvent(
+      new Date().toJSON(),
+      "signal",
+      "connection-change",
+      `The connection state has changed to ${value}`,
+      { state: value, type: "connection" },
+    );
+  }
+
+  _onIceGatheringStateChange() {
+    const { pc } = this._config;
+    const value = pc.iceGatheringState;
+    this.addCustomEvent(
+      new Date().toJSON(),
+      "signal",
+      "gathering-change",
+      `The ICE gathering state has changed to ${value}`,
+      { state: value, type: "gathering" },
+    );
+  }
+
+  _onTrack(e) {
+    this.addCustomEvent(
+      new Date().toJSON(),
+      "call",
+      "track-received",
+      `A new inbound ${e.track.kind} stream has been started`,
+      {
+        kind: e.track.kind,
+        label: e.track.label,
+        id: e.track.id,
+        direction: "inbound",
+      },
+    );
+  }
+
+  _onNegotiationNeeded() {
+    this.addCustomEvent(
+      new Date().toJSON(),
+      "signal",
+      "ice-negotiation",
+      "A negotiation is required",
+      { type: "negotiation" },
+    );
+  }
+
   async registerToPCEvents() {
     const { pc } = this._config;
-    navigator.mediaDevices.ondevicechange = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "device",
-          "device-change",
-          "One device (at least) has been plugged or unplugged",
-          { count: devices.length },
-        );
-        // eslint-disable-next-line no-empty
-      } catch (err) {
-        error(this._moduleName, "can't get devices");
-      }
-    };
+    navigator.mediaDevices.addEventListener("devicechange", this.deviceChanged);
     if (pc) {
-      pc.oniceconnectionstatechange = () => {
-        const value = pc.iceConnectionState;
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "ice-change",
-          `The ICE connection state has changed to ${value}`,
-          { state: value, type: "icestate" },
-        );
-      };
-      pc.onconnectionstatechange = () => {
-        const value = pc.connectionState;
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "connection-change",
-          `The connection state has changed to ${value}`,
-          { state: value, type: "connection" },
-        );
-      };
-      pc.onicegatheringstatechange = () => {
-        const value = pc.iceGatheringState;
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "gathering-change",
-          `The ICE gathering state has changed to ${value}`,
-          { state: value, type: "gathering" },
-        );
-      };
-      pc.ontrack = (e) => {
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "call",
-          "track-received",
-          `A new inbound ${e.track.kind} stream has been started`,
-          {
-            kind: e.track.kind,
-            label: e.track.label,
-            id: e.track.id,
-            direction: "inbound",
-          },
-        );
-      };
-      pc.onnegotiationneeded = () => {
-        this.addCustomEvent(
-          new Date().toJSON(),
-          "signal",
-          "ice-negotiation",
-          "A negotiation is required",
-          { type: "negotiation" },
-        );
-      };
+      pc.addEventListener("iceconnectionstatechange", this.iceConnectionStateChange);
+      pc.addEventListener("connectionstatechange", this.connectionStateChange);
+      pc.addEventListener("icegatheringstatechange", this.iceGatheringStateChange);
+      pc.addEventListener("track", this.track);
+      pc.addEventListener("negotiationneeded", this.negotiationNeeded);
+    }
+  }
+
+  unregisterToPCEvents() {
+    const { pc } = this._config;
+    navigator.mediaDevices.removeEventListener("devicechange", this.deviceChanged);
+    if (pc) {
+      pc.removeEventListener("iceconnectionstatechange", this.iceConnectionStateChange);
+      pc.removeEventListener("connectionstatechange", this.connectionStateChange);
+      pc.removeEventListener("icegatheringstatechange", this.iceGatheringStateChange);
+      pc.removeEventListener("track", this.track);
+      pc.removeEventListener("negotiationneeded", this.negotiationNeeded);
     }
   }
 }
