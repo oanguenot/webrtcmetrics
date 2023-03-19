@@ -202,7 +202,7 @@ export default class Exporter {
     this._end = null;
   }
 
-  get ticket() {
+  generateTicket() {
     debug(moduleName, "ticket() - generate ticket");
 
     const audioPacketsLost = lastOfReports(

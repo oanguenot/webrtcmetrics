@@ -416,9 +416,10 @@ export default class Collector {
 
   async start() {
     debug(this._moduleName, "starting");
+    this._exporter.reset();
     await this.registerToPCEvents();
     this.state = COLLECTOR_STATE.RUNNING;
-    this._startedTime = this._exporter.start();
+    this._exporter.start();
     debug(this._moduleName, "started");
   }
 
@@ -434,15 +435,14 @@ export default class Collector {
 
   async stop(forced) {
     debug(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
-    this._stoppedTime = this._exporter.stop();
+    this._exporter.stop();
     this.unregisterToPCEvents();
     this.state = COLLECTOR_STATE.IDLE;
 
     if (this._config.ticket) {
-      const { ticket } = this._exporter;
+      const ticket = this._exporter.generateTicket();
       this.fireOnTicket(ticket);
     }
-    this._exporter.reset();
     debug(this._moduleName, "stopped");
   }
 
@@ -617,5 +617,9 @@ export default class Collector {
       pc.removeEventListener("track", this.track);
       pc.removeEventListener("negotiationneeded", this.negotiationNeeded);
     }
+  }
+
+  getTicket() {
+    return this._exporter && this._exporter.generateTicket();
   }
 }

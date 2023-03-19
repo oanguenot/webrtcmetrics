@@ -147,4 +147,8 @@ export default class Probe {
   async collectStats() {
     return (this._collector.collectStats());
   }
+
+  getTicket() {
+    return this._collector && this._collector.getTicket();
+  }
 }
