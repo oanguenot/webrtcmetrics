@@ -18,6 +18,30 @@ import { debug } from "./utils/log";
 
 const moduleName = "extractor   ";
 
+const extractPlayoutInformation = (report, previousReport) => {
+  const previousSynthetized = previousReport ? (previousReport[PROPERTY.SYNTHETIZED_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const currentSynthetized = report ? (report[PROPERTY.SYNTHETIZED_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const totalSamplesDuration = report ? (report[PROPERTY.TOTAL_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const previousTotalSamplesDuration = previousReport ? (previousReport[PROPERTY.TOTAL_SAMPLES_DURATION] * 1000) || 0 : 0;
+  const delta = currentSynthetized - previousSynthetized;
+  const deltaDuration = totalSamplesDuration - previousTotalSamplesDuration;
+  const totalDelay = report ? report[PROPERTY.TOTAL_PLAYOUT_DELAY] || 0 : 0;
+  const totalSamplesCount = report ? report[PROPERTY.TOTAL_SAMPLES_COUNT] || 0 : 0;
+
+  const deltaDelay = totalSamplesCount ? totalDelay / totalSamplesCount : 0;
+  const deltaPercentSynthetized = deltaDuration ? (delta / deltaDuration) * 100 : 0;
+  const totalPercentSynthetized = totalSamplesDuration ? (currentSynthetized / totalSamplesDuration) * 100 : 0;
+
+  return {
+    total_synthetized_ms_in: currentSynthetized,
+    delta_synthetized_ms_in: delta,
+    percent_synthetized_in: deltaPercentSynthetized,
+    total_percent_synthetized_in: totalPercentSynthetized,
+    total_playout_ms_in: totalDelay,
+    delta_playout_delay_ms_in: deltaDelay,
+  };
+};
+
 const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
   let supportOfMeasure = false;
   const previousRTT = previousBunch[kind].total_rtt_ms_out;
@@ -151,6 +175,20 @@ const extractLastJitter = (bunch, kind, previousBunch) => {
   return Number(1000) * (Number(bunch[PROPERTY.JITTER]) || 0);
 };
 
+const extractJitterBufferInfo = (bunch, kind, previousBunch) => {
+  const jitterBufferDelay = bunch[PROPERTY.JITTER_BUFFER_DELAY] * 1000 || 0;
+  const jitterBufferEmittedCount = bunch[PROPERTY.JITTER_BUFFER_EMITTED_COUNT] || 0;
+
+  const deltaJitterBufferDelay = jitterBufferDelay - previousBunch[kind].total_time_jitter_buffer_delay_in;
+  const deltaJitterBufferEmittedCount = jitterBufferEmittedCount - previousBunch[kind].total_jitter_emitted_in;
+
+  return {
+    delta_ms_jitter_buffer_delay: deltaJitterBufferEmittedCount ? deltaJitterBufferDelay / deltaJitterBufferEmittedCount : 0,
+    total_time_jitter_buffer_delay: jitterBufferDelay,
+    total_time_jitter_emitted: jitterBufferEmittedCount,
+  };
+};
+
 const extractDecodeTime = (bunch, previousBunch) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAMES_DECODED) ||
@@ -158,25 +196,30 @@ const extractDecodeTime = (bunch, previousBunch) => {
   ) {
     return {
       delta_ms_decode_frame:
-        previousBunch[VALUE.VIDEO].delta_ms_decode_frame_in,
+        previousBunch[VALUE.VIDEO].delta_decode_frame_ms_in,
       frames_decoded: previousBunch[VALUE.VIDEO].total_frames_decoded_in,
       total_decode_time: previousBunch[VALUE.VIDEO].total_time_decoded_in,
     };
   }
 
   const decodedFrames = bunch[PROPERTY.FRAMES_DECODED];
-  const totalDecodeTime = bunch[PROPERTY.TOTAL_DECODE_TIME];
+  const totalDecodeTime = bunch[PROPERTY.TOTAL_DECODE_TIME] * 1000; // in ms
+  const totalProcessingDelay = bunch[PROPERTY.TOTAL_PROCESSING_DELAY] * 1000 || 0; // in ms
+  const totalAssemblyTime = bunch[PROPERTY.TOTAL_ASSEMBLY_TIME] * 1000 || 0; // in ms
 
-  const decodeTimeDelta =
-    totalDecodeTime - previousBunch[VALUE.VIDEO].total_time_decoded_in;
-  const frameDelta =
-    decodedFrames - previousBunch[VALUE.VIDEO].total_frames_decoded_in;
+  const totalProcessingDelayDelta = totalProcessingDelay - previousBunch[VALUE.VIDEO].total_time_processing_delay_in;
+  const decodeTimeDelta = totalDecodeTime - previousBunch[VALUE.VIDEO].total_time_decoded_in;
+  const frameDelta = decodedFrames - previousBunch[VALUE.VIDEO].total_frames_decoded_in;
+  const totalAssemblyTimeDelta = totalAssemblyTime - previousBunch[VALUE.VIDEO].total_time_assembly_delay_in;
 
   return {
-    delta_ms_decode_frame:
-      frameDelta > 0 ? (decodeTimeDelta * 1000) / frameDelta : 0,
     frames_decoded: decodedFrames,
+    delta_ms_decode_frame: frameDelta > 0 ? decodeTimeDelta / frameDelta : 0,
+    delta_ms_processing_delay: frameDelta > 0 ? totalProcessingDelayDelta / frameDelta : 0,
+    delta_ms_assembly_delay: frameDelta > 0 ? totalAssemblyTimeDelta / frameDelta : 0,
+    total_time_processing_delay: totalProcessingDelay,
     total_decode_time: totalDecodeTime,
+    total_assembly_time: totalAssemblyTime,
   };
 };
 
@@ -186,7 +229,7 @@ const extractEncodeTime = (bunch, previousBunch) => {
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.TOTAL_ENCODE_TIME)
   ) {
     return {
-      delta_ms_encode_frame: previousBunch[VALUE.VIDEO].delta_ms_encode_frame_out,
+      delta_ms_encode_frame: previousBunch[VALUE.VIDEO].delta_encode_frame_ms_out,
       frames_encoded: previousBunch[VALUE.VIDEO].total_frames_encoded_out,
       total_encode_time: previousBunch[VALUE.VIDEO].total_time_encoded_out,
     };
@@ -217,21 +260,14 @@ const extractAudioVideoPacketSent = (
   previousBunch,
   referenceReport,
 ) => {
-  if (
-    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.PACKETS_SENT) ||
-    !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.BYTES_SENT)
-  ) {
-    return {
-      packetsSent: previousBunch[kind].total_packets_out,
-      packetsLost: previousBunch[kind].total_packets_lost_out,
-      bytesSent: previousBunch[kind].total_KBytes_out,
-    };
-  }
-
   const packetsSent =
     Number(bunch[PROPERTY.PACKETS_SENT]) ||
     0 - (referenceReport ? referenceReport[kind].total_packets_out : 0);
   const deltaPacketsSent = packetsSent - previousBunch[kind].total_packets_out;
+  const totalPacketSendDelay = Number(bunch[PROPERTY.TOTAL_PACKETS_SEND_DELAY]) * 1000 ||
+    0 - (referenceReport ? referenceReport[kind].total_time_packets_delay_out : 0);
+  const deltaPacketsDelay = totalPacketSendDelay - previousBunch[kind].total_time_packets_delay_out;
+  const deltaAvgPacketSendDelay = deltaPacketsSent ? deltaPacketsDelay / deltaPacketsSent : 0;
   const KBytesSent = (Number(bunch[PROPERTY.BYTES_SENT]) / 1024) - (referenceReport ? referenceReport[kind].total_KBytes_out : 0);
   const deltaKBytesSent = KBytesSent - previousBunch[kind].total_KBytes_out;
   const timestamp = bunch[PROPERTY.TIMESTAMP] || Date.now();
@@ -249,6 +285,8 @@ const extractAudioVideoPacketSent = (
     KBytesSent,
     deltaKBytesSent,
     kbsSent,
+    deltaAvgPacketSendDelay,
+    totalPacketSendDelay,
   };
 };
 
@@ -533,7 +571,7 @@ const extractAvailableBandwidth = (bunch) => {
   };
 };
 
-export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refPC) => {
+export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRaw, _refPC) => {
   if (!bunch) {
     return [];
   }
@@ -725,6 +763,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
         // Audio level in
         const audioLevel = bunch[PROPERTY.AUDIO_LEVEL] || 0;
 
+        // average playout delay
+        let playout = null;
+        if (raw.has(bunch[PROPERTY.PLAYOUT_ID])) {
+          const playoutReport = raw.get(bunch[PROPERTY.PLAYOUT_ID]);
+          const previousPlayoutReport = oldRaw ? oldRaw.get(bunch[PROPERTY.PLAYOUT_ID]) : null;
+          playout = extractPlayoutInformation(playoutReport, previousPlayoutReport);
+        }
+
+        const jitterBuffer = extractJitterBufferInfo(bunch, VALUE.AUDIO, previousSSRCBunch);
+
         return [
           {
             ssrc,
@@ -780,12 +828,57 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
+            value: { delta_jitter_buffer_delay_ms_in: jitterBuffer.delta_ms_jitter_buffer_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_time_jitter_buffer_delay_in: jitterBuffer.total_time_jitter_buffer_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_jitter_emitted_in: jitterBuffer.total_time_jitter_emitted },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
             value: { track_in: bunch[PROPERTY.TRACK_IDENTIFIER] },
           },
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { level_in: audioLevel },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_synthetized_ms_in: playout ? playout.delta_synthetized_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_synthetized_ms_in: playout ? playout.total_synthetized_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { delta_playout_delay_ms_in: playout ? playout.delta_playout_delay_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_playout_ms_in: playout ? playout.total_playout_ms_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { percent_synthetized_in: playout ? playout.percent_synthetized_in : 0 },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_percent_synthetized_in: playout ? playout.total_percent_synthetized_in : 0 },
           },
         ];
       }
@@ -822,6 +915,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
 
         // Glitch
         const freezePauseData = extractVideoGlitch(bunch, VALUE.VIDEO, previousSSRCBunch, referenceSSRCBunch);
+
+        // Jitter buffer
+        const jitterBuffer = extractJitterBufferInfo(bunch, VALUE.AUDIO, previousSSRCBunch);
 
         return [
           {
@@ -878,17 +974,52 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
+            value: { delta_jitter_buffer_delay_ms_in: jitterBuffer.delta_ms_jitter_buffer_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_time_jitter_buffer_delay_in: jitterBuffer.total_time_jitter_buffer_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_jitter_emitted_in: jitterBuffer.total_time_jitter_emitted },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
             value: { decoder_in: decoderImplementation },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_ms_decode_frame_in: data.delta_ms_decode_frame },
+            value: { delta_decode_frame_ms_in: data.delta_ms_decode_frame },
           },
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { total_frames_decoded_in: data.frames_decoded },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_processing_delay_ms_in: data.delta_ms_processing_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_time_processing_delay_in: data.total_time_processing_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { delta_assembly_delay_ms_in: data.delta_ms_assembly_delay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_time_assembly_delay_in: data.total_assembly_time },
           },
           {
             ssrc,
@@ -1019,6 +1150,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
+            value: { delta_packet_delay_ms_out: data.deltaAvgPacketSendDelay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { total_time_packets_delay_out: data.totalPacketSendDelay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
             value: { total_KBytes_out: data.KBytesSent },
           },
           {
@@ -1107,6 +1248,16 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
+            value: { delta_packet_delay_ms_out: dataSent.deltaAvgPacketSendDelay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { total_time_packets_delay_out: dataSent.totalPacketSendDelay },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
             value: { total_KBytes_out: dataSent.KBytesSent },
           },
           {
@@ -1128,7 +1279,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, _refP
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
-            value: { delta_ms_encode_frame_out: data.delta_ms_encode_frame },
+            value: { delta_encode_frame_ms_out: data.delta_ms_encode_frame },
           },
           {
             ssrc,
