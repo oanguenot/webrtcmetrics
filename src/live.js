@@ -1,6 +1,10 @@
 import { alertOnFramerate, alertOnPeak } from "./utils/rules";
 
 const getValueFromReport = (data, property, report, withoutSSRC = false) => {
+  if (!report) {
+    return null;
+  }
+
   if (withoutSSRC) {
     return data.type in report && property in report[data.type]
       ? report[data.type][property]
@@ -81,7 +85,7 @@ export const doLiveTreatment = (data, previousReport, values) => {
       : true;
     // Only send event for resolution and framerate if there is an active stream
     if (currentActive) {
-      if (!previousSize || previousSize.width !== size.width) {
+      if (previousSize?.width !== size.width) {
         addEvent(
           new Date().toJSON(),
           "quality",
@@ -240,45 +244,49 @@ export const doLiveTreatment = (data, previousReport, values) => {
     }
   };
 
-  if (previousReport) {
-    switch (data.internal) {
-      case "deviceChanged": {
+  switch (data.internal) {
+    case "deviceChanged": {
+      if (previousReport) {
         compareAndSendEventForDevice("track_out");
-        break;
       }
-      case "inputSizeChanged": {
-        compareAndSendEventForSize("size_in");
-        break;
-      }
-      case "outputSizeChanged": {
-        compareAndSendEventForSize("size_out");
-        break;
-      }
-      case "bytesSentChanged": {
-        compareAndSendEventForBytes("delta_KBytes_out");
-        break;
-      }
-      case "bytesReceivedChanged": {
-        compareAndSendEventForBytes("delta_KBytes_in");
-        break;
-      }
-      case "mediaSourceUpdated": {
-        compareAndSendEventForOutboundMediaSource("active_out");
-        break;
-      }
-      case "videoLimitationChanged": {
-        compareAndSendEventForOutboundLimitation("limitation_out");
-        break;
-      }
-      case "selectedPairChanged": {
-        compareAndSendEventForSelectedCandidatePairChanged(
-          "selected_candidate_pair_id",
-        );
-        break;
-      }
-      default:
-        break;
+      break;
     }
+    case "inputSizeChanged": {
+      compareAndSendEventForSize("size_in");
+      break;
+    }
+    case "outputSizeChanged": {
+      compareAndSendEventForSize("size_out");
+      break;
+    }
+    case "bytesSentChanged": {
+      compareAndSendEventForBytes("delta_KBytes_out");
+      break;
+    }
+    case "bytesReceivedChanged": {
+      if (previousReport) {
+        compareAndSendEventForBytes("delta_KBytes_in");
+      }
+      break;
+    }
+    case "mediaSourceUpdated": {
+      if (previousReport) {
+        compareAndSendEventForOutboundMediaSource("active_out");
+      }
+      break;
+    }
+    case "videoLimitationChanged": {
+      compareAndSendEventForOutboundLimitation("limitation_out");
+      break;
+    }
+    case "selectedPairChanged": {
+      compareAndSendEventForSelectedCandidatePairChanged(
+        "selected_candidate_pair_id",
+      );
+      break;
+    }
+    default:
+      break;
   }
 
   return events;
