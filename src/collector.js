@@ -33,8 +33,14 @@ export default class Collector {
     this._config = cfg;
     this._exporter = new Exporter(cfg);
     this._state = COLLECTOR_STATE.IDLE;
-    this._oldReports = null;
-    this.registerToPCEvents();
+
+    this.deviceChanged = () => this._onDeviceChange();
+    this.connectionStateChange = () => this._onConnectionStateChange();
+    this.iceConnectionStateChange = () => this._onIceConnectionStateChange();
+    this.iceGatheringStateChange = () => this._onIceGatheringStateChange();
+    this.track = (e) => this._onTrack(e);
+    this.negotiationNeeded = () => this._onNegotiationNeeded();
+
     info(this._moduleName, `new collector created for probe ${this._probeId}`);
   }
 
@@ -236,8 +242,11 @@ export default class Collector {
 
   async start() {
     debug(this._moduleName, "starting");
+    this._oldReports = null;
+    this._exporter.reset();
+    await this.registerToPCEvents();
     this.state = COLLECTOR_STATE.RUNNING;
-    this._startedTime = this._exporter.start();
+    this._exporter.start();
     debug(this._moduleName, "started");
   }
 
@@ -253,14 +262,14 @@ export default class Collector {
 
   async stop(forced) {
     debug(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
-    this._stoppedTime = this._exporter.stop();
+    this._exporter.stop();
+    this.unregisterToPCEvents();
     this.state = COLLECTOR_STATE.IDLE;
 
     if (this._config.ticket) {
-      const { ticket } = this._exporter;
+      const ticket = this._exporter.generateTicket();
       this.fireOnTicket(ticket);
     }
-    this._exporter.reset();
     debug(this._moduleName, "stopped");
   }
 
@@ -330,32 +339,31 @@ export default class Collector {
     this._exporter.addCustomEvent(event);
   }
 
-  async registerToPCEvents() {
+  async _onDeviceChange() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      this.addCustomEvent({
+        at: new Date().toJSON(),
+        category: "device",
+        name: "device-change",
+        ssrc: null,
+        details: {
+          message: "One device (at least) has been plugged or unplugged",
+          direction: null,
+          kind: null,
+          value: devices.length,
+          value_old: null,
+        },
+      });
+      // eslint-disable-next-line no-empty
+    } catch (err) {
+      error(this._moduleName, "can't get devices");
+    }
+  }
+
+  _onIceConnectionStateChange() {
     const { pc } = this._config;
-    navigator.mediaDevices.ondevicechange = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        this.addCustomEvent({
-          at: new Date().toJSON(),
-          category: "device",
-          name: "device-change",
-          ssrc: null,
-          details: {
-            message: "One device (at least) has been plugged or unplugged",
-            direction: null,
-            kind: null,
-            value: devices.length,
-            value_old: null,
-          },
-        });
-        // eslint-disable-next-line no-empty
-      } catch (err) {
-        error(this._moduleName, "can't get devices");
-      }
-    };
-    if (pc) {
-      pc.oniceconnectionstatechange = () => {
-        const value = pc.iceConnectionState;
+    const value = pc.iceConnectionState;
         this.addCustomEvent({
           at: new Date().toJSON(),
           category: "signal",
@@ -369,9 +377,11 @@ export default class Collector {
             value_old: null,
           },
         });
-      };
-      pc.onconnectionstatechange = () => {
-        const value = pc.connectionState;
+  }
+
+  _onConnectionStateChange() {
+    const { pc } = this._config;
+    const value = pc.connectionState;
         this.addCustomEvent({
           at: new Date().toJSON(),
           category: "signal",
@@ -385,9 +395,11 @@ export default class Collector {
             value_old: null,
           },
         });
-      };
-      pc.onicegatheringstatechange = () => {
-        const value = pc.iceGatheringState;
+  }
+
+  _onIceGatheringStateChange() {
+    const { pc } = this._config;
+    const value = pc.iceGatheringState;
         this.addCustomEvent({
           at: new Date().toJSON(),
           category: "signal",
@@ -401,8 +413,9 @@ export default class Collector {
             value_old: null,
           },
         });
-      };
-      pc.ontrack = (e) => {
+  }
+
+  _onTrack(e) {
         this.addCustomEvent({
           at: new Date().toJSON(),
           category: "signal",
@@ -416,8 +429,9 @@ export default class Collector {
             value_old: null,
           },
         });
-      };
-      pc.onnegotiationneeded = () => {
+  }
+
+  _onNegotiationNeeded() {
         this.addCustomEvent({
           at: new Date().toJSON(),
           category: "signal",
@@ -431,7 +445,33 @@ export default class Collector {
             value_old: null,
           },
         });
-      };
+  }
+
+  async registerToPCEvents() {
+    const { pc } = this._config;
+    navigator.mediaDevices.addEventListener("devicechange", this.deviceChanged);
+    if (pc) {
+      pc.addEventListener("iceconnectionstatechange", this.iceConnectionStateChange);
+      pc.addEventListener("connectionstatechange", this.connectionStateChange);
+      pc.addEventListener("icegatheringstatechange", this.iceGatheringStateChange);
+      pc.addEventListener("track", this.track);
+      pc.addEventListener("negotiationneeded", this.negotiationNeeded);
     }
+  }
+
+  unregisterToPCEvents() {
+    const { pc } = this._config;
+    navigator.mediaDevices.removeEventListener("devicechange", this.deviceChanged);
+    if (pc) {
+      pc.removeEventListener("iceconnectionstatechange", this.iceConnectionStateChange);
+      pc.removeEventListener("connectionstatechange", this.connectionStateChange);
+      pc.removeEventListener("icegatheringstatechange", this.iceGatheringStateChange);
+      pc.removeEventListener("track", this.track);
+      pc.removeEventListener("negotiationneeded", this.negotiationNeeded);
+    }
+  }
+
+  getTicket() {
+    return this._exporter && this._exporter.generateTicket();
   }
 }
