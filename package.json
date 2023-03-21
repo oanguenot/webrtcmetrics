@@ -49,7 +49,7 @@
     ]
   },
   "dependencies": {
-    "loglevel": "1.7.1",
+    "loglevel": "1.8.1",
     "short-unique-id": "^4.4.4"
   }
 }
