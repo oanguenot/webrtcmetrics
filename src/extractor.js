@@ -848,6 +848,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
           {
             ssrc,
             type: STAT_TYPE.AUDIO,
+            internal: "ssrcIdentifierIn",
+            value: { ssrc_in: bunch[PROPERTY.SSRC] },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
             value: { level_in: audioLevel },
           },
           {
@@ -1060,6 +1066,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
           {
             ssrc,
             type: STAT_TYPE.VIDEO,
+            internal: "ssrcIdentifierIn",
+            value: { ssrc_in: bunch[PROPERTY.SSRC] },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
             value: {
               total_glitch_in: { freeze: freezePauseData.freezeCount, pause: freezePauseData.pauseCount },
               delta_glitch_in: { freeze: freezePauseData.deltaFreezeCount, pause: freezePauseData.deltaPauseCount },
@@ -1183,6 +1195,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { level_out: audioLevel },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            internal: "ssrcIdentifierOut",
+            value: { ssrc_out: bunch[PROPERTY.SSRC] },
           },
         ];
       }
@@ -1333,6 +1351,12 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { size_pref_out: size },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            internal: "ssrcIdentifierOut",
+            value: { ssrc_out: bunch[PROPERTY.SSRC] },
           },
         ];
       }

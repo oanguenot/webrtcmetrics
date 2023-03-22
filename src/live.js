@@ -244,6 +244,25 @@ export const doLiveTreatment = (data, previousReport, values) => {
     }
   };
 
+  const compareAndSendEventForNewSSRC = (property) => {
+    const ssrc = data.value[property];
+    const previouSsrc = getValueFromReport(
+      data,
+      property,
+      previousReport,
+    );
+
+    if (ssrc && !previouSsrc) {
+      addEvent(new Date().toJSON(), "call", "track-added", ssrc, {
+        message: `New track added to the call ${ssrc}`,
+        direction: property.includes("in") ? "inbound" : "outbound",
+        kind: data.type,
+        value: ssrc,
+        value_old: null,
+      });
+    }
+  };
+
   switch (data.internal) {
     case "deviceChanged": {
       if (previousReport) {
@@ -283,6 +302,14 @@ export const doLiveTreatment = (data, previousReport, values) => {
       compareAndSendEventForSelectedCandidatePairChanged(
         "selected_candidate_pair_id",
       );
+      break;
+    }
+    case "ssrcIdentifierIn": {
+      compareAndSendEventForNewSSRC("ssrc_in");
+      break;
+    }
+    case "ssrcIdentifierOut": {
+      compareAndSendEventForNewSSRC("ssrc_out");
       break;
     }
     default:
