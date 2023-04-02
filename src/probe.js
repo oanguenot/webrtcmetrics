@@ -86,7 +86,7 @@ export default class Probe {
    * @param {String} message A description. Could be empty
    * @param {Date} at Optional. The date of the event.
    * @param {String} ssrc Optional. The associated ssrc of the stream. Null by default.
-   * @param {Any} value. The value. Null by default
+   * @param {Object} value. The value. Null by default
    * @param {Date} ended Optional. Then end date for period
    */
   addCustomEvent(
@@ -98,9 +98,14 @@ export default class Probe {
     value = null,
     ended = null,
   ) {
+    let endedAt = null;
+    if (ended) {
+      endedAt = typeof ended === "object" ? ended.toJSON() : ended;
+    }
+
     this._collector.addCustomEvent({
       at: typeof at === "object" ? at.toJSON() : at,
-      ended,
+      ended: endedAt,
       category,
       name,
       ssrc,
