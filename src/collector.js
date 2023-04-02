@@ -344,6 +344,7 @@ export default class Collector {
       const devices = await navigator.mediaDevices.enumerateDevices();
       this.addCustomEvent({
         at: new Date().toJSON(),
+        ended: null,
         category: "device",
         name: "device-change",
         ssrc: null,
@@ -366,6 +367,7 @@ export default class Collector {
     const value = pc.iceConnectionState;
         this.addCustomEvent({
           at: new Date().toJSON(),
+          ended: null,
           category: "signal",
           name: "ice-change",
           ssrc: null,
@@ -384,6 +386,7 @@ export default class Collector {
     const value = pc.connectionState;
         this.addCustomEvent({
           at: new Date().toJSON(),
+          ended: null,
           category: "signal",
           name: "connection-change",
           ssrc: null,
@@ -402,6 +405,7 @@ export default class Collector {
     const value = pc.iceGatheringState;
         this.addCustomEvent({
           at: new Date().toJSON(),
+          ended: null,
           category: "signal",
           name: "gathering-change",
           ssrc: null,
@@ -418,6 +422,7 @@ export default class Collector {
   _onTrack(e) {
         this.addCustomEvent({
           at: new Date().toJSON(),
+          ended: null,
           category: "signal",
           name: "track-received",
           ssrc: null,
@@ -434,6 +439,7 @@ export default class Collector {
   _onNegotiationNeeded() {
         this.addCustomEvent({
           at: new Date().toJSON(),
+          ended: null,
           category: "signal",
           name: "ice-negotiation",
           ssrc: null,

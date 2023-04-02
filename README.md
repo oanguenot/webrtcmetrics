@@ -512,11 +512,18 @@ const metrics = new WebRTCMetrics();
 
 const probe = metrics.createProbe(firstPeerConnection);
 
-// At any time
-probe.addCustomEvent('an event', 'a category', 'a description of the event', {custom: "data"});
-```
+// ssrc is optional but can be used to link events together. Null by default.
+const ssrc = null;
 
-The last parameter can be any JavaScript object. These events will be added to the existing ones.
+// Data can be any Object
+const data = { custom: "data"};
+
+// At any time, for storing an event
+probe.addCustomEvent('an event', 'a category', 'a description of the event', new Date(), ssrc , {custom: "data"});
+
+// At any time, for storing a period
+probe.addCustomEvent('an event', 'a category', 'a description of the event', new Date(), ssrc , {custom: "data"}, new Date());
+```
 
 ### Setting the logs level
 

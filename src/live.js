@@ -30,6 +30,7 @@ export const doLiveTreatment = (data, previousReport, values) => {
   const addEvent = (at, category, name, ssrc, details) => {
     events.push({
       at,
+      ended: null,
       category,
       name,
       ssrc,
