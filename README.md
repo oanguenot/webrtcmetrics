@@ -71,7 +71,7 @@ const probe = metrics.createProbe(existingPeerConnection, {
   uid: 'jdoe@mycorp.com',     // Optional. User Id
   ticket: true,               // Optional. Generate a ticket at the end of the call or not.
   record: true,               // Optional. Record reports in the ticket or not. 
-  passtrough: {"inbound-rtp": ["audioLevel"]}   // Optional. Get any properties from the reports
+  passthrough: {"inbound-rtp": ["audioLevel"]}   // Optional. Get any properties from the reports
 });
 ```
 
