@@ -66,6 +66,16 @@ export default class Collector {
       return { ...defaultVideoMetricOut };
     };
 
+    const getAssociatedPreviousReport = (currentReport, previousReports) => {
+      let find = null;
+      previousReports.forEach((prevReport) => {
+        if (prevReport.id === currentReport.id) {
+          find = prevReport;
+        }
+      });
+      return find;
+    };
+
     // Get previous report without any modifications
     const report = getDefaultMetric(previousReport);
 
@@ -107,9 +117,12 @@ export default class Collector {
         }
       });
 
+      const previousSameReport = oldStats ? getAssociatedPreviousReport(stat, oldStats) : null;
+
       // Extract passthrough fields
       const passthrough = extractPassthroughFields(
         stat,
+        previousSameReport,
         this._config.passthrough,
       );
       Object.keys(passthrough).forEach((key) => {

@@ -1577,11 +1577,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
   return [];
 };
 
-export const extractPassthroughFields = (bunch, passthrough) => {
+export const extractPassthroughFields = (bunch, oldBunch, passthrough) => {
   if (!bunch) {
     return [];
   }
-  // Example {"inbound-rtp": ["jitter", "bytesReceived"]}
+  // Example {"inbound-rtp": ["jitter.ms", "delta:bytesReceived"]}
   const fieldsToReport = (passthrough && passthrough[bunch[PROPERTY.TYPE]]) || [];
 
   const pass = {};
@@ -1589,12 +1589,24 @@ export const extractPassthroughFields = (bunch, passthrough) => {
     const ref = bunch[PROPERTY.SSRC] || bunch[PROPERTY.ID];
     const kind = bunch[PROPERTY.KIND] || "";
     const id = `${bunch.type}${kind ? `-${kind}` : ""}_${ref}`;
-    fieldsToReport.forEach((field) => {
-      if (field in bunch) {
-        if (!(field in pass)) {
-          pass[field] = {};
+    fieldsToReport.forEach((fields) => {
+      const hasMethod = fields.split(":").length > 1;
+      const hasMetric = fields.split(".").length > 1;
+      const method = hasMethod ? fields.split(":")[0] : "total";
+      const metric = hasMetric ? fields.split(".")[1] : "asis";
+      const property = hasMethod ? fields.split(":")[1].split(".")[0] : fields.split(".")[0];
+
+      if (property in bunch) {
+        const value = metric === "ms" ? bunch[property] * 1000 : bunch[property];
+        let oldValue = 0;
+        if (method === "delta" && oldBunch) {
+          oldValue = metric === "ms" ? oldBunch[property] * 1000 : oldBunch[property];
         }
-        pass[field][id] = bunch[field];
+
+        if (!(property in pass)) {
+          pass[property] = {};
+        }
+        pass[property][id] = value - oldValue;
       }
     });
   }
