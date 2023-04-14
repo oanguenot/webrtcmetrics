@@ -1581,7 +1581,7 @@ export const extractPassthroughFields = (bunch, passthrough) => {
   if (!bunch) {
     return [];
   }
-  // Example {"inbound-rtp": ["jitter", "bytesSent"]}
+  // Example {"inbound-rtp": ["jitter", "bytesReceived"]}
   const fieldsToReport = (passthrough && passthrough[bunch[PROPERTY.TYPE]]) || [];
 
   const pass = {};
@@ -1598,5 +1598,6 @@ export const extractPassthroughFields = (bunch, passthrough) => {
       }
     });
   }
+
   return pass;
 };
