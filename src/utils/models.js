@@ -336,6 +336,7 @@ export const PROPERTY = {
   PORT: "port",
   REMOTE_CANDIDATE_ID: "remoteCandidateId",
   REMOTE_SOURCE: "remoteSource",
+  REMOTE_TIMESTAMP: "remoteTimestamp",
   RESPONSES_RECEIVED: "responsesReceived",
   ROUND_TRIP_TIME: "roundTripTime",
   SDP_FMTP_LINE: "sdpFmtpLine",

@@ -1578,9 +1578,21 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
 };
 
 export const extractPassthroughFields = (bunch, oldBunch, passthrough) => {
+  const convertTable = {
+    kbits: (valueInBytes) => ((valueInBytes * 8) / 1000),
+    ms: (valueInSeconds) => (valueInSeconds * 1000),
+    asis: (value) => (value),
+  };
+
   if (!bunch) {
-    return [];
+    return {};
   }
+
+  // Don't add measure if identical report
+  if (oldBunch && ((oldBunch.timestamp === bunch.timestamp) || (oldBunch.remoteTimestamp && (oldBunch.remoteTimestamp === bunch.remoteTimestamp)))) {
+    return {};
+  }
+
   // Example {"inbound-rtp": ["jitter.ms", "delta:bytesReceived"]}
   const fieldsToReport = (passthrough && passthrough[bunch[PROPERTY.TYPE]]) || [];
 
@@ -1597,16 +1609,18 @@ export const extractPassthroughFields = (bunch, oldBunch, passthrough) => {
       const property = hasMethod ? fields.split(":")[1].split(".")[0] : fields.split(".")[0];
 
       if (property in bunch) {
-        const value = metric === "ms" ? bunch[property] * 1000 : bunch[property];
-        let oldValue = 0;
-        if (method === "delta" && oldBunch) {
-          oldValue = metric === "ms" ? oldBunch[property] * 1000 : oldBunch[property];
+        let value = convertTable[metric](bunch[property]);
+        const currentTimestamp = bunch[PROPERTY.REMOTE_TIMESTAMP] || bunch[PROPERTY.TIMESTAMP];
+        if (method === "ps" && oldBunch) {
+          const deltaValue = value - convertTable[metric](oldBunch[property]);
+          const deltaTimestamp = currentTimestamp - (oldBunch[PROPERTY.REMOTE_TIMESTAMP] || oldBunch[PROPERTY.TIMESTAMP]);
+          value = (deltaValue / deltaTimestamp) * 1000;
         }
 
         if (!(property in pass)) {
           pass[property] = {};
         }
-        pass[property][id] = value - oldValue;
+        pass[property][id] = value;
       }
     });
   }
