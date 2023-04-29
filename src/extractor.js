@@ -1600,7 +1600,7 @@ export const extractPassthroughFields = (bunch, oldBunch, passthrough) => {
   if (fieldsToReport.length > 0) {
     const ref = bunch[PROPERTY.SSRC] || bunch[PROPERTY.ID];
     const kind = bunch[PROPERTY.KIND] || "";
-    const id = `${bunch.type}${kind ? `-${kind}` : "*"}_${ref}`;
+    const id = `${bunch.type}${kind ? `-${kind}` : "-*"}=${ref}`;
     fieldsToReport.forEach((fields) => {
       const hasMethod = fields.split(":").length > 1;
       const hasMetric = fields.split(".").length > 1;
