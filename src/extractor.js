@@ -10,7 +10,7 @@ import {
 
 import {
   findOutgoingTrackFromPeerConnectionByKind,
-  findTrackInPeerConnectionById,
+  findTrackInPeerConnectionById, fixed2,
   getSSRCDataFromBunch,
 } from "./utils/helper";
 
@@ -396,7 +396,7 @@ const extractInfrastructureValue = (bunch) => {
   }
 };
 
-const extractVideoSize = (bunch) => {
+const extractVideoSize = (bunch, previousBunch, direction) => {
   if (
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_HEIGHT) ||
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_WIDTH)
@@ -404,10 +404,33 @@ const extractVideoSize = (bunch) => {
     return { width: 0, height: 0, framerate: 0 };
   }
 
+  const width = bunch[PROPERTY.FRAME_WIDTH] || 0;
+  const height = bunch[PROPERTY.FRAME_HEIGHT] || 0;
+  let framerate = fixed2(bunch[PROPERTY.FRAMES_PER_SECOND] || 0);
+
+  const frames = direction === DIRECTION.INBOUND ? bunch[PROPERTY.FRAMES_DECODED] : bunch[PROPERTY.FRAMES_ENCODED];
+  if (previousBunch) {
+    const previousFrames = direction === DIRECTION.INBOUND ? previousBunch[PROPERTY.FRAMES_DECODED] : previousBunch[PROPERTY.FRAMES_ENCODED];
+    const period = (bunch.timestamp - previousBunch.timestamp) / 1000; // in seconds
+    const deltaFrames = frames - previousFrames;
+    if (period !== 0) {
+      let divider = 1;
+      if (direction === DIRECTION.OUTBOUND && bunch[PROPERTY.SCALABILITY_MODE]) {
+        const scalabilityMode = bunch[PROPERTY.SCALABILITY_MODE];
+        if (scalabilityMode.startsWith("L2") || scalabilityMode.startsWith("S2")) {
+          divider = 2;
+        } else if (scalabilityMode.startsWith("L3") || scalabilityMode.startsWith("S3")) {
+          divider = 3;
+        }
+      }
+      framerate = fixed2(deltaFrames / period / divider);
+    }
+  }
+
   return {
-    width: bunch[PROPERTY.FRAME_WIDTH] || 0,
-    height: bunch[PROPERTY.FRAME_HEIGHT] || 0,
-    framerate: bunch[PROPERTY.FRAMES_PER_SECOND || 0],
+    width,
+    height,
+    framerate,
   };
 };
 
@@ -910,7 +933,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
         const videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
 
         // Video size
-        const inputVideo = extractVideoSize(bunch);
+        const oldBunch = oldRaw ? oldRaw.get(bunch[PROPERTY.ID]) : null;
+        const inputVideo = extractVideoSize(bunch, oldBunch, DIRECTION.INBOUND);
 
         // Nack & Pli stats
         const nackPliData = extractNackAndPliCountSentWhenReceiving(
@@ -1221,7 +1245,8 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
         const data = extractEncodeTime(bunch, previousSSRCBunch);
 
         // Video size
-        const outputVideo = extractVideoSize(bunch);
+        const oldBunch = oldRaw ? oldRaw.get(bunch[PROPERTY.ID]) : null;
+        const outputVideo = extractVideoSize(bunch, oldBunch, DIRECTION.OUTBOUND);
 
         // limitations
         const limitationOut = extractQualityLimitation(bunch);

@@ -343,6 +343,7 @@ export const PROPERTY = {
   SSRC: "ssrc",
   SELECTED: "selected",
   SELECTED_CANDIDATEPAIR_ID: "selectedCandidatePairId",
+  SCALABILITY_MODE: "scalabilityMode",
   STATE: "state",
   SYNTHETIZED_SAMPLES_DURATION: "synthesizedSamplesDuration",
   TIMESTAMP: "timestamp",

@@ -198,3 +198,5 @@ export const findOutgoingTrackFromPeerConnectionByKind = (kind, pc) => {
   }
   return null;
 };
+
+export const fixed2 = (value) => Math.round(100 * value) / 100;
