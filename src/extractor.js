@@ -1618,34 +1618,86 @@ export const extractPassthroughFields = (bunch, oldBunch, passthrough) => {
     return {};
   }
 
-  // Example {"inbound-rtp": ["jitter.ms", "delta:bytesReceived"]}
+  // Example {"inbound-rtp": ["jitter.ms", "ps:bytesReceived"]}
   const fieldsToReport = (passthrough && passthrough[bunch[PROPERTY.TYPE]]) || [];
 
   const pass = {};
   if (fieldsToReport.length > 0) {
     const ref = bunch[PROPERTY.SSRC] || bunch[PROPERTY.ID];
     const kind = bunch[PROPERTY.KIND] || "";
-    const id = `${bunch.type}${kind ? `-${kind}` : "-*"}=${ref}`;
+    const id = `${bunch.type}${kind ? `_${kind}` : "_*"}=${ref}`;
     fieldsToReport.forEach((fields) => {
-      const hasMethod = fields.split(":").length > 1;
-      const hasMetric = fields.split(".").length > 1;
-      const method = hasMethod ? fields.split(":")[0] : "total";
-      const metric = hasMetric ? fields.split(".")[1] : "asis";
-      const property = hasMethod ? fields.split(":")[1].split(".")[0] : fields.split(".")[0];
-
-      if (property in bunch) {
-        let value = convertTable[metric](bunch[property]);
-        const currentTimestamp = bunch[PROPERTY.REMOTE_TIMESTAMP] || bunch[PROPERTY.TIMESTAMP];
-        if (method === "ps" && oldBunch) {
-          const deltaValue = value - convertTable[metric](oldBunch[property]);
-          const deltaTimestamp = currentTimestamp - (oldBunch[PROPERTY.REMOTE_TIMESTAMP] || oldBunch[PROPERTY.TIMESTAMP]);
-          value = (deltaValue / deltaTimestamp) * 1000;
+      // Collect properties (normally one, but several in case of an operation)
+      let properties = [fields];
+      let operand = "";
+      if (fields.startsWith("[") && fields.endsWith("]")) {
+        const operation = fields.substring(1, fields.length - 1);
+        if (operation.includes("/")) {
+          operand = "/";
+        } else if (operation.includes("+")) {
+          operand = "+";
+        } else if (operation.includes("*")) {
+          operand = "*";
+        } else if (operation.includes("-")) {
+          operand = "-";
         }
 
-        if (!(property in pass)) {
-          pass[property] = {};
+        properties = operation.split(operand);
+      }
+
+      // For each prop, get the value if exists in the report
+      const values = [];
+      properties.forEach((prop) => {
+        const hasMethod = prop.split(":").length > 1;
+        const hasMetric = prop.split(".").length > 1;
+        const method = hasMethod ? prop.split(":")[0] : "total";
+        const metric = hasMetric ? prop.split(".")[1] : "asis";
+        const property = hasMethod ? prop.split(":")[1].split(".")[0] : prop.split(".")[0];
+
+        if (property in bunch) {
+          let value = convertTable[metric](bunch[property]);
+          const currentTimestamp = bunch[PROPERTY.REMOTE_TIMESTAMP] || bunch[PROPERTY.TIMESTAMP];
+          if (method === "ps" && oldBunch) {
+            const deltaValue = value - convertTable[metric](oldBunch[property]);
+            const deltaTimestamp = currentTimestamp - (oldBunch[PROPERTY.REMOTE_TIMESTAMP] || oldBunch[PROPERTY.TIMESTAMP]);
+            value = (deltaValue / deltaTimestamp) * 1000;
+          }
+          values.push({ fields, property, value });
         }
-        pass[property][id] = value;
+      });
+
+      // Only one result, return it
+      if (values.length === 1) {
+        const result = values[0];
+        if (!(result.property in pass)) {
+          pass[result.property] = {};
+        }
+        pass[result.property][id] = result.value;
+        // Several result, compute the operation
+      } else if (values.length > 1) {
+        const first = values.shift();
+
+        const value = values.reduce((acc, current) => {
+          switch (operand) {
+            case "+":
+              return acc + current.value;
+            case "/":
+              if (current.value !== 0) {
+                return acc / current.value;
+              }
+              return acc;
+            case "*":
+              return acc * current.value;
+            case "-":
+              return acc - current.value;
+            default:
+              return acc + current.value;
+          }
+        }, first.value);
+        if (!(values[0].fields in pass)) {
+          pass[values[0].fields] = {};
+        }
+        pass[values[0].fields][id] = value;
       }
     });
   }
