@@ -3,7 +3,7 @@ import ShortUniqueId from "short-unique-id";
 const shortUUID = new ShortUniqueId();
 
 export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("5.3.3");
+export const getVersion = () => ("5.4.0");
 
 export const DIRECTION = {
   INBOUND: "inbound",
