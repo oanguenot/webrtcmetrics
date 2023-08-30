@@ -266,6 +266,7 @@ export const defaultConfig = {
   stopAfter: -1, // Default - Max duration (in ms) for grabbing the stats. -1 means until calling stop().
   // keepMaxReport: 50, // Keep the last 50 tickets (new one erases the oldest)
   verbose: false, // Default - minimal logs
+  silent: false, // Default - no log at all if set to true
   pname: `p-${shortUUID()}`, // Default - peer connection name
   cid: `c-${shortUUID()}`, // Default - call identifier
   uid: `u-${shortUUID()}`, // Default - user identifier

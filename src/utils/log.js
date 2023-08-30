@@ -10,6 +10,10 @@ export const setVerboseLog = (shouldHaveVerboseLog) => {
   log.setLevel(shouldHaveVerboseLog ? log.levels.TRACE : log.levels.INFO);
 };
 
+export const setSilentLog = () => {
+  log.setLevel(log.levels.SILENT);
+};
+
 export const setLogLevel = (logLevel) => {
   const levels = [...Object.keys(log.levels)];
   if (levels.includes(logLevel)) {

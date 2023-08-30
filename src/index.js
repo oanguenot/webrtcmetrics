@@ -1,5 +1,10 @@
 import "regenerator-runtime/runtime.js";
-import { info, setLogLevel, setVerboseLog } from "./utils/log";
+import {
+  info,
+  setLogLevel,
+  setSilentLog,
+  setVerboseLog,
+} from "./utils/log";
 import { getGlobalConfig } from "./utils/config";
 import ProbesEngine from "./engine";
 
@@ -8,8 +13,12 @@ const moduleName = "interface   ";
 export default class WebRTCMetrics {
   constructor(cfg) {
     this._config = getGlobalConfig(cfg);
+    if (this._config.silent) {
+      setSilentLog();
+    } else {
+      setVerboseLog(this._config.verbose || false);
+    }
     info(moduleName, `welcome to ${this._config.name} version ${this._config.version}`);
-    setVerboseLog(this._config.verbose || false);
     this._engine = new ProbesEngine(this._config);
   }
 
