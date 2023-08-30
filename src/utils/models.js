@@ -2,8 +2,8 @@ import ShortUniqueId from "short-unique-id";
 
 const shortUUID = new ShortUniqueId();
 
-export const getLibName = () => ("WebRTCMetrics");
-export const getVersion = () => ("5.4.0");
+export const getLibName = () => "WebRTCMetrics";
+export const getVersion = () => "5.4.1";
 
 export const DIRECTION = {
   INBOUND: "inbound",
@@ -61,7 +61,11 @@ export const getDefaultGlobalMetric = () => {
 export const defaultAudioMetricIn = {
   level_in: 0,
   codec_id_in: "",
-  codec_in: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
+  codec_in: {
+    mime_type: null,
+    clock_rate: null,
+    sdp_fmtp_line: null,
+  },
   track_in: "",
   ssrc: "",
   direction: DIRECTION.INBOUND,
@@ -96,7 +100,11 @@ export const defaultAudioMetricOut = {
   active_out: null,
   level_out: 0,
   codec_id_out: "",
-  codec_out: { mime_type: null, clock_rate: null, sdp_fmtp_line: null },
+  codec_out: {
+    mime_type: null,
+    clock_rate: null,
+    sdp_fmtp_line: null,
+  },
   track_out: "",
   device_out: "",
   ssrc: "",
@@ -123,18 +131,28 @@ export const defaultAudioMetricOut = {
 
 export const defaultVideoMetricIn = {
   codec_id_in: "",
-  codec_in: { mime_type: null, clock_rate: null },
+  codec_in: {
+    mime_type: null,
+    clock_rate: null,
+  },
   direction: DIRECTION.INBOUND,
   decoder_in: null,
   track_in: "",
   ssrc: "",
-  size_in: { width: 0, height: 0, framerate: 0 },
+  size_in: {
+    width: 0,
+    height: 0,
+    framerate: 0,
+  },
   delta_jitter_ms_in: 0,
   delta_packets_in: 0,
   delta_packets_lost_in: 0,
   delta_KBytes_in: 0,
   delta_kbs_in: 0,
-  delta_glitch_in: { freeze: 0, pause: 0 },
+  delta_glitch_in: {
+    freeze: 0,
+    pause: 0,
+  },
   delta_decode_frame_ms_in: 0,
   delta_processing_delay_ms_in: 0,
   delta_assembly_delay_ms_in: 0,
@@ -145,7 +163,10 @@ export const defaultVideoMetricIn = {
   total_packets_in: 0,
   total_packets_lost_in: 0,
   total_KBytes_in: 0,
-  total_glitch_in: { freeze: 0, pause: 0 },
+  total_glitch_in: {
+    freeze: 0,
+    pause: 0,
+  },
   total_frames_decoded_in: 0,
   total_time_decoded_in: 0,
   total_time_processing_delay_in: 0,
@@ -159,14 +180,25 @@ export const defaultVideoMetricIn = {
 export const defaultVideoMetricOut = {
   active_out: null,
   codec_id_out: "",
-  codec_out: { mime_type: null, clock_rate: null },
+  codec_out: {
+    mime_type: null,
+    clock_rate: null,
+  },
   track_out: "",
   device_out: "",
   ssrc: "",
   direction: DIRECTION.OUTBOUND,
   encoder_out: null,
-  size_out: { width: 0, height: 0, framerate: 0 },
-  size_pref_out: { width: 0, height: 0, framerate: 0 },
+  size_out: {
+    width: 0,
+    height: 0,
+    framerate: 0,
+  },
+  size_pref_out: {
+    width: 0,
+    height: 0,
+    framerate: 0,
+  },
   delta_jitter_ms_out: 0,
   delta_rtt_ms_out: null,
   delta_packet_delay_ms_out: 0,
@@ -188,7 +220,11 @@ export const defaultVideoMetricOut = {
   total_nack_received_out: 0,
   total_pli_received_out: 0,
   percent_packets_lost_out: 0,
-  limitation_out: { reason: null, durations: null, resolutionChanges: 0 },
+  limitation_out: {
+    reason: null,
+    durations: null,
+    resolutionChanges: 0,
+  },
   timestamp_out: null,
 };
 
