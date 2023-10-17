@@ -10,7 +10,7 @@ import {
 
 const shortUUID = new ShortUniqueId();
 
-const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc, withTimestamp = false) => {
+const getValues = (reports, key, subKey, avoidZeroValue = false, ssrc = "", withTimestamp = false) => {
   let arr = reports.map((report) => {
     if (!subKey) {
       if (withTimestamp) {
@@ -73,9 +73,9 @@ export const filteredAverage = (nums, defaultValue) => {
 
 export const average = (nums) => (nums.reduce((a, b) => a + b, 0) / nums.length);
 
-export const createProbeId = () => (`probe-${shortUUID()}`);
+export const createProbeId = () => (`probe-${shortUUID.rnd(10)}`);
 
-export const createCollectorId = () => (`coltr-${shortUUID()}`);
+export const createCollectorId = () => (`coltr-${shortUUID.rnd(10)}`);
 
 export const timeout = (ms) => (new Promise((resolve) => setTimeout(resolve, ms)));
 
@@ -87,14 +87,16 @@ export const call = (fct, context, value) => {
   }
 };
 
-export const volatilityValuesOfReports = (reports, key, subKey, ssrc) => {
-  const values = getValues(reports, key, subKey, true, ssrc);
+export const volatilityValuesOfReports = (reports, key, subKey, ssrc, avoidZeroValue = true) => {
+  const values = getValues(reports, key, subKey, avoidZeroValue, ssrc);
   if (values.length === 0) {
     return null;
   }
   const avg = values.reduce((p, c) => p + c, 0) / values.length;
-  if (avg === 0) {
+  if (avg === 0 && avoidZeroValue) {
     return null;
+  } if (avg === 0) {
+    return 0;
   }
 
   const diff = values.map((data) => (Math.abs(avg - data)));
@@ -103,7 +105,7 @@ export const volatilityValuesOfReports = (reports, key, subKey, ssrc) => {
   return volatility;
 };
 
-export const averageValuesOfReports = (reports, key, subKey, avoidZeroValue = false, ssrc) => {
+export const averageValuesOfReports = (reports, key, subKey, avoidZeroValue = false, ssrc = "") => {
   const values = getValues(reports, key, subKey, avoidZeroValue, ssrc);
   if (values.length === 0) {
     return null;
@@ -116,16 +118,16 @@ export const sumValuesOfReports = (reports, key, subKey) => {
   return values.reduce((p, c) => p + c, 0);
 };
 
-export const minValueOfReports = (reports, key, subKey, ssrc) => {
-  const values = getValues(reports, key, subKey, true, ssrc);
+export const minValueOfReports = (reports, key, subKey, ssrc, avoidZeroValue = true) => {
+  const values = getValues(reports, key, subKey, avoidZeroValue, ssrc);
   if (values.length === 0) {
     return null;
   }
   return Math.min(...values);
 };
 
-export const maxValueOfReports = (reports, key, subKey, ssrc) => {
-  const values = getValues(reports, key, subKey, false, ssrc);
+export const maxValueOfReports = (reports, key, subKey, ssrc, avoidZeroValue = true) => {
+  const values = getValues(reports, key, subKey, avoidZeroValue, ssrc);
   if (values.length === 0) {
     return null;
   }
@@ -135,7 +137,8 @@ export const maxValueOfReports = (reports, key, subKey, ssrc) => {
 export const valuesOfReports = (reports, key, subKey, ssrc) => (getValues(reports, key, subKey, false, ssrc, true));
 
 export const lastOfReports = (reports, key, subKey, ssrc) => {
-  const lastReport = reports.slice().pop();
+  const lastReport = reports.slice()
+    .pop();
   if (!lastReport) {
     return null;
   }
@@ -153,7 +156,8 @@ export const lastOfReports = (reports, key, subKey, ssrc) => {
   return null;
 };
 
-export const getLastReport = (reports) => (reports.slice().pop());
+export const getLastReport = (reports) => (reports.slice()
+  .pop());
 
 export const getSSRCDataFromBunch = (ssrc, bunch, direction) => {
   if (!bunch) {
@@ -176,14 +180,16 @@ export const getSSRCDataFromBunch = (ssrc, bunch, direction) => {
 
 export const findTrackInPeerConnectionById = (trackId, pc) => {
   // Get track from PC senders
-  const senderOfTrack = pc.getSenders().find((sender) => sender.track && sender.track.id === trackId);
+  const senderOfTrack = pc.getSenders()
+    .find((sender) => sender.track && sender.track.id === trackId);
 
   if (senderOfTrack) {
     return senderOfTrack.track;
   }
 
   // Get track from PC receivers
-  const receiverOfTrack = pc.getReceivers().find((receiver) => receiver.track && receiver.track.id === trackId);
+  const receiverOfTrack = pc.getReceivers()
+    .find((receiver) => receiver.track && receiver.track.id === trackId);
 
   if (receiverOfTrack) {
     return receiverOfTrack.track;
@@ -192,7 +198,8 @@ export const findTrackInPeerConnectionById = (trackId, pc) => {
 };
 
 export const findOutgoingTrackFromPeerConnectionByKind = (kind, pc) => {
-  const senderOfTrack = pc.getSenders().find((sender) => sender.track && sender.track.kind === kind);
+  const senderOfTrack = pc.getSenders()
+    .find((sender) => sender.track && sender.track.kind === kind);
   if (senderOfTrack) {
     return senderOfTrack.track;
   }

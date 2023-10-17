@@ -277,12 +277,14 @@ export const getDefaultMetric = (previousStats) => {
       experimental: { ...previousStats.experimental },
       passthrough: {},
     };
-    Object.keys(previousStats.audio).forEach((ssrc) => {
-      metrics.audio[ssrc] = { ...previousStats.audio[ssrc] };
-    });
-    Object.keys(previousStats.video).forEach((ssrc) => {
-      metrics.video[ssrc] = { ...previousStats.video[ssrc] };
-    });
+    Object.keys(previousStats.audio)
+      .forEach((ssrc) => {
+        metrics.audio[ssrc] = { ...previousStats.audio[ssrc] };
+      });
+    Object.keys(previousStats.video)
+      .forEach((ssrc) => {
+        metrics.video[ssrc] = { ...previousStats.video[ssrc] };
+      });
     return metrics;
   }
 
@@ -303,9 +305,9 @@ export const defaultConfig = {
   // keepMaxReport: 50, // Keep the last 50 tickets (new one erases the oldest)
   verbose: false, // Default - minimal logs
   silent: false, // Default - no log at all if set to true
-  pname: `p-${shortUUID()}`, // Default - peer connection name
-  cid: `c-${shortUUID()}`, // Default - call identifier
-  uid: `u-${shortUUID()}`, // Default - user identifier
+  pname: `p-${shortUUID.rnd(10)}`, // Default - peer connection name
+  cid: `c-${shortUUID.rnd(10)}`, // Default - call identifier
+  uid: `u-${shortUUID.rnd(10)}`, // Default - user identifier
   record: false, // Default - no record,
   ticket: true, // Default - ticket generated and so all reports are kept
   passthrough: {}, // Access to specific fields directly from the stack {"inbound-rtp": ["jitter", "bytesReceived"]}

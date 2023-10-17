@@ -3,7 +3,7 @@ import { warn } from "./log";
 
 const moduleName = "config      ";
 
-export const getConfig = (peerConnection, cfg = {}, globalConfig) => {
+export const getConfig = (peerConnection, cfg = {}, globalConfig = {}) => {
   const config = { ...globalConfig, ...cfg };
 
   if (!cfg.pname) {

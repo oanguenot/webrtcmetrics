@@ -1,4 +1,4 @@
-import { DIRECTION, VALUE } from "./models";
+import { DIRECTION } from "./models";
 import { filteredAverage, getSSRCDataFromBunch } from "./helper";
 
 const computeScore = (r, forceToMinimal) => {
@@ -22,7 +22,11 @@ const getSSRCReportFrom = (ssrc, report, previousReport, beforeLastReport, direc
   const previousSSRCReport = getSSRCDataFromBunch(ssrc, previousReport, direction);
   const beforeLastSSRCReport = getSSRCDataFromBunch(ssrc, beforeLastReport, direction);
 
-  return { currentSSRCReport, previousSSRCReport, beforeLastSSRCReport };
+  return {
+    currentSSRCReport,
+    previousSSRCReport,
+    beforeLastSSRCReport,
+  };
 };
 
 const computeJitter = (ssrcReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange) => {
@@ -78,7 +82,7 @@ const computePacketsLossPercent = (ssrcReport, previousSSRCReport, beforeLastSSR
 
 export const computeFullEModelScore = (
   report,
-  kind = VALUE.AUDIO,
+  kind,
   previousReport,
   beforeLastReport,
   ssrc,
@@ -90,7 +94,11 @@ export const computeFullEModelScore = (
   let Idd = 0; // Idd id the delay impairment factor
   const A = 0; // A is the advantage factor
 
-  const { currentSSRCReport, previousSSRCReport, beforeLastSSRCReport } = getSSRCReportFrom(ssrc, report, previousReport, beforeLastReport, direction);
+  const {
+    currentSSRCReport,
+    previousSSRCReport,
+    beforeLastSSRCReport,
+  } = getSSRCReportFrom(ssrc, report, previousReport, beforeLastReport, direction);
   const packetsLoss = computePacketsLossPercent(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const rtt = computeRTT(report, currentSSRCReport, previousReport, previousSSRCReport, beforeLastReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const jitter = computeJitter(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
@@ -114,14 +122,18 @@ export const computeFullEModelScore = (
 
 export const computeEModelMOS = (
   report,
-  kind = VALUE.AUDIO,
+  kind,
   previousReport,
   beforeLastReport,
   ssrc,
   direction = DIRECTION.INBOUND,
   smoothedRange = 3,
 ) => {
-  const { currentSSRCReport, previousSSRCReport, beforeLastSSRCReport } = getSSRCReportFrom(ssrc, report, previousReport, beforeLastReport, direction);
+  const {
+    currentSSRCReport,
+    previousSSRCReport,
+    beforeLastSSRCReport,
+  } = getSSRCReportFrom(ssrc, report, previousReport, beforeLastReport, direction);
   const packetsLoss = computePacketsLossPercent(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const rtt = computeRTT(report, currentSSRCReport, previousReport, previousSSRCReport, beforeLastReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const jitter = computeJitter(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
@@ -141,21 +153,25 @@ export const computeEModelMOS = (
 
 export const computeMOS = (
   report,
-  kind = VALUE.AUDIO,
+  kind,
   previousReport,
   beforeLastReport,
   ssrc,
   direction = DIRECTION.INBOUND,
   smoothedRange = 3,
 ) => {
-  const { currentSSRCReport, previousSSRCReport, beforeLastSSRCReport } = getSSRCReportFrom(ssrc, report, previousReport, beforeLastReport, direction);
+  const {
+    currentSSRCReport,
+    previousSSRCReport,
+    beforeLastSSRCReport,
+  } = getSSRCReportFrom(ssrc, report, previousReport, beforeLastReport, direction);
   const packetsLoss = computePacketsLossPercent(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const rtt = computeRTT(report, currentSSRCReport, previousReport, previousSSRCReport, beforeLastReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const jitter = computeJitter(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
 
-  const codecFittingParameterA = 0;
-  const codecFittingParameterB = 19.8;
-  const codecFittingParameterC = 29.7;
+  const codecFittingParameterA = 0; // G711: 0, iLBC: 10
+  const codecFittingParameterB = 30; // G711: 30, iLBC: 19,8
+  const codecFittingParameterC = 15; // G711: 15, iLBC: 29,7
   const ld = 30;
   const d = (rtt + jitter) / 2 + ld;
   const h = d - 177.3 < 0 ? 0 : 1;
