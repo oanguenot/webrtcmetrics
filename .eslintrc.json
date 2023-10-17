@@ -56,6 +56,9 @@
     ],
     "no-param-reassign": [
       0
+    ],
+    "no-promise-executor-return": [
+      0
     ]
   },
   "ignorePatterns": [
