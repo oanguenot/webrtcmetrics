@@ -468,7 +468,7 @@ Each **SSRC** is an object containing the following statistics:
 | **type**        | String | The type of the stream. Can be `audio` or `video`                                      |
 | **bitrate**     | Object | `min`, `max`, `avg`, `values` and `volatility` for Bitrate                             |
 | **jitter**      | Object | `min`, `max`, `avg`, `values` and `volatility` for Jitter                              |
-| **loss**        | Object | `min`, `max`, `avg`, `values` and `volatility` for Packets Loss                        |
+| **loss**        | Object | `total`, `min`, `max`, `avg`, `values` and `volatility` for Packets Loss               |
 | **rtt**         | Object | (Outbound only) `min`, `max`, `avg`, `values` and `volatility` for Round Trip Time     |
 | **mos**         | Object | (Audio only) `min`, `max`, `avg`, `values` and `volatility`                            |
 | **traffic**     | Object | `min`, `max`, `avg`, `values` and `volatility` for Traffic                             |
