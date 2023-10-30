@@ -468,7 +468,9 @@ export default class Collector {
 
   async registerToPCEvents() {
     const { pc } = this._config;
-    navigator.mediaDevices.addEventListener("devicechange", this.deviceChanged);
+    if (navigator.mediaDevices) {
+      navigator.mediaDevices.addEventListener("devicechange", this.deviceChanged);
+    }
     if (pc) {
       pc.addEventListener("iceconnectionstatechange", this.iceConnectionStateChange);
       pc.addEventListener("connectionstatechange", this.connectionStateChange);
@@ -480,7 +482,9 @@ export default class Collector {
 
   unregisterToPCEvents() {
     const { pc } = this._config;
-    navigator.mediaDevices.removeEventListener("devicechange", this.deviceChanged);
+    if (navigator.mediaDevices) {
+      navigator.mediaDevices.removeEventListener("devicechange", this.deviceChanged);
+    }
     if (pc) {
       pc.removeEventListener("iceconnectionstatechange", this.iceConnectionStateChange);
       pc.removeEventListener("connectionstatechange", this.connectionStateChange);
