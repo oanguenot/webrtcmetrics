@@ -263,8 +263,7 @@ Each **inbound audio stream** contains the following statistics:
 | **delta_jitter_buffer_delay_ms_in**   | Number | Average Jitter buffer delay (in ms)                                                                                        |
 | **direction**                         | String | Direction of the stream. "inbound" here.                                                                                   |
 | **level_in**                          | Number | Level of the input sound. Detect presence of incoming sound                                                                |
-| **mos_emodel_in**                     | Number | Audio quality indicator based on 'MOS E-Model ITU-T G.107.2 (Fullband E-model)'                                            |
-| **mos_in**                            | Number | Audio quality indicator based on 'Effective Latency' or 'Codec fitting parameters'                                         |
+| **mos_in**                            | Number | Audio quality indicator based on 'G.107'                                                                                   |
 | **percent_packets_lost_in**           | Number | Percent of audio packet lost (not received) since the last report                                                          |
 | **percent_synthetized_in**            | Number | Percent of voice packet synthetized (generated) since the last report                                                      |
 | **timestamp_in**                      | Number | Timestamp when report has been sent. Associated with **delta_rtt_ms_in**, **total_rtt_measure_in** and **total_rtt_ms_in** |
@@ -280,7 +279,7 @@ Each **inbound audio stream** contains the following statistics:
 | **total_jitter_emitted_in**           | Number | Total number of audio samples that have come out the jitter buffer (in ms)                                                 |
 | **track_in**                          | String | The id of the associated mediastream track                                                                                 |
 
-_Note:_ `mos_emodel_in` and `mos_in` reflects the quality of the audio media received using a rank from 0 (inaudible) to
+_Note:_ `mos_in` reflects the quality of the audio media received using a rank from 1 (inaudible) to
 4.5 (excellent). It is the quality the local user experienced from his call.
 
 Each **outbound audio stream** contains the following statistics
@@ -299,8 +298,7 @@ Each **outbound audio stream** contains the following statistics
 | **delta_rtt_ms_out**             | Number  | Round Trip-Time (in ms). Could be null when no value collected.                                           |
 | **direction**                    | String  | Direction of the stream. "outbound" here.                                                                 |
 | **level_out**                    | Number  | Level of the output sound. Detect presence of outgoing sound                                              |
-| **mos_emodel_out**               | Number  | Audio quality indicator based on 'MOS E-Model ITU-T G.107.2 (Fullband E-model)'                           |
-| **mos_out**                      | Number  | Audio quality indicator based on 'Effective Latency' or 'Codec fitting parameters'                        |
+| **mos_out**                      | Number  | Audio quality indicator based on G.107'                                                                   |
 | **percent_packets_lost_out**     | Number  | Percent of audio packet lost (not received by the recipient) since the last report                        |
 | **timestamp_out**                | Number  | Timestamp when report has been received. Associated with **delta_jitter_ms_out** and **delta_rtt_ms_out** |
 | **total_KBytes_out**             | Number  | Number of kilobytes (KB) sent since the beginning of the call                                             |
@@ -312,7 +310,7 @@ Each **outbound audio stream** contains the following statistics
 | **track_out**                    | String  | The id of the mediastream track associated                                                                |                                                                                                                                                                                                                                |
 | **device_out**                   | String  | The label of the device associated to the **track_out**                                                   |
 
-_Note:_ `mos_emodel_out` and `mos_out` reflects the quality of the audio media sent using a rank from 0 (inaudible) to
+_Note:_ `mos_out` reflects the quality of the audio media sent using a rank from 1 (inaudible) to
 4.5 (excellent). It is not the quality the remote peer will experience but is a good indicator of the capacity of the
 local user to send the media to detect a quality issue on the local side
 

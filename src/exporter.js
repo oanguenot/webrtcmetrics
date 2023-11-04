@@ -341,30 +341,16 @@ export default class Exporter {
               },
             };
             const mos = {
-              emodel: {
-                avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_fullband_in", false, ssrc),
-                min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_fullband_in", ssrc),
-                max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_fullband_in", ssrc),
-                volatility: volatilityValuesOfReports(
-                  this._reports,
-                  VALUE.AUDIO,
-                  "mos_fullband_in",
-                  ssrc,
-                ),
-                values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_fullband_in", ssrc),
-              },
-              effective: {
-                avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_in", false, ssrc),
-                min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_in", ssrc),
-                max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_in", ssrc),
-                volatility: volatilityValuesOfReports(
-                  this._reports,
-                  VALUE.AUDIO,
-                  "mos_in",
-                  ssrc,
-                ),
-                values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_in", ssrc),
-              },
+              avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_in", false, ssrc),
+              min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_in", ssrc),
+              max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_in", ssrc),
+              volatility: volatilityValuesOfReports(
+                this._reports,
+                VALUE.AUDIO,
+                "mos_in",
+                ssrc,
+              ),
+              values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_in", ssrc),
               _unit: {
                 avg: "number (1-5)",
                 min: "number (1-5)",
@@ -593,30 +579,16 @@ export default class Exporter {
               },
             };
             const mos = {
-              emodel: {
-                avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_fullband_out", false, ssrc),
-                min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_fullband_out", ssrc),
-                max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_fullband_out", ssrc),
-                volatility: volatilityValuesOfReports(
-                  this._reports,
-                  VALUE.AUDIO,
-                  "mos_fullband_out",
-                  ssrc,
-                ),
-                values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_fullband_out", ssrc),
-              },
-              effective: {
-                avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_out", false, ssrc),
-                min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
-                max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
-                volatility: volatilityValuesOfReports(
-                  this._reports,
-                  VALUE.AUDIO,
-                  "mos_out",
-                  ssrc,
-                ),
-                values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
-              },
+              avg: averageValuesOfReports(this._reports, VALUE.AUDIO, "mos_out", false, ssrc),
+              min: minValueOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
+              max: maxValueOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
+              volatility: volatilityValuesOfReports(
+                this._reports,
+                VALUE.AUDIO,
+                "mos_out",
+                ssrc,
+              ),
+              values: valuesOfReports(this._reports, VALUE.AUDIO, "mos_out", ssrc),
               _unit: {
                 avg: "number (1-5)",
                 min: "number (1-5)",

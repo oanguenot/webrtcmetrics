@@ -91,8 +91,6 @@ export const defaultAudioMetricIn = {
   percent_synthetized_in: 0,
   timestamp_in: null,
   mos_in: 1,
-  mos_emodel_in: 1,
-  mos_fullband_in: 1,
   percent_packets_lost_in: 0,
 };
 
@@ -125,8 +123,6 @@ export const defaultAudioMetricOut = {
   total_KBytes_out: 0,
   timestamp_out: null,
   mos_out: 1,
-  mos_emodel_out: 1,
-  mos_fullband_out: 1,
 };
 
 export const defaultVideoMetricIn = {
