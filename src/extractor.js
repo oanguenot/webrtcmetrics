@@ -79,8 +79,8 @@ const extractRTTBasedOnRTCP = (bunch, kind, referenceReport, previousBunch) => {
     if (
       Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) === 0 ||
       Number(bunch[PROPERTY.TOTAL_ROUND_TRIP_TIME_MEASUREMENTS]) -
-        referenceNbMeasure ===
-        previousNbMeasure
+      referenceNbMeasure ===
+      previousNbMeasure
     ) {
       return returnedValuesByDefault;
     }
@@ -124,7 +124,7 @@ const extractRTTBasedOnSTUNConnectivityCheck = (
       rtt: null,
       totalRTT: previousBunch[kind].total_rtt_connectivity_ms,
       totalRTTMeasurements:
-        previousBunch[kind].total_rtt_connectivity_measure,
+      previousBunch[kind].total_rtt_connectivity_measure,
     };
   }
 
@@ -196,7 +196,7 @@ const extractDecodeTime = (bunch, previousBunch) => {
   ) {
     return {
       delta_ms_decode_frame:
-        previousBunch[VALUE.VIDEO].delta_decode_frame_ms_in,
+      previousBunch[VALUE.VIDEO].delta_decode_frame_ms_in,
       frames_decoded: previousBunch[VALUE.VIDEO].total_frames_decoded_in,
       total_decode_time: previousBunch[VALUE.VIDEO].total_time_decoded_in,
     };
@@ -291,10 +291,10 @@ const extractAudioVideoPacketSent = (
 };
 
 const extractAudioVideoPacketLost = (
-    bunch,
-    kind,
-    previousBunch,
-    referenceReport,
+  bunch,
+  kind,
+  previousBunch,
+  referenceReport,
 ) => {
   let packetsLost = previousBunch[kind].total_packets_lost_out;
   let deltaPacketsLost = 0;
@@ -401,7 +401,11 @@ const extractVideoSize = (bunch, previousBunch, direction) => {
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_HEIGHT) ||
     !Object.prototype.hasOwnProperty.call(bunch, PROPERTY.FRAME_WIDTH)
   ) {
-    return { width: 0, height: 0, framerate: 0 };
+    return {
+      width: 0,
+      height: 0,
+      framerate: 0,
+    };
   }
 
   const width = bunch[PROPERTY.FRAME_WIDTH] || 0;
@@ -455,13 +459,18 @@ const extractQualityLimitation = (bunch) => {
     : null;
 
   if (durations) {
-    Object.keys(durations).forEach((key) => {
-      if (durations[key] > 1000) {
-        durations[key] = Number(durations[key] / 1000);
-      }
-    });
+    Object.keys(durations)
+      .forEach((key) => {
+        if (durations[key] > 1000) {
+          durations[key] = Number(durations[key] / 1000);
+        }
+      });
   }
-  return { reason, durations, resolutionChanges };
+  return {
+    reason,
+    durations,
+    resolutionChanges,
+  };
 };
 
 const extractVideoGlitch = (bunch, kind, previousReport, referenceReport) => {
@@ -695,7 +704,7 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             type: STAT_TYPE.DATA,
             value: {
               total_rtt_connectivity_measure:
-                rttConnectivity.totalRTTMeasurements,
+              rttConnectivity.totalRTTMeasurements,
             },
           },
         ];
@@ -771,10 +780,10 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         // Packets stats and Bytes
         const data = extractAudioVideoPacketReceived(
-            bunch,
-            VALUE.AUDIO,
-            previousSSRCBunch,
-            referenceSSRCBunch,
+          bunch,
+          VALUE.AUDIO,
+          previousSSRCBunch,
+          referenceSSRCBunch,
         );
 
         // Jitter stats
@@ -782,6 +791,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
 
         // Codec stats
         const audioInputCodecId = bunch[PROPERTY.CODEC_ID] || "";
+        let codec = null;
+        if (raw.has(audioInputCodecId)) {
+          const codecReport = raw.get(audioInputCodecId);
+          codec = extractAudioCodec(codecReport);
+        }
 
         // Audio level in
         const audioLevel = bunch[PROPERTY.AUDIO_LEVEL] || 0;
@@ -801,6 +815,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { codec_id_in: audioInputCodecId },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { codec_in: codec },
           },
           {
             ssrc,
@@ -918,10 +937,10 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
 
         // Packets stats and Bytes
         const packetsData = extractAudioVideoPacketReceived(
-            bunch,
-            VALUE.VIDEO,
-            previousSSRCBunch,
-            referenceSSRCBunch,
+          bunch,
+          VALUE.VIDEO,
+          previousSSRCBunch,
+          referenceSSRCBunch,
         );
 
         // Jitter stats
@@ -929,8 +948,13 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
 
         // Codec stats
         const decoderImplementation =
-            bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
+          bunch[PROPERTY.DECODER_IMPLEMENTATION] || null;
         const videoInputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+        let codec = null;
+        if (raw.has(videoInputCodecId)) {
+          const codecReport = raw.get(videoInputCodecId);
+          codec = extractVideoCodec(codecReport);
+        }
 
         // Video size
         const oldBunch = oldRaw ? oldRaw.get(bunch[PROPERTY.ID]) : null;
@@ -954,6 +978,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { codec_id_in: videoInputCodecId },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { codec_in: codec },
           },
           {
             ssrc,
@@ -1097,8 +1126,14 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: {
-              total_glitch_in: { freeze: freezePauseData.freezeCount, pause: freezePauseData.pauseCount },
-              delta_glitch_in: { freeze: freezePauseData.deltaFreezeCount, pause: freezePauseData.deltaPauseCount },
+              total_glitch_in: {
+                freeze: freezePauseData.freezeCount,
+                pause: freezePauseData.pauseCount,
+              },
+              delta_glitch_in: {
+                freeze: freezePauseData.deltaFreezeCount,
+                pause: freezePauseData.deltaPauseCount,
+              },
             },
             internal: "glitchChanged",
           },
@@ -1122,14 +1157,22 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
 
       let trackOut = "";
       let audioLevel = 0;
-      let size = { width: 0, height: 0, framerate: 0 };
+      let size = {
+        width: 0,
+        height: 0,
+        framerate: 0,
+      };
       if (active && raw.has(bunch[PROPERTY.MEDIA_SOURCE_ID])) {
         const mediaSourceReport = raw.get(bunch[PROPERTY.MEDIA_SOURCE_ID]);
         trackOut = mediaSourceReport[PROPERTY.TRACK_IDENTIFIER];
         if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
           audioLevel = mediaSourceReport[PROPERTY.AUDIO_LEVEL];
         } else {
-          size = { width: mediaSourceReport[PROPERTY.WIDTH] || null, height: mediaSourceReport[PROPERTY.HEIGHT] || null, framerate: mediaSourceReport[PROPERTY.FRAMES_PER_SECOND] || null };
+          size = {
+            width: mediaSourceReport[PROPERTY.WIDTH] || null,
+            height: mediaSourceReport[PROPERTY.HEIGHT] || null,
+            framerate: mediaSourceReport[PROPERTY.FRAMES_PER_SECOND] || null,
+          };
         }
       }
 
@@ -1143,6 +1186,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
 
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.AUDIO) {
         const audioOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+        let codec = null;
+        if (raw.has(audioOutputCodecId)) {
+          const codecReport = raw.get(audioOutputCodecId);
+          codec = extractAudioCodec(codecReport);
+        }
 
         // FF: no media-source, try to find the track from the sender (first track of kind found)
         if (!trackOut) {
@@ -1172,6 +1220,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.AUDIO,
             value: { codec_id_out: audioOutputCodecId },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.AUDIO,
+            value: { codec_out: codec },
           },
           {
             ssrc,
@@ -1231,6 +1284,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
       if (bunch[PROPERTY.MEDIA_TYPE] === VALUE.VIDEO) {
         const encoderImplementation = bunch[PROPERTY.ENCODER_IMPLEMENTATION] || null;
         const videoOutputCodecId = bunch[PROPERTY.CODEC_ID] || null;
+        let codec = null;
+        if (raw.has(videoOutputCodecId)) {
+          const codecReport = raw.get(videoOutputCodecId);
+          codec = extractVideoCodec(codecReport);
+        }
 
         // FF: no media-source, try to find the track from the sender (first track of kind found)
         if (!trackOut) {
@@ -1277,6 +1335,11 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
             ssrc,
             type: STAT_TYPE.VIDEO,
             value: { codec_id_out: videoOutputCodecId },
+          },
+          {
+            ssrc,
+            type: STAT_TYPE.VIDEO,
+            value: { codec_out: codec },
           },
           {
             ssrc,
@@ -1390,34 +1453,9 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
     case TYPE.MEDIA_SOURCE: {
       break;
     }
-    case TYPE.CODEC:
-      const result = [];
-      // Check for Audio codec
-      Object.keys(previousBunch[VALUE.AUDIO]).forEach((ssrc) => {
-        const ssrcAudioBunch = previousBunch[VALUE.AUDIO][ssrc];
-        if ((ssrcAudioBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcAudioBunch.codec_id_out === bunch[PROPERTY.ID])) {
-          const codec = extractAudioCodec(bunch);
-          if (bunch[PROPERTY.ID] === ssrcAudioBunch.codec_id_in) {
-            result.push({ ssrc: ssrcAudioBunch.ssrc, type: STAT_TYPE.AUDIO, value: { codec_in: codec } });
-          } else {
-            result.push({ ssrc: ssrcAudioBunch.ssrc, type: STAT_TYPE.AUDIO, value: { codec_out: codec } });
-          }
-        }
-      });
-
-      // Check for Video codec
-      Object.keys(previousBunch[VALUE.VIDEO]).forEach((ssrc) => {
-        const ssrcVideoBunch = previousBunch[VALUE.VIDEO][ssrc];
-        if ((ssrcVideoBunch.codec_id_in === bunch[PROPERTY.ID]) || (ssrcVideoBunch.codec_id_out === bunch[PROPERTY.ID])) {
-          const codec = extractVideoCodec(bunch);
-          if (bunch[PROPERTY.ID] === ssrcVideoBunch.codec_id_in) {
-            result.push({ ssrc: ssrcVideoBunch.ssrc, type: STAT_TYPE.VIDEO, value: { codec_in: codec } });
-          } else {
-            result.push({ ssrc: ssrcVideoBunch.ssrc, type: STAT_TYPE.VIDEO, value: { codec_out: codec } });
-          }
-        }
-      });
-      return result;
+    case TYPE.CODEC: {
+      break;
+    }
     case TYPE.REMOTE_INBOUND_RTP: {
       // get SSRC and associated data
       const ssrc = bunch[PROPERTY.SSRC];
@@ -1426,10 +1464,10 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
       if (bunch[PROPERTY.KIND] === VALUE.AUDIO) {
         // Round Trip Time based on RTCP
         const data = extractRTTBasedOnRTCP(
-            bunch,
-            VALUE.AUDIO,
-            referenceSSRCBunch,
-            previousSSRCBunch,
+          bunch,
+          VALUE.AUDIO,
+          referenceSSRCBunch,
+          previousSSRCBunch,
         );
 
         // Jitter (out)
@@ -1485,10 +1523,10 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
       if (bunch[PROPERTY.KIND] === VALUE.VIDEO) {
         // Round Trip Time based on RTCP
         const data = extractRTTBasedOnRTCP(
-            bunch,
-            VALUE.VIDEO,
-            referenceSSRCBunch,
-            previousSSRCBunch,
+          bunch,
+          VALUE.VIDEO,
+          referenceSSRCBunch,
+          previousSSRCBunch,
         );
 
         // Jitter (out)
@@ -1659,7 +1697,11 @@ export const extractPassthroughFields = (bunch, oldBunch, passthrough) => {
             const deltaTimestamp = currentTimestamp - (oldBunch[PROPERTY.REMOTE_TIMESTAMP] || oldBunch[PROPERTY.TIMESTAMP]);
             value = (deltaValue / deltaTimestamp) * 1000;
           }
-          values.push({ fields, property, value });
+          values.push({
+            fields,
+            property,
+            value,
+          });
         }
       });
 

@@ -204,7 +204,8 @@ export const mos = (report, kind, previousReport, beforeLastReport, ssrc, direct
   const codec = direction === DIRECTION.INBOUND ? currentSSRCReport[kind].codec_in?.mime_type || null : currentSSRCReport[kind].codec_out?.mime_type;
 
   // For Opus, compute G.107.2 MOS
-  if (codec === "opus") {
+  if (codec && codec.toLowerCase()
+    .includes("opus")) {
     return computeFullEModelScore(report, kind, previousReport, beforeLastReport, ssrc, direction, smoothedRange);
   }
 
