@@ -1,6 +1,8 @@
 import { DIRECTION } from "./models";
 import { filteredAverage, getSSRCDataFromBunch } from "./helper";
 
+const getAbsoluteDelay = (roundTripTime, jitterDelay) => ((roundTripTime / 2) + jitterDelay + 20); // Add extra 20ms for packetisation delay
+
 const computeScore = (r, forceToMinimal) => {
   if (forceToMinimal) {
     return 1;
@@ -80,7 +82,7 @@ const computePacketsLossPercent = (ssrcReport, previousSSRCReport, beforeLastSSR
   return filteredAverage(packetLossValues, 0);
 };
 
-export const computeFullEModelScore = (
+const computeFullEModelScore = (
   report,
   kind,
   previousReport,
@@ -103,8 +105,11 @@ export const computeFullEModelScore = (
   const rtt = computeRTT(report, currentSSRCReport, previousReport, previousSSRCReport, beforeLastReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const jitter = computeJitter(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
 
-  const Ta = (rtt + jitter) / 2; // Overall one way delay (ms)
-  const Iee = 10.2 + ((132 - 10.2) * (packetsLoss / (packetsLoss + 4.3)));
+  const Ta = getAbsoluteDelay(rtt, jitter); // Overall one way delay (ms)
+  const defaultEquipmentImpairmentFactor = 132;
+  const defaultIe = 10.2; // 10.2 G.113 Amend 3
+  const defaultBpl = 9.6; // G.113 Amend 3
+  const Iee = defaultIe + ((defaultEquipmentImpairmentFactor - defaultIe) * (packetsLoss / (packetsLoss + defaultBpl)));
 
   if (Ta > 100) {
     const x = (Math.log(Ta) - Math.log(100)) / (Math.log(2));
@@ -120,7 +125,7 @@ export const computeFullEModelScore = (
   return computeScore(R);
 };
 
-export const computeEModelMOS = (
+const computeEModelMOS = (
   report,
   kind,
   previousReport,
@@ -141,7 +146,7 @@ export const computeEModelMOS = (
   const rx = Math.max(0, 93.2 - packetsLoss);
   const ry = 0.18 * rx * rx - 27.9 * rx + 1126.62;
 
-  const d = (rtt + jitter) / 2;
+  const d = getAbsoluteDelay(rtt, jitter);
   const h = d - 177.3 < 0 ? 0 : 1;
 
   const id = 0.024 * d + 0.11 * (d - 177.3) * h;
@@ -151,7 +156,7 @@ export const computeEModelMOS = (
   return computeScore(r, packetsLoss > 30);
 };
 
-export const computeMOS = (
+export const computeNarrowEModelScore = (
   report,
   kind,
   previousReport,
@@ -160,6 +165,11 @@ export const computeMOS = (
   direction = DIRECTION.INBOUND,
   smoothedRange = 3,
 ) => {
+  const RoFB = 93.2; // RoFB is the signal-to-noise ratio
+  const IsFB = 0; // IsFB is the simultaneous impairment factor
+  let Idd = 0; // Idd id the delay impairment factor
+  const A = 0; // A is the advantage factor
+
   const {
     currentSSRCReport,
     previousSSRCReport,
@@ -169,19 +179,38 @@ export const computeMOS = (
   const rtt = computeRTT(report, currentSSRCReport, previousReport, previousSSRCReport, beforeLastReport, beforeLastSSRCReport, kind, direction, smoothedRange);
   const jitter = computeJitter(currentSSRCReport, previousSSRCReport, beforeLastSSRCReport, kind, direction, smoothedRange);
 
-  const codecFittingParameterA = 0; // G711: 0, iLBC: 10
-  const codecFittingParameterB = 30; // G711: 30, iLBC: 19,8
-  const codecFittingParameterC = 15; // G711: 15, iLBC: 29,7
-  const ld = 30;
-  const d = (rtt + jitter) / 2 + ld;
-  const h = d - 177.3 < 0 ? 0 : 1;
+  const Ta = getAbsoluteDelay(rtt, jitter); // Overall one way delay (ms)
+  const defaultEquipmentImpairmentFactor = 95;
+  const defaultIe = 0;
+  const defaultBpl = 4.3;
+  const Iee = defaultIe + ((defaultEquipmentImpairmentFactor - defaultIe) * (packetsLoss / (packetsLoss + defaultBpl)));
 
-  const id = 0.024 * d + 0.11 * (d - 177.3) * h;
-  const ie =
-    codecFittingParameterA +
-    codecFittingParameterB * Math.log(1 + codecFittingParameterC * packetsLoss);
+  if (Ta > 100) {
+    const x = (Math.log(Ta) - Math.log(100)) / (Math.log(2));
+    const a = x ** 6;
+    const b = (1 + a) ** (1 / 6);
+    const c = (x / 3) ** 6;
+    const d = (1 + c) ** (1 / 6);
+    Idd = 25 * (b - (3 * d) + 2);
+  }
 
-  const r = 93.2 - (ie + id);
+  const Rx = RoFB - IsFB - Idd - Iee + A;
+  return computeScore(Rx);
+};
 
-  return computeScore(r);
+export const mos = (report, kind, previousReport, beforeLastReport, ssrc, direction, smoothedRange = 3) => {
+  const currentSSRCReport = getSSRCDataFromBunch(ssrc, report, direction);
+
+  const codec = direction === DIRECTION.INBOUND ? currentSSRCReport[kind].codec_in?.mime_type || null : currentSSRCReport[kind].codec_out?.mime_type;
+
+  // For Opus, compute G.107.2 MOS
+  if (codec === "opus") {
+    return computeFullEModelScore(report, kind, previousReport, beforeLastReport, ssrc, direction, smoothedRange);
+  }
+
+  // For other codecs, compute min of G.107 and G.107 simplified
+  return Math.min(
+    computeEModelMOS(report, kind, previousReport, beforeLastReport, ssrc, direction, smoothedRange),
+    computeNarrowEModelScore(report, kind, previousReport, beforeLastReport, ssrc, direction, smoothedRange),
+  );
 };

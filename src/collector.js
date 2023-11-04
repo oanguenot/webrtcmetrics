@@ -1,10 +1,6 @@
 import Exporter from "./exporter";
 import { extract, extractPassthroughFields } from "./extractor";
-import {
-  computeMOS,
-  computeEModelMOS,
-  computeFullEModelScore,
-} from "./utils/score";
+import { mos } from "./utils/score";
 import {
   COLLECTOR_STATE,
   defaultAudioMetricIn,
@@ -106,13 +102,15 @@ export default class Collector {
               ssrcReport.ssrc = data.ssrc;
               report[data.type][data.ssrc] = ssrcReport;
             }
-            Object.keys(data.value).forEach((key) => {
-              ssrcReport[key] = data.value[key];
-            });
+            Object.keys(data.value)
+              .forEach((key) => {
+                ssrcReport[key] = data.value[key];
+              });
           } else {
-            Object.keys(data.value).forEach((key) => {
-              report[data.type][key] = data.value[key];
-            });
+            Object.keys(data.value)
+              .forEach((key) => {
+                report[data.type][key] = data.value[key];
+              });
           }
         }
       });
@@ -125,61 +123,37 @@ export default class Collector {
         previousSameReport,
         this._config.passthrough,
       );
-      Object.keys(passthrough).forEach((key) => {
-        if (!report.passthrough[key]) {
-          report.passthrough[key] = {};
-        }
-        report.passthrough[key] = {
-          ...report.passthrough[key],
-          ...passthrough[key],
-        };
-      });
+      Object.keys(passthrough)
+        .forEach((key) => {
+          if (!report.passthrough[key]) {
+            report.passthrough[key] = {};
+          }
+          report.passthrough[key] = {
+            ...report.passthrough[key],
+            ...passthrough[key],
+          };
+        });
     });
     report.pname = this._config.pname;
     report.call_id = this._config.cid;
     report.user_id = this._config.uid;
     report.count = previousReport ? previousReport.count + 1 : 1;
     report.timestamp = timestamp;
-    Object.keys(report[VALUE.AUDIO]).forEach((key) => {
-      const ssrcReport = report[VALUE.AUDIO][key];
-      ssrcReport[
-        ssrcReport.direction === DIRECTION.INBOUND
-          ? "mos_emodel_in"
-          : "mos_model_out"
-      ] = computeEModelMOS(
-        report,
-        VALUE.AUDIO,
-        previousReport,
-        beforeLastReport,
-        ssrcReport.ssrc,
-        ssrcReport.direction,
-        3,
-      );
-      ssrcReport[
-        ssrcReport.direction === DIRECTION.INBOUND ? "mos_in" : "mos_out"
-      ] = computeMOS(
-        report,
-        VALUE.AUDIO,
-        previousReport,
-        beforeLastReport,
-        ssrcReport.ssrc,
-        ssrcReport.direction,
-        3,
-      );
-      ssrcReport[
-        ssrcReport.direction === DIRECTION.INBOUND
-          ? "mos_fullband_in"
-          : "mos_fullband_out"
-      ] = computeFullEModelScore(
-        report,
-        VALUE.AUDIO,
-        previousReport,
-        beforeLastReport,
-        ssrcReport.ssrc,
-        ssrcReport.direction,
-        3,
-      );
-    });
+    Object.keys(report[VALUE.AUDIO])
+      .forEach((key) => {
+        const ssrcReport = report[VALUE.AUDIO][key];
+        ssrcReport[
+          ssrcReport.direction === DIRECTION.INBOUND ? "mos_in" : "mos_out"
+          ] = mos(
+          report,
+          VALUE.AUDIO,
+          previousReport,
+          beforeLastReport,
+          ssrcReport.ssrc,
+          ssrcReport.direction,
+          3,
+        );
+      });
     return report;
   }
 
@@ -378,92 +352,92 @@ export default class Collector {
   _onIceConnectionStateChange() {
     const { pc } = this._config;
     const value = pc.iceConnectionState;
-        this.addCustomEvent({
-          at: new Date().toJSON(),
-          ended: null,
-          category: "signal",
-          name: "ice-change",
-          ssrc: null,
-          details: {
-            message: `The ICE connection state has changed to ${value}`,
-            direction: null,
-            kind: null,
-            value,
-            value_old: null,
-          },
-        });
+    this.addCustomEvent({
+      at: new Date().toJSON(),
+      ended: null,
+      category: "signal",
+      name: "ice-change",
+      ssrc: null,
+      details: {
+        message: `The ICE connection state has changed to ${value}`,
+        direction: null,
+        kind: null,
+        value,
+        value_old: null,
+      },
+    });
   }
 
   _onConnectionStateChange() {
     const { pc } = this._config;
     const value = pc.connectionState;
-        this.addCustomEvent({
-          at: new Date().toJSON(),
-          ended: null,
-          category: "signal",
-          name: "connection-change",
-          ssrc: null,
-          details: {
-            message: `The connection state has changed to ${value}`,
-            direction: null,
-            kind: null,
-            value,
-            value_old: null,
-          },
-        });
+    this.addCustomEvent({
+      at: new Date().toJSON(),
+      ended: null,
+      category: "signal",
+      name: "connection-change",
+      ssrc: null,
+      details: {
+        message: `The connection state has changed to ${value}`,
+        direction: null,
+        kind: null,
+        value,
+        value_old: null,
+      },
+    });
   }
 
   _onIceGatheringStateChange() {
     const { pc } = this._config;
     const value = pc.iceGatheringState;
-        this.addCustomEvent({
-          at: new Date().toJSON(),
-          ended: null,
-          category: "signal",
-          name: "gathering-change",
-          ssrc: null,
-          details: {
-            message: `The ICE gathering state has changed to ${value}`,
-            direction: null,
-            kind: null,
-            value,
-            value_old: null,
-          },
-        });
+    this.addCustomEvent({
+      at: new Date().toJSON(),
+      ended: null,
+      category: "signal",
+      name: "gathering-change",
+      ssrc: null,
+      details: {
+        message: `The ICE gathering state has changed to ${value}`,
+        direction: null,
+        kind: null,
+        value,
+        value_old: null,
+      },
+    });
   }
 
   _onTrack(e) {
-        this.addCustomEvent({
-          at: new Date().toJSON(),
-          ended: null,
-          category: "signal",
-          name: "track-received",
-          ssrc: null,
-          details: {
-            message: `A new inbound ${e.track.id} stream has been started`,
-            direction: "inbound",
-            kind: e.track.kind,
-            value: e.track.label,
-            value_old: null,
-          },
-        });
+    this.addCustomEvent({
+      at: new Date().toJSON(),
+      ended: null,
+      category: "signal",
+      name: "track-received",
+      ssrc: null,
+      details: {
+        message: `A new inbound ${e.track.id} stream has been started`,
+        direction: "inbound",
+        kind: e.track.kind,
+        value: e.track.label,
+        value_old: null,
+      },
+    });
   }
 
   _onNegotiationNeeded() {
-        this.addCustomEvent({
-          at: new Date().toJSON(),
-          ended: null,
-          category: "signal",
-          name: "ice-negotiation",
-          ssrc: null,
-          details: {
-            message: "A negotiation is required",
-            direction: null,
-            kind: null,
-            value: "negotiation-needed",
-            value_old: null,
-          },
-        });
+    this.addCustomEvent({
+      at: new Date().toJSON(),
+      ended: null,
+      category: "signal",
+      name: "ice-negotiation",
+      ssrc: null,
+      details: {
+        message: "A negotiation is required",
+        direction: null,
+        kind: null,
+        value: "negotiation-needed",
+        value_old: null,
+      },
+    });
   }
 
   async registerToPCEvents() {
