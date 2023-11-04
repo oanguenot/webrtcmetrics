@@ -26,7 +26,7 @@ $ yarn add webrtcmetrics
 ### Create a new instance
 
 A new instance of the WebRTCMetrics is created when calling the constructor. A JSON configuration can be set to define
-the main characteristics of the collect of the statistics.
+the main characteristics to collect the statistics.
 
 ```javascript
 import WebRTCMetrics from "webrtcmetrics";
@@ -36,8 +36,8 @@ const configuration = {
   refreshEvery: 3000,   // Optional. Refresh every 3 seconds
   startAfter: 5000,     // Optional. Start collecting stats after 5 seconds
   stopAfter: 30000,     // Optional. Stop collecting stats after 30 seconds
-  verbose: false,        // Optional. Display verbose logs or not
-  silent: true,           // Optional. No log at all if set to true
+  verbose: false,       // Optional. Display verbose logs or not
+  silent: true,         // Optional. No log at all if set to true
 };
 
 const metrics = new WebRTCMetrics(configuration);
@@ -45,15 +45,16 @@ const metrics = new WebRTCMetrics(configuration);
 
 As defined in that sample, the following parameters can be configured:
 
-- `refreshEvery`: Number. Contains the duration to wait (in milliseconds) before collecting a new set of statistics.
-  Default value is **2000**.
+- `refreshEvery`: Number. Contains the duration to wait (in milliseconds) before collecting a new set of statistics. The
+  default value is **2000**.
 
 - `startAfter`: Number. Contains the duration to wait (in milliseconds) before collecting the first set of statistics.
-  Default value is equals to 0 for starting immediately.
+  The default value is equals to 0 for starting immediately.
 
 - `stopAfter`: Number. Contains the duration to wait (in milliseconds) before stopping to collect the statistics. This
-  duration starts after the `startAfter` duration. Default value is **-1** which means that the statistics are collected
-  until the function `stop()` is called.
+  duration starts after the `startAfter` duration. The default value is **-1** which means that the statistics are
+  collected
+  until the function `end()` is called.
 
 - `verbose`: Boolean. True for displaying verbose information in the logger such as the raw statistics coming
   from `getStats`. Default is **false**.
@@ -88,14 +89,6 @@ const probe = metrics.createProbe(existingPeerConnection, {
 ```
 
 _Note:_ The `RTCPeerConnection` parameter is mandatory whereas the `configuration` parameter is optional.
-
-```typescript
-createProbe(peerConnection
-:
-RTCPeerConnection, configuration ? : Object
-):
-Probe
-```
 
 The `configuration` parameter contains the following properties:
 
@@ -146,7 +139,7 @@ metrics.onresult = (result) => {
 }
 
 // Start collecting statistics
-metrics.startAllProbes();
+metrics.run();
 
 // At any time, call ID and user ID can be updated
 probe.updateUserId('newUserID');
@@ -154,7 +147,7 @@ probe.updateCallId('newCallID');
 
 // Once the call is finished, stop the analyzer when running
 if (metrics.running) {
-  metrics.stopAllProbes();
+  metrics.end();
 }
 ```
 
@@ -169,8 +162,8 @@ parameter `startAfter` to delay the capture.
 
 Stats can be captured during a defined period or time. To do that, set a value to the parameter `stopAfter` to stop
 receiving reports after that duration given in ms. If you want to capture statistics as long as the call is running,
-omit that parameter of set the value to `-1`. In that case, you will have to call manually the method `stop()` of the
-probe to stop the collector.
+omit that parameter or set the value to `-1`. In this case, you will have to call manually the method `end()` to stop
+capturing the metrics.
 
 The first set of statistics collected (first report) is called the **reference report**. It is reported separately from
 the others (can't be received in the `onreport` event) but is used for computing statistics of the next ones (for
@@ -186,7 +179,7 @@ per type of stream (audio or video) and per direction (inbound or outbound).
 Each report contains the statistics of all streams in live. Ticket summarizes the statistics of all streams at the end
 of the call.
 
-### Creating multiples probes
+### Creating multiple probes
 
 When connecting to a conference server such as an **SFU**, you can receive multiple `RTCPeerConnection` objects. You can
 collect statistics from each by creating as many probes as needed. One for each `RTCPeerConnection`.
@@ -217,7 +210,7 @@ probe2.onticket = (result) => {
 }
 
 // Start all registered probes
-metrics.startAllProbes();
+metrics.run();
 ```
 
 ### Collecting stats from all probes
@@ -430,17 +423,17 @@ These stats are subject to change in the future
 
 ## Stop reporting
 
-At any time, calling the method `stop()` stops collecting statistics on that probe. No other reports are received.
+At any time, calling the method `end()` stops collecting statistics on probes. No other reports are received.
 
 ## Generating a ticket
 
-When calling the method `stop()` or automatically after a duration equals to `stopAfter`, a ticket is generated with the
+When calling the method `end()` or automatically after a duration equals to `stopAfter`, a ticket is generated with the
 most important information collected. This ticket is generated only if the option `ticket` has not been manually set
 to `false`.
 
-To obtain that ticket, subscribe to the event `onticket`. The callback is fired when the probe is stopped (ie: by
-calling the method `stop()`)  or after the `stopAfter`. The callback is called with a JSON parameter corresponding to
-something like a **CDR**.
+To obtain this ticket, subscribe to the event `onticket`. The callback is fired when probes are stopped (ie: by calling
+the method `end()`)  or after the `stopAfter`. The callback is called with a JSON parameter corresponding to the **CDR
+**.
 
 If the option `record` has been set to `true`, the ticket contains all the reports generated.
 
@@ -589,23 +582,6 @@ metrics.createProbe(secondPeerConnection);
 
 // Get the list of existing probes
 const probes = metrics.probes;
-```
-
-Probes can be started and stopped all together.
-
-```javascript
-import WebRTCMetrics from "webrtcmetrics";
-
-const metrics = new WebRTCMetrics();
-
-metrics.createProbe(firstPeerConnection);
-metrics.createProbe(secondPeerConnection);
-
-// Start all probes
-metrics.startAllProbes();
-
-// Stop all probes
-metrics.stopAllProbes();
 ```
 
 ### Events and custom events

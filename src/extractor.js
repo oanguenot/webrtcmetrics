@@ -1390,9 +1390,6 @@ export const extract = (bunch, previousBunch, pname, referenceReport, raw, oldRa
     case TYPE.MEDIA_SOURCE: {
       break;
     }
-    case TYPE.TRACK: {
-      break;
-    }
     case TYPE.CODEC:
       const result = [];
       // Check for Audio codec

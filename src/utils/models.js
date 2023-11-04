@@ -320,7 +320,6 @@ export const TYPE = {
   REMOTE_CANDIDATE: "remote-candidate",
   REMOTE_INBOUND_RTP: "remote-inbound-rtp",
   REMOTE_OUTBOUND_RTP: "remote-outbound-rtp",
-  TRACK: "track",
   TRANSPORT: "transport",
 };
 

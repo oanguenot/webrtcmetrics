@@ -65,13 +65,29 @@ export default class WebRTCMetrics {
    * Start all probes
    */
   startAllProbes() {
-    this._engine.start();
+    console.warn("This method is deprecated and will be removed soon");
+    this.run();
   }
 
   /**
    * Stop all probes
    */
    stopAllProbes() {
+    console.warn("This method is deprecated and will be removed soon");
+    this.end();
+  }
+
+  /**
+   * Start capturing metrics
+   */
+  run() {
+    this._engine.start();
+  }
+
+  /**
+   * Stop capturing metrics
+   */
+  end() {
     this._engine.stop();
   }
 
