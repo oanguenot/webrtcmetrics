@@ -307,6 +307,7 @@ export const defaultConfig = {
   record: false, // Default - no record,
   ticket: true, // Default - ticket generated and so all reports are kept
   passthrough: {}, // Access to specific fields directly from the stack {"inbound-rtp": ["jitter", "bytesReceived"]}
+  disablePeerConnectionEvents: false, // Default - capture peer connection events
 };
 
 export const TYPE = {

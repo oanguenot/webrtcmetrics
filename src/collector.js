@@ -448,7 +448,9 @@ export default class Collector {
     debug(this._moduleName, "starting");
     this._oldReports = null;
     this._exporter.reset();
-    await this.registerToPCEvents();
+    if (!this._config.disablePeerConnectionEvents) {
+      await this.registerToPCEvents();
+    }
     this.state = COLLECTOR_STATE.RUNNING;
     this._exporter.start();
     debug(this._moduleName, "started");
@@ -467,7 +469,9 @@ export default class Collector {
   async stop(forced) {
     debug(this._moduleName, `stopping${forced ? " by watchdog" : ""}...`);
     this._exporter.stop();
-    this.unregisterToPCEvents();
+    if (!this._config.disablePeerConnectionEvents) {
+      this.unregisterToPCEvents();
+    }
     this.state = COLLECTOR_STATE.IDLE;
 
     if (this._config.ticket) {

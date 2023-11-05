@@ -84,7 +84,8 @@ const probe = metrics.createProbe(existingPeerConnection, {
   uid: 'jdoe@mycorp.com',     // Optional. User Id
   ticket: true,               // Optional. Generate a ticket at the end of the call or not.
   record: true,               // Optional. Record reports in the ticket or not. 
-  passthrough: { "inbound-rtp": ["audioLevel"] }   // Optional. Get any properties from the reports
+  passthrough: { "inbound-rtp": ["audioLevel"] },   // Optional. Get any properties from the reports
+  disablePeerConnectionEvents: true // Optional. Disable the peer connection events
 });
 ```
 
@@ -105,6 +106,11 @@ The `configuration` parameter contains the following properties:
 
 - `record`: Boolean. True to link all reports generated to the ticket. This allows to access to all reports individually
   after the call. Default is **false**.
+
+- `passthrough`: Object. The list of statistics to collect. See paragraph **PassThrough** for more information.
+
+- `disablePeerConnectionEvents`: Boolean. True to disable collecting the Peer Connection events such as the **signaling
+  state events**. Default is **false**.
 
 ### Probe lifecycle
 
